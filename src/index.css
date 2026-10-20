@@ -127,5 +127,7 @@
     }
   html {
     @apply font-sans;
+    /* Everything is sized in rem, so this scales all text (and spacing) together. 100% = 16px. */
+    font-size: 112.5%;
     }
 }
