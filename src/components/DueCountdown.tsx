@@ -1,6 +1,6 @@
 import { ClockIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { daysUntil, formatLongDate } from '@/lib/key-dates'
+import { daysUntil } from '@/lib/key-dates'
 
 type Urgency = 'calm' | 'soon' | 'close' | 'urgent'
 
@@ -14,7 +14,7 @@ const STYLES: Record<Urgency, string> = {
 }
 
 /** A slim banner counting down to the proposal due date. */
-export function DueCountdown({ dueDate, inferred }: { dueDate: string; inferred: boolean }) {
+export function DueCountdown({ dueDate }: { dueDate: string }) {
   const days = daysUntil(dueDate)
   const count = Math.abs(days)
   const unit = count === 1 ? 'day' : 'days'
@@ -29,10 +29,6 @@ export function DueCountdown({ dueDate, inferred }: { dueDate: string; inferred:
     >
       <ClockIcon className="size-4 shrink-0" aria-hidden />
       <span className="font-semibold">{message}</span>
-      <span className="opacity-80">
-        · {formatLongDate(dueDate)}
-        {inferred && ' (from the RFP)'}
-      </span>
     </div>
   )
 }

@@ -60,7 +60,7 @@ export default function RfpPage() {
       </div>
 
       {data.due_date && ['evaluating', 'questions', 'proposal'].includes(status) && (
-        <DueCountdown dueDate={data.due_date} inferred={data.due_date_source === 'inferred'} />
+        <DueCountdown dueDate={data.due_date} />
       )}
 
       <Card>
