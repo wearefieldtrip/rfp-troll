@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { ReviewReport } from '@/components/ReviewReport'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import { invokeFunction } from '@/lib/functions'
 import { rfpReviewsQuery } from '@/lib/queries'
@@ -14,6 +16,7 @@ const startReview = (rfpId: string) => invokeFunction('review-rfp', { rfp_id: rf
 
 export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocuments: boolean }) {
   const queryClient = useQueryClient()
+  const [confirming, setConfirming] = useState(false)
   const reviews = useQuery(rfpReviewsQuery(rfpId))
   const start = useMutation({
     mutationFn: () => startReview(rfpId),
@@ -24,12 +27,34 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
   const running = latest?.status === 'running'
   const author = latest?.profiles?.full_name ?? latest?.profiles?.email
 
+  const confirmRun = () => {
+    setConfirming(false)
+    start.mutate()
+  }
+
   return (
     <Card>
+      <Dialog open={confirming} onOpenChange={setConfirming}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{latest ? 'Run the fit review again?' : 'Run the fit review?'}</DialogTitle>
+            <DialogDescription>
+              Claude will read this RFP against your current rubric. Each review uses paid AI credits, so it's best to run it
+              when you're ready{latest ? ', and only if something has changed since the last one' : ''}.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmRun}>{latest ? 'Run again' : 'Run review'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <CardHeader>
         <CardTitle>Fit review</CardTitle>
         <CardAction>
-          <Button size="sm" disabled={!hasDocuments || running || start.isPending} onClick={() => start.mutate()}>
+          <Button size="sm" disabled={!hasDocuments || running || start.isPending} onClick={() => setConfirming(true)}>
             {running || start.isPending ? 'Reviewing…' : latest ? 'Run again' : 'Run fit review'}
           </Button>
         </CardAction>
