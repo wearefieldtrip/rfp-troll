@@ -7,7 +7,9 @@ export type FitTone = 'green' | 'yellow' | 'orange' | 'red'
 export function fitTone(band: string | null, total: number | null, max: number | null): FitTone | null {
   const label = (band ?? '').toLowerCase()
 
-  if (/\bno[\s-]?go\b|\bpass\b|\bdecline\b/.test(label)) return /likely|probabl|lean/.test(label) ? 'orange' : 'red'
+  // Negative wording first, so "Do not proceed" is never mistaken for a go.
+  if (/\bno[\s-]?go\b|\bdo not\b|\bdon't\b|\bnot recommended\b|\bstop\b|\bpass\b|\bdecline\b/.test(label))
+    return /likely|probabl|lean/.test(label) ? 'orange' : 'red'
   if (/conditional|maybe|possible|caution|\bif\b/.test(label)) return 'yellow'
   if (/\bgo\b|proceed|pursue/.test(label)) return 'green'
 
