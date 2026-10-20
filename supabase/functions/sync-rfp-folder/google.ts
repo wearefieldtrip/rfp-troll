@@ -87,13 +87,14 @@ export async function downloadFile(fileId: string): Promise<ArrayBuffer> {
   return await res.arrayBuffer();
 }
 
-export async function trashFile(fileId: string): Promise<void> {
+/** Moves a file or folder to the Drive trash (recoverable), or restores it with trashed = false. */
+export async function trashFile(fileId: string, trashed = true): Promise<void> {
   const res = await fetch(`${DRIVE}/files/${fileId}?supportsAllDrives=true`, {
     method: "PATCH",
     headers: await authHeaders({ "Content-Type": "application/json" }),
-    body: JSON.stringify({ trashed: true }),
+    body: JSON.stringify({ trashed }),
   });
-  if (!res.ok) throw await failure(res, "trash a file");
+  if (!res.ok) throw await failure(res, trashed ? "trash a file" : "restore a file");
 }
 
 export async function listChildren(parentId: string): Promise<{ id: string; name: string; mimeType: string }[]> {

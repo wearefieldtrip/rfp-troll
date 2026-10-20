@@ -3,13 +3,14 @@ import { LoaderCircleIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
+import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { ReviewSection } from '@/components/ReviewSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
-import { rfpDocumentsQuery, rfpQuery } from '@/lib/queries'
+import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
 import {
   ACCEPT_ATTR,
   formatBytes,
@@ -32,6 +33,7 @@ export default function RfpPage() {
   const rfp = useQuery(rfpQuery(id))
   const syncing = rfp.data?.drive_status === 'syncing'
   const documents = useQuery({ ...rfpDocumentsQuery(id), refetchInterval: syncing ? 2500 : false })
+  const reviews = useQuery(rfpReviewsQuery(id))
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['rfps', id] })
 
   const upload = useMutation({
@@ -166,6 +168,20 @@ export default function RfpPage() {
 
       <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
       {status === 'evaluating' && <DecisionCard rfpId={id} />}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Delete RFP</CardTitle>
+        </CardHeader>
+        <CardContent className="flex items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">Permanently remove this RFP from RFP Buddy.</p>
+          <DeleteRfpDialog
+            rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
+            documentCount={documents.data?.length ?? 0}
+            reviewCount={reviews.data?.length ?? 0}
+          />
+        </CardContent>
+      </Card>
     </div>
   )
 }
