@@ -14,6 +14,17 @@ import { asKeyDates, formatLongDate } from '@/lib/key-dates'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
 
+/** A date, or a clear "Date not specified" with any explanation the RFP gave (for example, no questions accepted). */
+function DateValue({ date, time, note }: { date?: string | null; time?: string | null; note?: string }) {
+  if (date) return <>{formatLongDate(date) + (time ? `, ${time}` : '')}</>
+  return (
+    <>
+      <span className="text-muted-foreground">Date not specified</span>
+      {note && <span className="mt-1 block text-xs text-muted-foreground italic">{note}</span>}
+    </>
+  )
+}
+
 export default function RfpPage() {
   const { id = '' } = useParams()
   const queryClient = useQueryClient()
@@ -32,6 +43,8 @@ export default function RfpPage() {
   const data = rfp.data
   const status = data.status as RfpStatus
   const keyDates = asKeyDates(data.key_dates)
+  const questionsDue = keyDates.find((d) => d.label === 'Questions due')
+  const vendorSelection = keyDates.find((d) => d.label === 'Vendor selection (anticipated)')
   const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
 
   return (
@@ -65,38 +78,34 @@ export default function RfpPage() {
               Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit to add them.
             </p>
           )}
-          <dl className="grid grid-cols-[8rem_1fr] gap-y-2 text-sm">
+          <dl className="grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
             <dt className="text-muted-foreground">Client</dt>
             <dd>{data.client_name ?? '—'}</dd>
-            <dt className="text-muted-foreground">Proposal due</dt>
-            <dd>
-              {data.due_date ? formatLongDate(data.due_date) : '—'}
-              {data.due_date && data.due_date_source === 'inferred' && (
-                <Badge variant="outline" className="ml-2">
-                  From the RFP
-                </Badge>
-              )}
-              {data.due_date_source === 'inferred' && data.due_date_evidence && (
-                <span className="mt-1 block text-xs text-muted-foreground italic">{data.due_date_evidence}</span>
-              )}
-            </dd>
+            {!reading && (
+              <>
+                <dt className="text-muted-foreground">Proposal due</dt>
+                <dd>
+                  <DateValue date={data.due_date} time={null} />
+                  {data.due_date && data.due_date_source === 'inferred' && (
+                    <Badge variant="outline" className="ml-2">
+                      From the RFP
+                    </Badge>
+                  )}
+                  {data.due_date_source === 'inferred' && data.due_date_evidence && (
+                    <span className="mt-1 block text-xs text-muted-foreground italic">{data.due_date_evidence}</span>
+                  )}
+                </dd>
+                <dt className="text-muted-foreground">Questions due</dt>
+                <dd>
+                  <DateValue date={questionsDue?.date} time={questionsDue?.time} note={questionsDue?.evidence} />
+                </dd>
+                <dt className="text-muted-foreground">Vendor selection</dt>
+                <dd>
+                  <DateValue date={vendorSelection?.date} time={vendorSelection?.time} note={vendorSelection?.evidence} />
+                </dd>
+              </>
+            )}
           </dl>
-          {keyDates.length > 0 && (
-            <div className="space-y-1 border-t pt-3 text-sm">
-              <p className="font-medium">Other dates in the RFP</p>
-              <dl className="grid grid-cols-[8rem_1fr] gap-y-1">
-                {keyDates.map((d) => (
-                  <div key={`${d.label}-${d.date}`} className="contents">
-                    <dt className="text-muted-foreground">{d.label}</dt>
-                    <dd>
-                      {d.date ? formatLongDate(d.date) : <span className="text-muted-foreground italic">{d.evidence}</span>}
-                      {d.date && d.time ? `, ${d.time}` : ''}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          )}
         </CardContent>
       </Card>
 
