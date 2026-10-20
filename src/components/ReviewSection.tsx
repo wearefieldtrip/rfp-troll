@@ -24,6 +24,8 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
   })
 
   const latest = reviews.data?.[0]
+  // Only a repeat run asks first; the first review starts right away.
+  const hasCompletedReview = reviews.data?.some((r) => r.status === 'complete') ?? false
   const running = latest?.status === 'running'
   const author = latest?.profiles?.full_name ?? latest?.profiles?.email
 
@@ -37,24 +39,24 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
       <Dialog open={confirming} onOpenChange={setConfirming}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{latest ? 'Run the fit review again?' : 'Run the fit review?'}</DialogTitle>
+            <DialogTitle>Run the fit review again?</DialogTitle>
             <DialogDescription>
-              This reads the RFP against your current rubric. Each review uses paid AI credits, so it's best to run it
-              when you're ready{latest ? ', and only if something has changed since the last one' : ''}.
+              This RFP already has a fit review. Running it again reads the RFP against your current rubric and uses more paid AI
+              credits, so it's best to do it only if something has changed.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirming(false)}>
               Cancel
             </Button>
-            <Button onClick={confirmRun}>{latest ? 'Run again' : 'Run review'}</Button>
+            <Button onClick={confirmRun}>Run again</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
       <CardHeader>
         <CardTitle>Fit review</CardTitle>
         <CardAction>
-          <Button size="sm" disabled={!hasDocuments || running || start.isPending} onClick={() => setConfirming(true)}>
+          <Button size="sm" disabled={!hasDocuments || running || start.isPending} onClick={() => (hasCompletedReview ? setConfirming(true) : start.mutate())}>
             {running || start.isPending ? 'Reviewing…' : latest ? 'Run again' : 'Run fit review'}
           </Button>
         </CardAction>
