@@ -2,12 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { syncRfpFolder } from '@/lib/functions'
 import { ACCEPT_ATTR, isAcceptedFile, uploadRfpFiles } from '@/lib/rfp-files'
 import { supabase } from '@/lib/supabase'
+
+const titleFromFileName = (name: string) => name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim() || 'New RFP'
 
 export function NewRfpDialog() {
   const [open, setOpen] = useState(false)
@@ -16,22 +18,17 @@ export function NewRfpDialog() {
   const navigate = useNavigate()
 
   const create = useMutation({
-    mutationFn: async (form: FormData) => {
-      const text = (key: string) => ((form.get(key) as string) ?? '').trim() || null
-      const files = (form.getAll('files') as File[]).filter((f) => f.size > 0)
-
+    mutationFn: async (file: File) => {
+      // The title is provisional; it is replaced with the real one read from the RFP.
       const { data, error } = await supabase
         .from('rfps')
-        .insert({
-          title: text('title')!,
-          client_name: text('client_name'),
-        })
+        .insert({ title: titleFromFileName(file.name), extract_status: 'pending' })
         .select('id')
         .single()
       if (error) throw error
 
       // The RFP exists even if an upload or the Drive step fails; its page shows the state and lets them retry.
-      await uploadRfpFiles(data.id, files).catch(() => undefined)
+      await uploadRfpFiles(data.id, [file]).catch(() => undefined)
       await syncRfpFolder(data.id).catch(() => undefined)
       return data.id
     },
@@ -44,14 +41,17 @@ export function NewRfpDialog() {
 
   const onSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const form = new FormData(e.currentTarget)
-    const bad = (form.getAll('files') as File[]).find((f) => f.size > 0 && !isAcceptedFile(f))
-    if (bad) {
-      setFileError(`${bad.name} isn't a supported file type.`)
+    const file = new FormData(e.currentTarget).get('file') as File | null
+    if (!file || file.size === 0) {
+      setFileError('Choose the RFP to upload.')
+      return
+    }
+    if (!isAcceptedFile(file)) {
+      setFileError(`${file.name} isn't a supported file type.`)
       return
     }
     setFileError(null)
-    create.mutate(form)
+    create.mutate(file)
   }
 
   return (
@@ -60,26 +60,21 @@ export function NewRfpDialog() {
       <DialogContent>
         <DialogHeader>
           <DialogTitle>New RFP</DialogTitle>
+          <DialogDescription>
+            The title, client and due date are read from the RFP, and its Drive folder is created for you.
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="client_name">Client</Label>
-            <Input id="client_name" name="client_name" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="files">Upload RFP</Label>
-            <Input id="files" name="files" type="file" accept={ACCEPT_ATTR} />
+            <Label htmlFor="file">Upload RFP</Label>
+            <Input id="file" name="file" type="file" accept={ACCEPT_ATTR} />
             <p className="text-xs text-muted-foreground">PDF, Word (.docx), text or Markdown. Up to 50 MB.</p>
           </div>
           {fileError && <p className="text-sm text-destructive">{fileError}</p>}
           {create.error && <p className="text-sm text-destructive">Could not save. Please try again.</p>}
           <DialogFooter>
             <Button type="submit" disabled={create.isPending}>
-              {create.isPending ? 'Saving…' : 'Add RFP'}
+              {create.isPending ? 'Uploading…' : 'Add RFP'}
             </Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { extractRfpDetails } from "./extract.ts";
 import { createFolder, uploadFile } from "./google.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -25,6 +26,7 @@ type Rfp = {
   client_name: string | null;
   drive_folder_id: string | null;
   drive_rfp_subfolder_id: string | null;
+  extract_status: string;
 };
 
 const MIME_BY_EXTENSION: Record<string, string> = {
@@ -34,10 +36,50 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   md: "text/markdown",
 };
 
+/** Best-effort: a failure here never blocks the folder; the team can fix the details by hand. */
+async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
+  try {
+    const { data: staged } = await supabase
+      .from("rfp_documents")
+      .select("file_name, storage_path")
+      .eq("rfp_id", rfp.id)
+      .is("drive_file_id", null);
+
+    const files = [];
+    for (const doc of staged ?? []) {
+      const { data: blob } = await supabase.storage.from("rfp-documents").download(doc.storage_path);
+      if (blob) files.push({ name: doc.file_name, bytes: await blob.arrayBuffer() });
+    }
+
+    const details = await extractRfpDetails(files);
+    const patch: Record<string, unknown> = { extract_status: "done", extract_error: null, key_dates: details.key_dates };
+
+    if (details.title.trim()) patch.title = details.title.trim();
+    if (details.issuing_organization.trim() && !rfp.client_name) patch.client_name = details.issuing_organization.trim();
+    if (details.proposal_due.date) {
+      patch.due_date = details.proposal_due.date;
+      patch.due_date_source = "inferred";
+      patch.due_date_evidence = [details.proposal_due.time, details.proposal_due.evidence].filter(Boolean).join(" — ") || null;
+    }
+
+    await supabase.from("rfps").update(patch).eq("id", rfp.id);
+    // The folder name is built from these.
+    rfp.title = (patch.title as string | undefined) ?? rfp.title;
+    rfp.client_name = (patch.client_name as string | undefined) ?? rfp.client_name;
+  } catch (err) {
+    console.error("extraction failed", err);
+    const message = err instanceof Error ? err.message : "The details could not be read.";
+    await supabase.from("rfps").update({ extract_status: "failed", extract_error: message }).eq("id", rfp.id);
+  }
+}
+
 async function sync(supabase: SupabaseClient, rfp: Rfp) {
   const setStatus = (patch: Record<string, unknown>) => supabase.from("rfps").update(patch).eq("id", rfp.id);
 
   try {
+    // A new upload starts with a provisional title. Read the real details first so the folder is named properly.
+    if (rfp.extract_status === "pending") await extractDetails(supabase, rfp);
+
     let folderId = rfp.drive_folder_id;
     let rfpSubfolderId = rfp.drive_rfp_subfolder_id;
 
@@ -104,7 +146,7 @@ Deno.serve(async (req) => {
 
   const { data: rfp, error } = await supabase
     .from("rfps")
-    .select("id, title, client_name, drive_folder_id, drive_rfp_subfolder_id, drive_status, updated_at")
+    .select("id, title, client_name, drive_folder_id, drive_rfp_subfolder_id, extract_status, drive_status, updated_at")
     .eq("id", rfp_id)
     .single();
   if (error || !rfp) return json({ error: "RFP not found" }, 404);

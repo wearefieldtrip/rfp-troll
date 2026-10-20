@@ -22,6 +22,11 @@ export type Database = {
           drive_rfp_subfolder_id: string | null
           drive_status: string
           due_date: string | null
+          due_date_evidence: string | null
+          due_date_source: string | null
+          extract_error: string | null
+          extract_status: string
+          key_dates: Json
           id: string
           outcome_notes: string | null
           passed_at: string | null
@@ -43,6 +48,11 @@ export type Database = {
           drive_rfp_subfolder_id?: string | null
           drive_status?: string
           due_date?: string | null
+          due_date_evidence?: string | null
+          due_date_source?: string | null
+          extract_error?: string | null
+          extract_status?: string
+          key_dates?: Json
           id?: string
           outcome_notes?: string | null
           passed_at?: string | null

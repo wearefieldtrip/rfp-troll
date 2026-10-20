@@ -4,12 +4,14 @@ import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
+import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { ReviewSection } from '@/components/ReviewSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
+import { asKeyDates, formatLongDate } from '@/lib/key-dates'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
 import {
   ACCEPT_ATTR,
@@ -20,9 +22,6 @@ import {
   uploadRfpFiles,
 } from '@/lib/rfp-files'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
-
-const formatDate = (date: string | null) =>
-  date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) : '—'
 
 export default function RfpPage() {
   const { id = '' } = useParams()
@@ -61,6 +60,8 @@ export default function RfpPage() {
 
   const data = rfp.data
   const status = data.status as RfpStatus
+  const keyDates = asKeyDates(data.key_dates)
+  const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -75,16 +76,54 @@ export default function RfpPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex-row items-center justify-between">
           <CardTitle>Details</CardTitle>
+          <EditRfpDialog rfp={{ id, title: data.title, client_name: data.client_name, due_date: data.due_date }} />
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
+          {reading && (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
+              Reading the RFP for its title, client and dates…
+            </p>
+          )}
+          {data.extract_status === 'failed' && (
+            <p className="text-sm text-muted-foreground">
+              Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit to add them.
+            </p>
+          )}
           <dl className="grid grid-cols-[8rem_1fr] gap-y-2 text-sm">
             <dt className="text-muted-foreground">Client</dt>
             <dd>{data.client_name ?? '—'}</dd>
             <dt className="text-muted-foreground">Proposal due</dt>
-            <dd>{formatDate(data.due_date)}</dd>
+            <dd>
+              {data.due_date ? formatLongDate(data.due_date) : '—'}
+              {data.due_date && data.due_date_source === 'inferred' && (
+                <Badge variant="outline" className="ml-2">
+                  From the RFP
+                </Badge>
+              )}
+              {data.due_date_source === 'inferred' && data.due_date_evidence && (
+                <span className="mt-1 block text-xs text-muted-foreground italic">{data.due_date_evidence}</span>
+              )}
+            </dd>
           </dl>
+          {keyDates.length > 0 && (
+            <div className="space-y-1 border-t pt-3 text-sm">
+              <p className="font-medium">Other dates in the RFP</p>
+              <dl className="grid grid-cols-[8rem_1fr] gap-y-1">
+                {keyDates.map((d) => (
+                  <div key={`${d.label}-${d.date}`} className="contents">
+                    <dt className="text-muted-foreground">{d.label}</dt>
+                    <dd>
+                      {d.date ? formatLongDate(d.date) : <span className="text-muted-foreground italic">{d.evidence}</span>}
+                      {d.date && d.time ? `, ${d.time}` : ''}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
         </CardContent>
       </Card>
 
