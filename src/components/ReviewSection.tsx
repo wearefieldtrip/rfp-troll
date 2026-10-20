@@ -39,7 +39,7 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
           <DialogHeader>
             <DialogTitle>{latest ? 'Run the fit review again?' : 'Run the fit review?'}</DialogTitle>
             <DialogDescription>
-              Claude will read this RFP against your current rubric. Each review uses paid AI credits, so it's best to run it
+              This reads the RFP against your current rubric. Each review uses paid AI credits, so it's best to run it
               when you're ready{latest ? ', and only if something has changed since the last one' : ''}.
             </DialogDescription>
           </DialogHeader>
