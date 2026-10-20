@@ -1,5 +1,8 @@
 import { FitBadge } from '@/components/FitBadge'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { fitTone, scoreTone, TONE_CLASSES } from '@/lib/fit-tone'
+import { cn } from '@/lib/utils'
 import type { ReviewResult } from '@/lib/review-result'
 
 function BulletList({ items }: { items: string[] }) {
@@ -14,6 +17,8 @@ function BulletList({ items }: { items: string[] }) {
 
 export function ReviewReport({ result, totalScore }: { result: ReviewResult; totalScore: number }) {
   // Client and proposal due date already appear in the Details card.
+  const totalTone = fitTone(result.decision_band, totalScore, result.max_total)
+
   const extracted = Object.entries({
     Budget: result.extracted.budget,
     Timeline: result.extracted.project_timeline,
@@ -23,7 +28,7 @@ export function ReviewReport({ result, totalScore }: { result: ReviewResult; tot
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <span className="text-3xl font-semibold">
+        <span className={cn('text-3xl font-semibold', totalTone && TONE_CLASSES[totalTone].text)}>
           {totalScore}
           <span className="text-lg text-muted-foreground"> / {result.max_total}</span>
         </span>
@@ -50,8 +55,10 @@ export function ReviewReport({ result, totalScore }: { result: ReviewResult; tot
         <Card key={d.title}>
           <CardHeader>
             <CardTitle>{d.title}</CardTitle>
-            <CardAction className="font-semibold">
-              {d.score} / {d.max_score}
+            <CardAction>
+              <Badge variant="outline" className={cn('px-2.5 py-0.5 text-sm font-semibold', TONE_CLASSES[scoreTone(d.score, d.max_score)].badge)}>
+                {d.score} / {d.max_score}
+              </Badge>
             </CardAction>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
