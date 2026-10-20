@@ -52,6 +52,42 @@ export type Database = {
           { foreignKeyName: 'rfp_documents_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
         ]
       }
+      rfp_reviews: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          decision_band: string | null
+          error: string | null
+          id: string
+          model: string | null
+          result: Json | null
+          rfp_id: string
+          rubric_id: string
+          status: string
+          total_score: number | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          decision_band?: string | null
+          error?: string | null
+          id?: string
+          model?: string | null
+          result?: Json | null
+          rfp_id: string
+          rubric_id: string
+          status?: string
+          total_score?: number | null
+        }
+        Update: Partial<Database['public']['Tables']['rfp_reviews']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'rfp_reviews_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_reviews_rubric_id_fkey'; columns: ['rubric_id']; isOneToOne: false; referencedRelation: 'rubrics'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_reviews_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
+      }
       rubrics: {
         Row: { content: string; created_at: string; created_by: string | null; id: string; is_active: boolean; version: number }
         Insert: { content: string; created_at?: string; created_by?: string | null; id?: string; is_active?: boolean; version: number }

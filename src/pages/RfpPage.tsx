@@ -4,6 +4,8 @@ import { useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DecisionCard } from '@/components/DecisionCard'
+import { ReviewSection } from '@/components/ReviewSection'
 import { Skeleton } from '@/components/ui/skeleton'
 import { rfpDocumentsQuery, rfpQuery } from '@/lib/queries'
 import {
@@ -128,6 +130,9 @@ export default function RfpPage() {
           )}
         </CardContent>
       </Card>
+
+      <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
+      {status === 'evaluating' && <DecisionCard rfpId={id} />}
     </div>
   )
 }
