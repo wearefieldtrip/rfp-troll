@@ -72,7 +72,7 @@ export function NewRfpDialog() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="files">Upload RFP</Label>
-            <Input id="files" name="files" type="file" multiple accept={ACCEPT_ATTR} />
+            <Input id="files" name="files" type="file" accept={ACCEPT_ATTR} />
             <p className="text-xs text-muted-foreground">PDF, Word (.docx), text or Markdown. Up to 50 MB.</p>
           </div>
           {fileError && <p className="text-sm text-destructive">{fileError}</p>}
