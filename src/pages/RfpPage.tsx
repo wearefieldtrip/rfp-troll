@@ -135,7 +135,9 @@ export default function RfpPage() {
       </Card>
 
       <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
-      {status === 'evaluating' && <DecisionCard rfpId={id} />}
+      {status === 'evaluating' && (
+        <DecisionCard rfpId={id} enabled={reviews.data?.some((r) => r.status === 'complete') ?? false} />
+      )}
 
       <Card>
         <CardHeader>

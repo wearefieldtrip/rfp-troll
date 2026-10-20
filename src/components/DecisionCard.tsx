@@ -6,7 +6,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { invokeFunction } from '@/lib/functions'
 import { supabase } from '@/lib/supabase'
 
-export function DecisionCard({ rfpId }: { rfpId: string }) {
+/** `enabled` is false until a fit review has completed, so the decision is made with the review in hand. */
+export function DecisionCard({ rfpId, enabled }: { rfpId: string; enabled: boolean }) {
   const queryClient = useQueryClient()
   const [passing, setPassing] = useState(false)
   const [reason, setReason] = useState('')
@@ -27,16 +28,18 @@ export function DecisionCard({ rfpId }: { rfpId: string }) {
     onSuccess: invalidate,
   })
 
-  const busy = moveForward.isPending || pass.isPending
+  const busy = !enabled || moveForward.isPending || pass.isPending
   const error = moveForward.error ?? pass.error
 
   return (
-    <Card>
+    <Card aria-disabled={!enabled} className={enabled ? undefined : 'opacity-60'}>
       <CardHeader>
         <CardTitle>Decision</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">The review is a recommendation. This is your call.</p>
+        <p className="text-sm text-muted-foreground">
+          {enabled ? 'The review is a recommendation. This is your call.' : 'Run a fit review first. Then decide whether to move forward or pass.'}
+        </p>
         {passing ? (
           <div className="space-y-3">
             <Textarea
@@ -62,7 +65,7 @@ export function DecisionCard({ rfpId }: { rfpId: string }) {
             <Button disabled={busy} onClick={() => moveForward.mutate()}>
               Move forward
             </Button>
-            <Button variant="outline" onClick={() => setPassing(true)}>
+            <Button variant="outline" disabled={busy} onClick={() => setPassing(true)}>
               Pass
             </Button>
           </div>
