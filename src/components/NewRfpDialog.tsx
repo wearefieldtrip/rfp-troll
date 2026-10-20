@@ -26,7 +26,6 @@ export function NewRfpDialog() {
           title: text('title')!,
           client_name: text('client_name'),
           due_date: text('due_date'),
-          source_url: text('source_url'),
         })
         .select('id')
         .single()
@@ -77,11 +76,7 @@ export function NewRfpDialog() {
             <Input id="due_date" name="due_date" type="date" />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="source_url">Link to RFP</Label>
-            <Input id="source_url" name="source_url" type="url" placeholder="https://" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="files">RFP documents</Label>
+            <Label htmlFor="files">Upload RFP</Label>
             <Input id="files" name="files" type="file" multiple accept={ACCEPT_ATTR} />
             <p className="text-xs text-muted-foreground">PDF, Word (.docx), text or Markdown. Up to 50 MB each.</p>
           </div>

@@ -81,16 +81,6 @@ export default function RfpPage() {
             <dd>{data.client_name ?? '—'}</dd>
             <dt className="text-muted-foreground">Proposal due</dt>
             <dd>{formatDate(data.due_date)}</dd>
-            <dt className="text-muted-foreground">Link</dt>
-            <dd>
-              {data.source_url ? (
-                <a href={data.source_url} target="_blank" rel="noreferrer" className="text-primary underline">
-                  {data.source_url}
-                </a>
-              ) : (
-                '—'
-              )}
-            </dd>
           </dl>
         </CardContent>
       </Card>
