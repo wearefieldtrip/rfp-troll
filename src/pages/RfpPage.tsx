@@ -152,12 +152,12 @@ export default function RfpPage() {
         <DecisionCard rfpId={id} enabled={reviews.data?.some((r) => r.status === 'complete') ?? false} />
       )}
 
-      <Card>
+      <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40">
         <CardHeader>
-          <CardTitle>Delete RFP</CardTitle>
+          <CardTitle className="text-red-900 dark:text-red-200">Delete RFP</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">Permanently remove this RFP from RFP Buddy.</p>
+          <p className="text-sm text-red-900/80 dark:text-red-200/80">Permanently remove this RFP from RFP Buddy.</p>
           <DeleteRfpDialog
             rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
             documentCount={documents.data?.length ?? 0}
