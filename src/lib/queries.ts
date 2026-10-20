@@ -10,6 +10,30 @@ export const rfpsQuery = queryOptions({
   },
 })
 
+export const rfpQuery = (id: string) =>
+  queryOptions({
+    queryKey: ['rfps', id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('rfps').select('*').eq('id', id).single()
+      if (error) throw error
+      return data
+    },
+  })
+
+export const rfpDocumentsQuery = (rfpId: string) =>
+  queryOptions({
+    queryKey: ['rfps', rfpId, 'documents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rfp_documents')
+        .select('*')
+        .eq('rfp_id', rfpId)
+        .order('created_at', { ascending: true })
+      if (error) throw error
+      return data
+    },
+  })
+
 export const rubricVersionsQuery = queryOptions({
   queryKey: ['rubric', 'versions'],
   queryFn: async () => {

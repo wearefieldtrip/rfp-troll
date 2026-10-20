@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -40,7 +41,11 @@ export default function HomePage() {
               const status = rfp.status as RfpStatus
               return (
                 <TableRow key={rfp.id}>
-                  <TableCell className="font-medium">{rfp.title}</TableCell>
+                  <TableCell className="font-medium">
+                    <Link to={`/rfps/${rfp.id}`} className="hover:underline">
+                      {rfp.title}
+                    </Link>
+                  </TableCell>
                   <TableCell>{rfp.client_name ?? '—'}</TableCell>
                   <TableCell>{formatDate(rfp.due_date)}</TableCell>
                   <TableCell>

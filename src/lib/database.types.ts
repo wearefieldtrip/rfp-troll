@@ -44,6 +44,14 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['rfps']['Insert']>
         Relationships: []
       }
+      rfp_documents: {
+        Row: { created_at: string; file_name: string; id: string; mime_type: string | null; rfp_id: string; size_bytes: number | null; storage_path: string; uploaded_by: string | null }
+        Insert: { created_at?: string; file_name: string; id?: string; mime_type?: string | null; rfp_id: string; size_bytes?: number | null; storage_path: string; uploaded_by?: string | null }
+        Update: Partial<Database['public']['Tables']['rfp_documents']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'rfp_documents_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
+        ]
+      }
       rubrics: {
         Row: { content: string; created_at: string; created_by: string | null; id: string; is_active: boolean; version: number }
         Insert: { content: string; created_at?: string; created_by?: string | null; id?: string; is_active?: boolean; version: number }
