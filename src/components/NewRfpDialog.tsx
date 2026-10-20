@@ -25,7 +25,6 @@ export function NewRfpDialog() {
         .insert({
           title: text('title')!,
           client_name: text('client_name'),
-          due_date: text('due_date'),
         })
         .select('id')
         .single()
@@ -70,10 +69,6 @@ export function NewRfpDialog() {
           <div className="space-y-2">
             <Label htmlFor="client_name">Client</Label>
             <Input id="client_name" name="client_name" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="due_date">Proposal due date</Label>
-            <Input id="due_date" name="due_date" type="date" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="files">Upload RFP</Label>
