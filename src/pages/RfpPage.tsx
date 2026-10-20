@@ -3,6 +3,7 @@ import { LoaderCircleIcon } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
+import { DueCountdown } from '@/components/DueCountdown'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { ReviewSection } from '@/components/ReviewSection'
 import { Badge } from '@/components/ui/badge'
@@ -57,6 +58,10 @@ export default function RfpPage() {
           <Badge variant={STATUS_VARIANTS[status]}>{STATUS_LABELS[status]}</Badge>
         </div>
       </div>
+
+      {data.due_date && ['evaluating', 'questions', 'proposal'].includes(status) && (
+        <DueCountdown dueDate={data.due_date} inferred={data.due_date_source === 'inferred'} />
+      )}
 
       <Card>
         <CardHeader>
