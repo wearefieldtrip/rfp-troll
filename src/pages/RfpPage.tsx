@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { LoaderCircleIcon } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
@@ -100,7 +101,12 @@ export default function RfpPage() {
           )}
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
-          {data.drive_status === 'syncing' && <p className="text-muted-foreground">Setting up the folder in Drive…</p>}
+          {data.drive_status === 'syncing' && (
+            <p className="flex items-center gap-2 text-muted-foreground">
+              <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
+              Setting up the folder in Drive…
+            </p>
+          )}
           {data.drive_status === 'ready' && (
             <p className="text-muted-foreground">
               Business Development / Prospective Clients. Everything for this RFP lives in this folder.
