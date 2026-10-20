@@ -8,7 +8,7 @@ import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { ReviewSection } from '@/components/ReviewSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
 import { asKeyDates, formatLongDate } from '@/lib/key-dates'
@@ -76,9 +76,11 @@ export default function RfpPage() {
       </div>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Details</CardTitle>
-          <EditRfpDialog rfp={{ id, title: data.title, client_name: data.client_name, due_date: data.due_date }} />
+          <CardAction>
+            <EditRfpDialog rfp={{ id, title: data.title, client_name: data.client_name, due_date: data.due_date }} />
+          </CardAction>
         </CardHeader>
         <CardContent className="space-y-3">
           {reading && (
@@ -128,18 +130,20 @@ export default function RfpPage() {
       </Card>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Drive folder</CardTitle>
-          {data.drive_status === 'ready' && data.drive_folder_url && (
-            <Button size="sm" variant="outline" render={<a href={data.drive_folder_url} target="_blank" rel="noreferrer" />}>
-              Open in Drive
-            </Button>
-          )}
-          {(data.drive_status === 'pending' || data.drive_status === 'failed') && (
-            <Button size="sm" variant="outline" disabled={retrySync.isPending} onClick={() => retrySync.mutate()}>
-              {data.drive_status === 'failed' ? 'Retry' : 'Create folder'}
-            </Button>
-          )}
+          <CardAction>
+            {data.drive_status === 'ready' && data.drive_folder_url && (
+              <Button size="sm" variant="outline" render={<a href={data.drive_folder_url} target="_blank" rel="noreferrer" />}>
+                Open in Drive
+              </Button>
+            )}
+            {(data.drive_status === 'pending' || data.drive_status === 'failed') && (
+              <Button size="sm" variant="outline" disabled={retrySync.isPending} onClick={() => retrySync.mutate()}>
+                {data.drive_status === 'failed' ? 'Retry' : 'Create folder'}
+              </Button>
+            )}
+          </CardAction>
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           {data.drive_status === 'syncing' && (
@@ -160,9 +164,9 @@ export default function RfpPage() {
       </Card>
 
       <Card>
-        <CardHeader className="flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>Documents</CardTitle>
-          <div>
+          <CardAction>
             <input
               ref={fileInput}
               type="file"
@@ -174,7 +178,7 @@ export default function RfpPage() {
             <Button variant="outline" size="sm" disabled={upload.isPending} onClick={() => fileInput.current?.click()}>
               {upload.isPending ? 'Uploading…' : 'Add documents'}
             </Button>
-          </div>
+          </CardAction>
         </CardHeader>
         <CardContent className="space-y-2">
           {fileError && <p className="text-sm text-destructive">{fileError}</p>}

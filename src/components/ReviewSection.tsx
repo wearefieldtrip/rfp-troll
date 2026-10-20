@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ReviewReport } from '@/components/ReviewReport'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { invokeFunction } from '@/lib/functions'
 import { rfpReviewsQuery } from '@/lib/queries'
@@ -26,11 +26,13 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
 
   return (
     <Card>
-      <CardHeader className="flex-row items-center justify-between">
+      <CardHeader>
         <CardTitle>Fit review</CardTitle>
-        <Button size="sm" disabled={!hasDocuments || running || start.isPending} onClick={() => start.mutate()}>
-          {running || start.isPending ? 'Reviewing…' : latest ? 'Run again' : 'Run fit review'}
-        </Button>
+        <CardAction>
+          <Button size="sm" disabled={!hasDocuments || running || start.isPending} onClick={() => start.mutate()}>
+            {running || start.isPending ? 'Reviewing…' : latest ? 'Run again' : 'Run fit review'}
+          </Button>
+        </CardAction>
       </CardHeader>
       <CardContent className="space-y-4">
         {start.error && <p className="text-sm text-destructive">{start.error.message}</p>}

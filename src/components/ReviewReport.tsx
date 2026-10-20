@@ -1,5 +1,5 @@
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ReviewResult } from '@/lib/review-result'
 
 function BulletList({ items }: { items: string[] }) {
@@ -48,11 +48,11 @@ export function ReviewReport({ result, totalScore }: { result: ReviewResult; tot
 
       {result.dimensions.map((d) => (
         <Card key={d.title}>
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader>
             <CardTitle>{d.title}</CardTitle>
-            <span className="font-semibold">
+            <CardAction className="font-semibold">
               {d.score} / {d.max_score}
-            </span>
+            </CardAction>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>{d.rationale}</p>
