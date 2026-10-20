@@ -3,6 +3,7 @@ import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import mammoth from "npm:mammoth@1.8.0";
 import { Buffer } from "node:buffer";
+import { downloadFile } from "./google.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
@@ -73,16 +74,22 @@ Score the RFP against the rubric below. Follow it exactly.
 ${rubric}
 </rubric>`;
 
-type Doc = { id: string; file_name: string; storage_path: string; mime_type: string | null };
+type Doc = { id: string; file_name: string; storage_path: string; mime_type: string | null; drive_file_id: string | null };
 
 async function buildDocumentBlocks(supabase: SupabaseClient, docs: Doc[]) {
   const blocks: Anthropic.Beta.BetaContentBlockParam[] = [];
   let totalBytes = 0;
 
   for (const doc of docs) {
-    const { data, error } = await supabase.storage.from("rfp-documents").download(doc.storage_path);
-    if (error || !data) throw new Error(`Could not read ${doc.file_name}`);
-    const bytes = await data.arrayBuffer();
+    // Files live in Drive once synced; until then they are staged in Supabase Storage.
+    let bytes: ArrayBuffer;
+    if (doc.drive_file_id) {
+      bytes = await downloadFile(doc.drive_file_id);
+    } else {
+      const { data, error } = await supabase.storage.from("rfp-documents").download(doc.storage_path);
+      if (error || !data) throw new Error(`Could not read ${doc.file_name}`);
+      bytes = await data.arrayBuffer();
+    }
     totalBytes += bytes.byteLength;
     if (totalBytes > MAX_TOTAL_BYTES) throw new Error("The documents are too large to review together (25 MB limit).");
 
@@ -195,7 +202,7 @@ Deno.serve(async (req) => {
 
   const [rfpRes, docsRes, rubricRes] = await Promise.all([
     supabase.from("rfps").select("*").eq("id", rfp_id).single(),
-    supabase.from("rfp_documents").select("id, file_name, storage_path, mime_type").eq("rfp_id", rfp_id).order("created_at"),
+    supabase.from("rfp_documents").select("id, file_name, storage_path, mime_type, drive_file_id").eq("rfp_id", rfp_id).order("created_at"),
     supabase.from("rubrics").select("id, content").eq("is_active", true).single(),
   ]);
   if (rfpRes.error || !rfpRes.data) return json({ error: "RFP not found" }, 404);

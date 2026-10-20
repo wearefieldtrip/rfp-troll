@@ -46,8 +46,13 @@ export async function removeRfpDocument(doc: { id: string; storage_path: string 
   await supabase.storage.from(BUCKET).remove([doc.storage_path])
 }
 
-export async function openRfpDocument(storagePath: string) {
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(storagePath, 60)
+/** Files in Drive open there; files still staged in Storage open through a short-lived private link. */
+export async function openRfpDocument(doc: { drive_file_id: string | null; storage_path: string }) {
+  if (doc.drive_file_id) {
+    window.open(`https://drive.google.com/file/d/${doc.drive_file_id}/view`, '_blank', 'noopener')
+    return
+  }
+  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(doc.storage_path, 60)
   if (error) throw error
   window.open(data.signedUrl, '_blank', 'noopener')
 }

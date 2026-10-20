@@ -16,6 +16,11 @@ export type Database = {
           client_name: string | null
           created_at: string
           created_by: string | null
+          drive_error: string | null
+          drive_folder_id: string | null
+          drive_folder_url: string | null
+          drive_rfp_subfolder_id: string | null
+          drive_status: string
           due_date: string | null
           id: string
           outcome_notes: string | null
@@ -31,6 +36,11 @@ export type Database = {
           client_name?: string | null
           created_at?: string
           created_by?: string | null
+          drive_error?: string | null
+          drive_folder_id?: string | null
+          drive_folder_url?: string | null
+          drive_rfp_subfolder_id?: string | null
+          drive_status?: string
           due_date?: string | null
           id?: string
           outcome_notes?: string | null
@@ -45,8 +55,8 @@ export type Database = {
         Relationships: []
       }
       rfp_documents: {
-        Row: { created_at: string; file_name: string; id: string; mime_type: string | null; rfp_id: string; size_bytes: number | null; storage_path: string; uploaded_by: string | null }
-        Insert: { created_at?: string; file_name: string; id?: string; mime_type?: string | null; rfp_id: string; size_bytes?: number | null; storage_path: string; uploaded_by?: string | null }
+        Row: { created_at: string; drive_file_id: string | null; file_name: string; id: string; mime_type: string | null; rfp_id: string; size_bytes: number | null; storage_path: string; uploaded_by: string | null }
+        Insert: { created_at?: string; drive_file_id?: string | null; file_name: string; id?: string; mime_type?: string | null; rfp_id: string; size_bytes?: number | null; storage_path: string; uploaded_by?: string | null }
         Update: Partial<Database['public']['Tables']['rfp_documents']['Insert']>
         Relationships: [
           { foreignKeyName: 'rfp_documents_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },

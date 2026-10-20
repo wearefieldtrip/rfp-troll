@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { syncRfpFolder } from '@/lib/functions'
 import { ACCEPT_ATTR, isAcceptedFile, uploadRfpFiles } from '@/lib/rfp-files'
 import { supabase } from '@/lib/supabase'
 
@@ -31,8 +32,9 @@ export function NewRfpDialog() {
         .single()
       if (error) throw error
 
-      // The RFP exists even if an upload fails; the detail page lets them retry.
+      // The RFP exists even if an upload or the Drive step fails; its page shows the state and lets them retry.
       await uploadRfpFiles(data.id, files).catch(() => undefined)
+      await syncRfpFolder(data.id).catch(() => undefined)
       return data.id
     },
     onSuccess: async (id) => {

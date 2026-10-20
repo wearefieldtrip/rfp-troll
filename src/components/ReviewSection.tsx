@@ -1,23 +1,16 @@
-import { FunctionsHttpError } from '@supabase/supabase-js'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ReviewReport } from '@/components/ReviewReport'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { invokeFunction } from '@/lib/functions'
 import { rfpReviewsQuery } from '@/lib/queries'
 import type { ReviewResult } from '@/lib/review-result'
-import { supabase } from '@/lib/supabase'
 
 const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
 
-async function startReview(rfpId: string) {
-  const { error } = await supabase.functions.invoke('review-rfp', { body: { rfp_id: rfpId } })
-  if (error) {
-    const body = error instanceof FunctionsHttpError ? await error.context.json().catch(() => null) : null
-    throw new Error(body?.error ?? 'Could not start the review.')
-  }
-}
+const startReview = (rfpId: string) => invokeFunction('review-rfp', { rfp_id: rfpId })
 
 export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocuments: boolean }) {
   const queryClient = useQueryClient()
