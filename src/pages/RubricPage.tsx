@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { RubricEditor } from '@/components/RubricEditor'
-import { RubricView } from '@/components/RubricView'
+import { Markdown } from '@/components/Markdown'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { rubricQuery, rubricVersionsQuery } from '@/lib/queries'
@@ -25,7 +25,6 @@ export default function RubricPage() {
 
   const current = versions.data?.find((v) => v.id === rubric.id)
   const author = current?.profiles?.full_name ?? current?.profiles?.email
-  const maxTotal = rubric.rubric_dimensions.length * rubric.scale_max
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -35,8 +34,7 @@ export default function RubricPage() {
           <p className="mt-1 text-sm text-muted-foreground">
             Version {rubric.version}
             {rubric.is_active ? ' (current)' : ''}
-            {current && ` · saved ${formatDate(current.created_at)}${author ? ` by ${author}` : ''}`}. Each dimension is scored 0
-            to {rubric.scale_max}, for a total out of {maxTotal}.
+            {current && ` · saved ${formatDate(current.created_at)}${author ? ` by ${author}` : ''}`}
           </p>
         </div>
         {!editing && (
@@ -74,7 +72,7 @@ export default function RubricPage() {
           }}
         />
       ) : (
-        <RubricView rubric={rubric} />
+        <Markdown>{rubric.content}</Markdown>
       )}
     </div>
   )

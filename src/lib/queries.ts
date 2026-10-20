@@ -23,18 +23,10 @@ export const rubricVersionsQuery = queryOptions({
 })
 
 async function fetchRubric(id?: string) {
-  const query = supabase
-    .from('rubrics')
-    .select('*, rubric_dimensions(*, rubric_levels(*)), rubric_decision_bands(*)')
+  const query = supabase.from('rubrics').select('*')
   const { data, error } = await (id ? query.eq('id', id) : query.eq('is_active', true)).single()
   if (error) throw error
-  return {
-    ...data,
-    rubric_dimensions: [...data.rubric_dimensions]
-      .sort((a, b) => a.position - b.position)
-      .map((d) => ({ ...d, rubric_levels: [...d.rubric_levels].sort((a, b) => b.score - a.score) })),
-    rubric_decision_bands: [...data.rubric_decision_bands].sort((a, b) => a.position - b.position),
-  }
+  return data
 }
 
 export type Rubric = Awaited<ReturnType<typeof fetchRubric>>
