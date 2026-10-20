@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { extractRfpDetails } from "./extract.ts";
-import { createFolder, uploadFile } from "./google.ts";
+import { createFolder, listChildren, uploadFile } from "./google.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
@@ -106,15 +106,32 @@ async function sync(supabase: SupabaseClient, rfp: Rfp) {
       .is("drive_file_id", null);
     if (error) throw new Error("Could not read the staged documents.");
 
+    // Records that a document now lives in Drive. Never ignore a failure here: the next step deletes the staging copy.
+    const markInDrive = async (docId: string, fileId: string) => {
+      const { data, error: updateError } = await supabase
+        .from("rfp_documents")
+        .update({ drive_file_id: fileId, storage_path: `drive:${fileId}` })
+        .eq("id", docId)
+        .select("id");
+      if (updateError || !data?.length) throw new Error("Could not record the file's Drive location.");
+    };
+
     for (const doc of staged ?? []) {
-      const { data: blob, error: downloadError } = await supabase.storage.from("rfp-documents").download(doc.storage_path);
-      if (downloadError || !blob) throw new Error(`Could not read ${doc.file_name} from staging.`);
+      const { data: blob } = await supabase.storage.from("rfp-documents").download(doc.storage_path);
+
+      if (!blob) {
+        // An earlier run may have copied the file to Drive without finishing its bookkeeping. Adopt that copy.
+        const existing = (await listChildren(rfpSubfolderId!)).find((f) => f.name === doc.file_name);
+        if (!existing) throw new Error(`Could not read ${doc.file_name} from staging.`);
+        await markInDrive(doc.id, existing.id);
+        continue;
+      }
 
       const extension = doc.file_name.split(".").pop()?.toLowerCase() ?? "";
       const mimeType = doc.mime_type ?? MIME_BY_EXTENSION[extension] ?? "application/octet-stream";
       const fileId = await uploadFile(doc.file_name, rfpSubfolderId!, mimeType, await blob.arrayBuffer());
 
-      await supabase.from("rfp_documents").update({ drive_file_id: fileId, storage_path: `drive:${fileId}` }).eq("id", doc.id);
+      await markInDrive(doc.id, fileId);
       await supabase.storage.from("rfp-documents").remove([doc.storage_path]);
     }
 

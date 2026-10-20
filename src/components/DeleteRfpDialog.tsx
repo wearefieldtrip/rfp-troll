@@ -68,7 +68,7 @@ export function DeleteRfpDialog({ rfp, documentCount, reviewCount }: Props) {
             <p className="font-medium">This will delete:</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted-foreground">
               <li>The RFP and its details</li>
-              <li>{plural(documentCount, 'document record')}</li>
+              <li>{plural(documentCount, 'uploaded RFP file')} (the app's record of it)</li>
               <li>{plural(reviewCount, 'fit review')} and their scores</li>
             </ul>
           </div>

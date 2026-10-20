@@ -39,23 +39,3 @@ export async function uploadRfpFiles(rfpId: string, files: File[]) {
     }
   }
 }
-
-export async function removeRfpDocument(doc: { id: string; storage_path: string }) {
-  const { error: rowError } = await supabase.from('rfp_documents').delete().eq('id', doc.id)
-  if (rowError) throw rowError
-  await supabase.storage.from(BUCKET).remove([doc.storage_path])
-}
-
-/** Files in Drive open there; files still staged in Storage open through a short-lived private link. */
-export async function openRfpDocument(doc: { drive_file_id: string | null; storage_path: string }) {
-  if (doc.drive_file_id) {
-    window.open(`https://drive.google.com/file/d/${doc.drive_file_id}/view`, '_blank', 'noopener')
-    return
-  }
-  const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(doc.storage_path, 60)
-  if (error) throw error
-  window.open(data.signedUrl, '_blank', 'noopener')
-}
-
-export const formatBytes = (bytes: number | null) =>
-  bytes == null ? '' : bytes < 1024 * 1024 ? `${Math.max(1, Math.round(bytes / 1024))} KB` : `${(bytes / 1024 / 1024).toFixed(1)} MB`

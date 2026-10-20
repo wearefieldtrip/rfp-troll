@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
-import { useRef, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
@@ -13,21 +12,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
 import { asKeyDates, formatLongDate } from '@/lib/key-dates'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
-import {
-  ACCEPT_ATTR,
-  formatBytes,
-  isAcceptedFile,
-  openRfpDocument,
-  removeRfpDocument,
-  uploadRfpFiles,
-} from '@/lib/rfp-files'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
 
 export default function RfpPage() {
   const { id = '' } = useParams()
   const queryClient = useQueryClient()
-  const fileInput = useRef<HTMLInputElement>(null)
-  const [fileError, setFileError] = useState<string | null>(null)
 
   const rfp = useQuery(rfpQuery(id))
   const syncing = rfp.data?.drive_status === 'syncing'
@@ -35,25 +24,7 @@ export default function RfpPage() {
   const reviews = useQuery(rfpReviewsQuery(id))
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['rfps', id] })
 
-  const upload = useMutation({
-    mutationFn: async (files: File[]) => {
-      await uploadRfpFiles(id, files)
-      await syncRfpFolder(id).catch(() => undefined)
-    },
-    onSettled: refresh,
-  })
   const retrySync = useMutation({ mutationFn: () => syncRfpFolder(id), onSettled: refresh })
-  const remove = useMutation({ mutationFn: removeRfpDocument, onSettled: refresh })
-  const open = useMutation({ mutationFn: openRfpDocument })
-
-  const onPick = (files: FileList | null) => {
-    const picked = Array.from(files ?? [])
-    if (fileInput.current) fileInput.current.value = ''
-    if (picked.length === 0) return
-    const bad = picked.find((f) => !isAcceptedFile(f))
-    setFileError(bad ? `${bad.name} isn't a supported file type.` : null)
-    if (!bad) upload.mutate(picked)
-  }
 
   if (rfp.isPending) return <Skeleton className="h-48 w-full max-w-3xl" />
   if (rfp.error) return <p className="text-destructive">Could not load this RFP.</p>
@@ -160,52 +131,6 @@ export default function RfpPage() {
           {data.drive_status === 'pending' && <p className="text-muted-foreground">No Drive folder yet.</p>}
           {data.drive_status === 'failed' && <p className="text-destructive">{data.drive_error ?? 'The folder could not be created.'}</p>}
           {retrySync.error && <p className="text-destructive">{retrySync.error.message}</p>}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Documents</CardTitle>
-          <CardAction>
-            <input
-              ref={fileInput}
-              type="file"
-              multiple
-              accept={ACCEPT_ATTR}
-              className="hidden"
-              onChange={(e) => onPick(e.target.files)}
-            />
-            <Button variant="outline" size="sm" disabled={upload.isPending} onClick={() => fileInput.current?.click()}>
-              {upload.isPending ? 'Uploading…' : 'Add documents'}
-            </Button>
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          {fileError && <p className="text-sm text-destructive">{fileError}</p>}
-          {upload.error && <p className="text-sm text-destructive">Upload failed. Please try again.</p>}
-          {documents.isPending ? (
-            <Skeleton className="h-10 w-full" />
-          ) : documents.data?.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No documents yet. Add the RFP to get a fit review.</p>
-          ) : (
-            documents.data?.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between gap-3 text-sm">
-                <button type="button" className="truncate text-left text-primary hover:underline" onClick={() => open.mutate(doc)}>
-                  {doc.file_name}
-                </button>
-                <div className="flex shrink-0 items-center gap-3 text-muted-foreground">
-                  <span>{formatBytes(doc.size_bytes)}</span>
-                  {doc.drive_file_id ? (
-                    <span className="text-xs">In Drive</span>
-                  ) : (
-                    <Button variant="ghost" size="sm" disabled={remove.isPending} onClick={() => remove.mutate(doc)}>
-                      Remove
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))
-          )}
         </CardContent>
       </Card>
 
