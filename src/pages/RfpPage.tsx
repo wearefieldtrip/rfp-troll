@@ -14,15 +14,14 @@ import { asKeyDates, formatLongDate } from '@/lib/key-dates'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
 
-/** A date, or a clear "Date not specified" with any explanation the RFP gave (for example, no questions accepted). */
+/**
+ * A date; or, when the RFP gave no date but said something (for example "No questions will be accepted"),
+ * that statement; otherwise "Date not specified".
+ */
 function DateValue({ date, time, note }: { date?: string | null; time?: string | null; note?: string }) {
   if (date) return <>{formatLongDate(date) + (time ? `, ${time}` : '')}</>
-  return (
-    <>
-      <span className="text-muted-foreground">Date not specified</span>
-      {note && <span className="mt-1 block text-xs text-muted-foreground italic">{note}</span>}
-    </>
-  )
+  if (note?.trim()) return <>{note.trim()}</>
+  return <span className="text-muted-foreground">Date not specified</span>
 }
 
 export default function RfpPage() {
