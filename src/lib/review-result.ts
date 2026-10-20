@@ -2,8 +2,6 @@
 export type ReviewResult = {
   summary: string
   extracted: {
-    client_name: string
-    proposal_due_date: string
     budget: string
     project_timeline: string
     scope_summary: string

@@ -32,8 +32,8 @@ const REVIEW_SCHEMA = {
     extracted: {
       type: "object",
       additionalProperties: false,
-      required: ["client_name", "proposal_due_date", "budget", "project_timeline", "scope_summary"],
-      properties: { client_name: str, proposal_due_date: str, budget: str, project_timeline: str, scope_summary: str },
+      required: ["budget", "project_timeline", "scope_summary"],
+      properties: { budget: str, project_timeline: str, scope_summary: str },
     },
     dimensions: {
       type: "array",

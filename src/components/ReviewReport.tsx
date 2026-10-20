@@ -13,9 +13,8 @@ function BulletList({ items }: { items: string[] }) {
 }
 
 export function ReviewReport({ result, totalScore }: { result: ReviewResult; totalScore: number }) {
+  // Client and proposal due date already appear in the Details card.
   const extracted = Object.entries({
-    Client: result.extracted.client_name,
-    'Proposal due': result.extracted.proposal_due_date,
     Budget: result.extracted.budget,
     Timeline: result.extracted.project_timeline,
     Scope: result.extracted.scope_summary,
