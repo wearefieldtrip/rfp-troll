@@ -32,6 +32,7 @@ export function ReviewReport({ result, totalScore }: { result: ReviewResult; tot
         )}
       </div>
 
+      {result.auto_no_go.triggered && <p className="text-sm text-destructive">{result.auto_no_go.reason}</p>}
       <p className="text-sm">{result.summary}</p>
 
       {extracted.length > 0 && (
