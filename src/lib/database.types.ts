@@ -24,6 +24,7 @@ export type Database = {
           due_date: string | null
           id: string
           outcome_notes: string | null
+          passed_at: string | null
           passed_from_status: string | null
           source_url: string | null
           status: string
@@ -44,6 +45,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           outcome_notes?: string | null
+          passed_at?: string | null
           passed_from_status?: string | null
           source_url?: string | null
           status?: string

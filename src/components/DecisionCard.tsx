@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { invokeFunction } from '@/lib/functions'
 import { supabase } from '@/lib/supabase'
 
 export function DecisionCard({ rfpId }: { rfpId: string }) {
@@ -10,13 +11,24 @@ export function DecisionCard({ rfpId }: { rfpId: string }) {
   const [passing, setPassing] = useState(false)
   const [reason, setReason] = useState('')
 
-  const decide = useMutation({
-    mutationFn: async (update: { status: 'questions' } | { status: 'passed'; passed_from_status: 'evaluating'; outcome_notes: string | null }) => {
-      const { error } = await supabase.from('rfps').update(update).eq('id', rfpId)
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ['rfps'] })
+
+  const moveForward = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('rfps').update({ status: 'questions' }).eq('id', rfpId)
       if (error) throw error
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['rfps'] }),
+    onSuccess: invalidate,
   })
+
+  // Passing also moves the Drive folder to _DEAD Opportunities, so it goes through the server.
+  const pass = useMutation({
+    mutationFn: () => invokeFunction('pass-rfp', { rfp_id: rfpId, reason: reason.trim() }),
+    onSuccess: invalidate,
+  })
+
+  const busy = moveForward.isPending || pass.isPending
+  const error = moveForward.error ?? pass.error
 
   return (
     <Card>
@@ -33,13 +45,12 @@ export function DecisionCard({ rfpId }: { rfpId: string }) {
               value={reason}
               onChange={(e) => setReason(e.target.value)}
             />
+            <p className="text-xs text-muted-foreground">
+              The RFP and its review stay in the app under Passed. Its Drive folder moves to _DEAD Opportunities.
+            </p>
             <div className="flex gap-3">
-              <Button
-                variant="destructive"
-                disabled={decide.isPending}
-                onClick={() => decide.mutate({ status: 'passed', passed_from_status: 'evaluating', outcome_notes: reason.trim() || null })}
-              >
-                Confirm pass
+              <Button variant="destructive" disabled={busy} onClick={() => pass.mutate()}>
+                {pass.isPending ? 'Passing…' : 'Confirm pass'}
               </Button>
               <Button variant="ghost" onClick={() => setPassing(false)}>
                 Cancel
@@ -48,7 +59,7 @@ export function DecisionCard({ rfpId }: { rfpId: string }) {
           </div>
         ) : (
           <div className="flex gap-3">
-            <Button disabled={decide.isPending} onClick={() => decide.mutate({ status: 'questions' })}>
+            <Button disabled={busy} onClick={() => moveForward.mutate()}>
               Move forward
             </Button>
             <Button variant="outline" onClick={() => setPassing(true)}>
@@ -56,7 +67,7 @@ export function DecisionCard({ rfpId }: { rfpId: string }) {
             </Button>
           </div>
         )}
-        {decide.error && <p className="text-sm text-destructive">Could not save your decision. Please try again.</p>}
+        {error && <p className="text-sm text-destructive">{error.message}</p>}
       </CardContent>
     </Card>
   )

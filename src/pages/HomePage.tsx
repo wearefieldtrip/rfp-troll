@@ -1,17 +1,39 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { NewRfpDialog } from '@/components/NewRfpDialog'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { NewRfpDialog } from '@/components/NewRfpDialog'
 import { rfpsQuery } from '@/lib/queries'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
+
+const VIEWS = [
+  { key: 'active', label: 'Active', statuses: ['evaluating', 'questions', 'proposal', 'submitted'] },
+  { key: 'won', label: 'Won', statuses: ['won'] },
+  { key: 'lost', label: 'Lost', statuses: ['lost'] },
+  { key: 'passed', label: 'Passed', statuses: ['passed'] },
+  { key: 'all', label: 'All', statuses: null },
+] as const
+
+const EMPTY_TEXT: Record<string, string> = {
+  active: 'No active RFPs. Add one to get started.',
+  won: 'No won RFPs yet.',
+  lost: 'No lost RFPs yet.',
+  passed: 'No passed RFPs yet. RFPs you pass on are kept here.',
+  all: 'No RFPs yet. Add one to get started.',
+}
 
 const formatDate = (date: string | null) =>
   date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
 
 export default function HomePage() {
   const { data: rfps, isPending, error } = useQuery(rfpsQuery)
+  const [params, setParams] = useSearchParams()
+  const view = VIEWS.find((v) => v.key === params.get('view')) ?? VIEWS[0]
+
+  const inView = (status: string, statuses: readonly string[] | null) => !statuses || statuses.includes(status)
+  const visible = rfps?.filter((r) => inView(r.status, view.statuses)) ?? []
 
   return (
     <div className="space-y-6">
@@ -20,12 +42,32 @@ export default function HomePage() {
         <NewRfpDialog />
       </div>
 
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="RFP status">
+        {VIEWS.map((v) => {
+          const count = rfps?.filter((r) => inView(r.status, v.statuses)).length
+          const selected = v.key === view.key
+          return (
+            <Button
+              key={v.key}
+              role="tab"
+              aria-selected={selected}
+              size="sm"
+              variant={selected ? 'secondary' : 'ghost'}
+              onClick={() => setParams(v.key === 'active' ? {} : { view: v.key })}
+            >
+              {v.label}
+              {count !== undefined && <span className="ml-1 text-muted-foreground">{count}</span>}
+            </Button>
+          )
+        })}
+      </div>
+
       {isPending ? (
         <Skeleton className="h-40 w-full" />
       ) : error ? (
         <p className="text-destructive">Could not load RFPs.</p>
-      ) : rfps.length === 0 ? (
-        <p className="text-muted-foreground">No RFPs yet. Add one to get started.</p>
+      ) : visible.length === 0 ? (
+        <p className="text-muted-foreground">{EMPTY_TEXT[view.key]}</p>
       ) : (
         <Table>
           <TableHeader>
@@ -37,7 +79,7 @@ export default function HomePage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {rfps.map((rfp) => {
+            {visible.map((rfp) => {
               const status = rfp.status as RfpStatus
               return (
                 <TableRow key={rfp.id}>

@@ -97,6 +97,22 @@ export async function trashFile(fileId: string, trashed = true): Promise<void> {
   if (!res.ok) throw await failure(res, trashed ? "trash a file" : "restore a file");
 }
 
+/** Moves a file or folder to a new parent and returns the parent it came from. */
+export async function moveFile(fileId: string, newParentId: string): Promise<string> {
+  const lookup = await fetch(`${DRIVE}/files/${fileId}?supportsAllDrives=true&fields=parents`, { headers: await authHeaders() });
+  if (!lookup.ok) throw await failure(lookup, "look up a folder");
+  const oldParent = ((await lookup.json()).parents as string[] | undefined)?.[0];
+  if (!oldParent) throw new Error("Google Drive did not report where the folder currently lives.");
+  if (oldParent === newParentId) return oldParent;
+
+  const res = await fetch(
+    `${DRIVE}/files/${fileId}?supportsAllDrives=true&addParents=${newParentId}&removeParents=${oldParent}&fields=id`,
+    { method: "PATCH", headers: await authHeaders({ "Content-Type": "application/json" }), body: "{}" },
+  );
+  if (!res.ok) throw await failure(res, "move a folder");
+  return oldParent;
+}
+
 export async function listChildren(parentId: string): Promise<{ id: string; name: string; mimeType: string }[]> {
   const q = encodeURIComponent(`'${parentId}' in parents and trashed = false`);
   const res = await fetch(`${DRIVE}/files?q=${q}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)&pageSize=100`, {
