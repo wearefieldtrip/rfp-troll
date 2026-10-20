@@ -1,5 +1,4 @@
 import { FitBadge } from '@/components/FitBadge'
-import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ReviewResult } from '@/lib/review-result'
 
@@ -31,10 +30,8 @@ export function ReviewReport({ result, totalScore }: { result: ReviewResult; tot
         {result.decision_band && (
           <FitBadge band={result.decision_band} total={totalScore} max={result.max_total} className="px-3 py-1 text-sm" />
         )}
-        {result.auto_no_go.triggered && <Badge variant="destructive">Auto no-go</Badge>}
       </div>
 
-      {result.auto_no_go.triggered && <p className="text-sm text-destructive">{result.auto_no_go.reason}</p>}
       <p className="text-sm">{result.summary}</p>
 
       {extracted.length > 0 && (
