@@ -1,4 +1,6 @@
 // Trimmed from `generate_typescript_types`; regenerate when the schema changes.
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+
 export type Database = {
   public: {
     Tables: {
@@ -46,7 +48,9 @@ export type Database = {
         Row: { created_at: string; created_by: string | null; id: string; is_active: boolean; scale_max: number; version: number }
         Insert: { created_at?: string; created_by?: string | null; id?: string; is_active?: boolean; scale_max?: number; version: number }
         Update: Partial<Database['public']['Tables']['rubrics']['Insert']>
-        Relationships: []
+        Relationships: [
+          { foreignKeyName: 'rubrics_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
       }
       rubric_dimensions: {
         Row: { id: string; position: number; rubric_id: string; title: string }
@@ -74,7 +78,9 @@ export type Database = {
       }
     }
     Views: { [_ in never]: never }
-    Functions: { [_ in never]: never }
+    Functions: {
+      save_rubric_version: { Args: { p_dimensions: Json; p_bands: Json }; Returns: string }
+    }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }
   }

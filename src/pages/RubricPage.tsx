@@ -1,70 +1,81 @@
 import { useQuery } from '@tanstack/react-query'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { RubricEditor } from '@/components/RubricEditor'
+import { RubricView } from '@/components/RubricView'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { activeRubricQuery } from '@/lib/queries'
+import { rubricQuery, rubricVersionsQuery } from '@/lib/queries'
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 
 export default function RubricPage() {
-  const { data: rubric, isPending, error } = useQuery(activeRubricQuery)
+  const [params, setParams] = useSearchParams()
+  const [editing, setEditing] = useState(false)
+  const versionId = params.get('v') ?? undefined
+
+  const versions = useQuery(rubricVersionsQuery)
+  const { data: rubric, isPending, error } = useQuery(rubricQuery(versionId))
+
+  const selectVersion = (id: string, isActive: boolean) => setParams(isActive ? {} : { v: id })
 
   if (isPending) return <Skeleton className="h-64 w-full max-w-3xl" />
   if (error) return <p className="text-destructive">Could not load the rubric.</p>
 
+  const current = versions.data?.find((v) => v.id === rubric.id)
+  const author = current?.profiles?.full_name ?? current?.profiles?.email
   const maxTotal = rubric.rubric_dimensions.length * rubric.scale_max
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Rubric</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Version {rubric.version}. Each dimension is scored 0 to {rubric.scale_max}, for a total out of {maxTotal}.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold">Rubric</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Version {rubric.version}
+            {rubric.is_active ? ' (current)' : ''}
+            {current && ` · saved ${formatDate(current.created_at)}${author ? ` by ${author}` : ''}`}. Each dimension is scored 0
+            to {rubric.scale_max}, for a total out of {maxTotal}.
+          </p>
+        </div>
+        {!editing && (
+          <div className="flex items-center gap-2">
+            {versions.data && versions.data.length > 1 && (
+              <select
+                aria-label="Rubric version"
+                className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+                value={rubric.id}
+                onChange={(e) => {
+                  const picked = versions.data.find((v) => v.id === e.target.value)
+                  if (picked) selectVersion(picked.id, picked.is_active)
+                }}
+              >
+                {versions.data.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    Version {v.version}
+                    {v.is_active ? ' (current)' : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+            <Button onClick={() => setEditing(true)}>{rubric.is_active ? 'Edit' : 'Restore as new version'}</Button>
+          </div>
+        )}
       </div>
 
-      {rubric.rubric_dimensions.map((dimension, i) => (
-        <Card key={dimension.id}>
-          <CardHeader>
-            <CardTitle>
-              {String.fromCharCode(65 + i)}. {dimension.title}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {dimension.rubric_levels.map((level) => (
-              <div key={level.id} className="flex gap-3 text-sm">
-                <span className="w-6 shrink-0 font-semibold">{level.score}</span>
-                <div>
-                  <span className="font-medium">{level.label}</span>
-                  {level.is_auto_no_go && (
-                    <Badge variant="destructive" className="ml-2">
-                      Auto no-go
-                    </Badge>
-                  )}
-                  <p className="text-muted-foreground">{level.description}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      ))}
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Decision matrix</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {rubric.rubric_decision_bands.map((band) => (
-            <div key={band.id} className="flex gap-3 text-sm">
-              <span className="w-16 shrink-0 font-semibold">
-                {band.min_score} – {band.max_score}
-              </span>
-              <div>
-                <span className="font-medium">{band.label}</span>
-                <p className="text-muted-foreground">{band.action}</p>
-              </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+      {editing ? (
+        <RubricEditor
+          key={rubric.id}
+          rubric={rubric}
+          onDone={() => {
+            setEditing(false)
+            setParams({})
+          }}
+        />
+      ) : (
+        <RubricView rubric={rubric} />
+      )}
     </div>
   )
 }
