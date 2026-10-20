@@ -1,15 +1,8 @@
-import { ClipboardListIcon, FileTextIcon } from 'lucide-react'
+import { ClipboardListIcon, FileTextIcon, LogOutIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
@@ -56,21 +49,21 @@ export function AppShell() {
             </SidebarMenu>
           </SidebarGroup>
         </SidebarContent>
-        <SidebarFooter>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center gap-2 rounded-md p-2 text-left text-sm outline-none hover:bg-sidebar-accent">
-              <Avatar className="size-7">
-                <AvatarImage src={avatar} alt={name} />
-                <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <span className="truncate">{name}</span>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              <DropdownMenuLabel>{user?.email}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => void signOut()}>Sign out</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <SidebarFooter className="gap-2">
+          <div className="flex items-center gap-2 p-2">
+            <Avatar className="size-8">
+              <AvatarImage src={avatar} alt={name} />
+              <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className="min-w-0 text-sm">
+              <p className="truncate font-medium">{name}</p>
+              {user?.email && user.email !== name && <p className="truncate text-xs text-muted-foreground">{user.email}</p>}
+            </div>
+          </div>
+          <Button variant="outline" size="sm" className="w-full justify-start gap-2" onClick={() => void signOut()}>
+            <LogOutIcon />
+            Sign out
+          </Button>
         </SidebarFooter>
       </Sidebar>
       <SidebarInset>
