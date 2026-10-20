@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Markdown } from '@/components/Markdown'
+import { MarkdownEditor } from '@/components/MarkdownEditor'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import type { Rubric } from '@/lib/queries'
 import { supabase } from '@/lib/supabase'
 
@@ -39,12 +39,7 @@ export function RubricEditor({ rubric, onDone }: { rubric: Rubric; onDone: () =>
       {preview ? (
         <Markdown>{content}</Markdown>
       ) : (
-        <Textarea
-          aria-label="Rubric text"
-          className="min-h-[32rem] font-mono text-sm"
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-        />
+        <MarkdownEditor label="Rubric text" value={content} onChange={setContent} />
       )}
 
       {save.error && <p className="text-sm text-destructive">Could not save. Please try again.</p>}
