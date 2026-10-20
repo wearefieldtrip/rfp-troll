@@ -4,7 +4,10 @@ import { supabase } from './supabase'
 export const rfpsQuery = queryOptions({
   queryKey: ['rfps'],
   queryFn: async () => {
-    const { data, error } = await supabase.from('rfps').select('*').order('created_at', { ascending: false })
+    const { data, error } = await supabase
+      .from('rfps')
+      .select('*, rfp_reviews(status, total_score, decision_band, created_at, max_total:result->max_total)')
+      .order('created_at', { ascending: false })
     if (error) throw error
     return data
   },

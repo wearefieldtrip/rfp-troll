@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
+import { FitBadge } from '@/components/FitBadge'
 import { NewRfpDialog } from '@/components/NewRfpDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -75,12 +76,17 @@ export default function HomePage() {
               <TableHead>Title</TableHead>
               <TableHead>Client</TableHead>
               <TableHead>Due</TableHead>
+              <TableHead>Fit</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {visible.map((rfp) => {
               const status = rfp.status as RfpStatus
+              // The most recent completed fit review, if any.
+              const review = rfp.rfp_reviews
+                .filter((r) => r.status === 'complete')
+                .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
               return (
                 <TableRow key={rfp.id}>
                   <TableCell className="font-medium">
@@ -90,6 +96,13 @@ export default function HomePage() {
                   </TableCell>
                   <TableCell>{rfp.client_name ?? '—'}</TableCell>
                   <TableCell>{formatDate(rfp.due_date)}</TableCell>
+                  <TableCell>
+                    {review ? (
+                      <FitBadge band={review.decision_band} total={review.total_score} max={Number(review.max_total) || null} showScore />
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_VARIANTS[status]}>{STATUS_LABELS[status]}</Badge>
                   </TableCell>
