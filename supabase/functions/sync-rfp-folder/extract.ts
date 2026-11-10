@@ -2,6 +2,7 @@
 import Anthropic from "npm:@anthropic-ai/sdk";
 import mammoth from "npm:mammoth@1.8.0";
 import { Buffer } from "node:buffer";
+import { interpretBudget, type Budget, type BudgetRead } from "./rfp-budget.ts";
 import { interpretDates, type DateFact, type InterpretedDates } from "./rfp-dates.ts";
 
 const MODEL = Deno.env.get("ANTHROPIC_EXTRACT_MODEL") ?? "claude-haiku-5-5";
@@ -11,6 +12,8 @@ export type RfpDetails = {
   title: string;
   issuing_organization: string;
   dates: InterpretedDates;
+  /** Null when the RFP states no amount. */
+  budget: Budget | null;
 };
 
 type Reading = {
@@ -19,6 +22,7 @@ type Reading = {
   proposal_due: DateFact;
   questions: DateFact & { policy: "due" | "not_allowed" | "not_stated" };
   vendor_selection: DateFact;
+  budget: BudgetRead;
 };
 
 export type StagedFile = { name: string; bytes: ArrayBuffer };
@@ -37,7 +41,7 @@ const dateFact = {
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["title", "issuing_organization", "proposal_due", "questions", "vendor_selection"],
+  required: ["title", "issuing_organization", "proposal_due", "questions", "vendor_selection", "budget"],
   properties: {
     title: str,
     issuing_organization: str,
@@ -49,6 +53,12 @@ const SCHEMA = {
       properties: { policy: { type: "string", enum: ["due", "not_allowed", "not_stated"] }, ...dateProperties },
     },
     vendor_selection: dateFact,
+    budget: {
+      type: "object",
+      additionalProperties: false,
+      required: ["low", "high", "qualifier", "wording"],
+      properties: { low: { type: "integer" }, high: { type: "integer" }, qualifier: str, wording: str },
+    },
   },
 };
 
@@ -59,6 +69,7 @@ const SYSTEM = `You read a Request for Proposals (RFP) and report a few facts fr
 - proposal_due: when proposals must be submitted.
 - questions: whether vendors may ask questions, and by when. policy is "due" when the RFP gives a deadline for questions; "not_allowed" only when the RFP explicitly says questions are not accepted; otherwise "not_stated" (including when questions are allowed but no deadline is given). For "not_allowed" and "not_stated" leave date, time and timezone empty.
 - vendor_selection: when the issuer expects to select or announce the winning vendor (award or notification date). Leave it empty if the RFP gives none.
+- budget: the budget the RFP states for this work, in whole US dollars. low and high are 0 when not given. A single amount: set low and high to it. A range: low and high. "Up to" an amount: low 0, high the amount. "At least" or "minimum": low the amount, high 0. If the RFP gives several scenarios or options, use the lowest to the highest. If it gives no budget, or only describes one in words ("a modest budget"), set both to 0. qualifier is a phrase of at most 4 words about what the amount covers or its period, such as "all-inclusive", "plus media", "excludes media", "excludes travel", "per year", or "per year, 3 years". Never list what is included; say "all-inclusive" instead. Use an empty string when nothing needs saying. wording is a short verbatim quote.
 
 For proposal_due, questions and vendor_selection, report four fields:
 - date: YYYY-MM-DD, or empty.
@@ -128,5 +139,6 @@ export async function extractRfpDetails(files: StagedFile[]): Promise<RfpDetails
     title: reading.title,
     issuing_organization: reading.issuing_organization,
     dates: interpretDates({ proposal: reading.proposal_due, questions: reading.questions, vendorSelection: reading.vendor_selection }),
+    budget: interpretBudget(reading.budget),
   };
 }

@@ -13,6 +13,11 @@ export type Database = {
       rfps: {
         Row: {
           budget_text: string | null
+          budget_max_usd: number | null
+          budget_min_usd: number | null
+          budget_qualifier: string | null
+          budget_source: string | null
+          budget_wording: string | null
           client_name: string | null
           created_at: string
           created_by: string | null
@@ -52,6 +57,11 @@ export type Database = {
         }
         Insert: {
           budget_text?: string | null
+          budget_max_usd?: number | null
+          budget_min_usd?: number | null
+          budget_qualifier?: string | null
+          budget_source?: string | null
+          budget_wording?: string | null
           client_name?: string | null
           created_at?: string
           created_by?: string | null

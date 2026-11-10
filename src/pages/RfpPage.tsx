@@ -51,7 +51,17 @@ export default function RfpPage() {
         <CardHeader>
           <CardTitle>Details</CardTitle>
           <CardAction>
-            <EditRfpDialog rfp={{ id, title: data.title, client_name: data.client_name, due_date: data.due_date }} />
+            <EditRfpDialog
+              rfp={{
+                id,
+                title: data.title,
+                client_name: data.client_name,
+                due_date: data.due_date,
+                budget_min_usd: data.budget_min_usd,
+                budget_max_usd: data.budget_max_usd,
+                budget_qualifier: data.budget_qualifier,
+              }}
+            />
           </CardAction>
         </CardHeader>
         <CardContent className="space-y-3">

@@ -64,6 +64,7 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
 
     const details = await extractRfpDetails(files);
     const { proposal, questionsPolicy, questions, vendorSelection } = details.dates;
+    const { budget } = details;
     const patch: Record<string, unknown> = {
       extract_status: "done",
       extract_error: null,
@@ -71,6 +72,11 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
       ...momentColumns("proposal_due", proposal),
       ...momentColumns("questions_due", questions),
       ...momentColumns("vendor_selection", vendorSelection),
+      budget_min_usd: budget?.min ?? null,
+      budget_max_usd: budget?.max ?? null,
+      budget_qualifier: budget?.qualifier || null,
+      budget_wording: budget?.wording || null,
+      budget_source: budget ? "inferred" : null,
     };
 
     if (details.title.trim()) patch.title = details.title.trim();

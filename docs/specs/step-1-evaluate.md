@@ -106,6 +106,7 @@ Exactly one of:
   - Show the tax year, the figures used, and the EIN matched so the team can catch a wrong match.
   - Organizations that don't file a full 990 (government and civic bodies, 990-N filers): **Budget** Not stated · no estimate available.
   - An estimate can score rubric dimension B at most 2, never 3.
+- **How the stated budget is stored.** Whole US dollars: a single amount has min = max; a range has both; "up to" has only a max; "at least" has only a min. A short qualifier (at most a few words, such as "all-inclusive" or "plus media"; a longer sentence is left out) and a quote from the RFP are kept with it. A budget a person types in the Edit dialog is marked as entered by the team. The pill shows the amount short ("$95K–$125K"), and hovering shows the RFP's own wording.
 
 ## Decision buttons and confirmation
 

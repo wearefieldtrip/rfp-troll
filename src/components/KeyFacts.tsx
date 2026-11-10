@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { TONE_CLASSES } from '@/lib/fit-tone'
 import { dayCountLabel, daysUntilMoment, urgencyFor } from '@/lib/key-dates'
 import { momentFrom } from '@/lib/moment-columns'
+import { formatBudget } from '@/lib/rfp-budget'
 import { formatMoment, type Moment } from '@/lib/rfp-dates'
 import type { Database } from '@/lib/database.types'
 import { cn } from '@/lib/utils'
@@ -91,6 +92,17 @@ export function KeyFacts({
       )}
 
       <DateChip label="Vendor selected" moment={momentFrom(rfp, 'vendor_selection')} title={quote(rfp.vendor_selection_text)} />
+
+      <Chip label="Budget" title={rfp.budget_source === 'manual' ? 'Entered by your team' : quote(rfp.budget_wording)}>
+        {rfp.budget_min_usd !== null || rfp.budget_max_usd !== null ? (
+          <>
+            <span>{formatBudget(rfp.budget_min_usd, rfp.budget_max_usd)}</span>
+            {rfp.budget_qualifier && <span className="opacity-70">· {rfp.budget_qualifier}</span>}
+          </>
+        ) : (
+          <NotStated />
+        )}
+      </Chip>
 
       {rfp.drive_status === 'ready' && rfp.drive_folder_url ? (
         <a
