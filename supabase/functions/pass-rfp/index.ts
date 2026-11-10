@@ -5,7 +5,7 @@ import { moveFile } from "./google.ts";
 // "_DEAD Opportunities", inside Prospective Clients.
 const DEAD_FOLDER_ID = Deno.env.get("DRIVE_DEAD_FOLDER_ID") ?? "0B22CMSUAolRUVHRRNTdReUVxVW8";
 const BUSY_MS = 10 * 60 * 1000;
-const PASSABLE = ["evaluating", "questions", "proposal"];
+const PASSABLE = ["evaluate_ready", "questions_drafting", "questions_sent", "questions_answers_in", "proposal_drafting", "proposal_in_review"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
 
   const { data: updated, error: updateError } = await supabase
     .from("rfps")
-    .update({ status: "passed", passed_from_status: rfp.status, outcome_notes: note, passed_at: new Date().toISOString() })
+    .update({ status: "closed_passed", passed_from_status: rfp.status, outcome_notes: note, passed_at: new Date().toISOString() })
     .eq("id", rfp_id)
     .eq("status", rfp.status)
     .select("id");

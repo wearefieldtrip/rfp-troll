@@ -8,13 +8,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { rfpsQuery } from '@/lib/queries'
 import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
-import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
+import { ACTIVE_STATUSES, statusLabel, statusVariant } from '@/lib/rfp-status'
 
 const VIEWS = [
-  { key: 'active', label: 'Active', statuses: ['evaluating', 'questions', 'proposal', 'submitted'] },
-  { key: 'won', label: 'Won', statuses: ['won'] },
-  { key: 'lost', label: 'Lost', statuses: ['lost'] },
-  { key: 'passed', label: 'Passed', statuses: ['passed'] },
+  { key: 'active', label: 'Active', statuses: ACTIVE_STATUSES as readonly string[] },
+  { key: 'won', label: 'Won', statuses: ['closed_won'] },
+  { key: 'lost', label: 'Lost', statuses: ['closed_lost'] },
+  { key: 'passed', label: 'Passed', statuses: ['closed_passed'] },
   { key: 'all', label: 'All', statuses: null },
 ] as const
 
@@ -83,7 +83,6 @@ export default function HomePage() {
           </TableHeader>
           <TableBody>
             {visible.map((rfp) => {
-              const status = rfp.status as RfpStatus
               // The most recent completed fit review, if any.
               const review = rfp.rfp_reviews
                 .filter((r) => r.status === 'complete')
@@ -105,7 +104,7 @@ export default function HomePage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={STATUS_VARIANTS[status]}>{STATUS_LABELS[status]}</Badge>
+                    <Badge variant={statusVariant(rfp.status)}>{statusLabel(rfp.status)}</Badge>
                   </TableCell>
                 </TableRow>
               )

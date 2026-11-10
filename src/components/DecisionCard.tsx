@@ -16,7 +16,7 @@ export function DecisionCard({ rfpId, enabled }: { rfpId: string; enabled: boole
 
   const moveForward = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from('rfps').update({ status: 'questions' }).eq('id', rfpId)
+      const { error } = await supabase.from('rfps').update({ status: 'questions_drafting' }).eq('id', rfpId)
       if (error) throw error
     },
     onSuccess: invalidate,

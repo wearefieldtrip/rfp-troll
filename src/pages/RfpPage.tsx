@@ -11,7 +11,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
-import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
+import { statusLabel, statusVariant } from '@/lib/rfp-status'
 
 export default function RfpPage() {
   const { id = '' } = useParams()
@@ -29,7 +29,7 @@ export default function RfpPage() {
   if (rfp.error) return <p className="text-destructive">Could not load this RFP.</p>
 
   const data = rfp.data
-  const status = data.status as RfpStatus
+  const status = data.status
   const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
 
   return (
@@ -40,7 +40,7 @@ export default function RfpPage() {
         </Link>
         <div className="mt-2 flex items-center gap-3">
           <h1 className="text-2xl font-semibold">{data.title}</h1>
-          <Badge variant={STATUS_VARIANTS[status]}>{STATUS_LABELS[status]}</Badge>
+          <Badge variant={statusVariant(status)}>{statusLabel(status)}</Badge>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function RfpPage() {
       </Card>
 
       <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
-      {status === 'evaluating' && (
+      {status === 'evaluate_ready' && (
         <DecisionCard rfpId={id} enabled={reviews.data?.some((r) => r.status === 'complete') ?? false} />
       )}
 
