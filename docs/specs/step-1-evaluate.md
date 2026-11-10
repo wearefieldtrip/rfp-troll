@@ -121,13 +121,14 @@ Both buttons open a confirmation modal. Nothing happens until the user confirms.
 
 The confirmation modal ("Move to Questions?") lists what will happen:
 
-- Create a questions doc in the client's Drive folder
-- Add the AI suggested questions as suggested edits in the doc
-- Change the status to Questions · Drafting
+- Change the status to Questions · Drafting (or Proposal · Drafting)
+- Record the decision with the current score
+
+Creating the questions doc and adding the suggested questions come with Step 2, so the modal does not promise them yet.
 
 It also shows the questions deadline and days left. Buttons: Cancel, Move to Questions.
 
-On confirm, record who decided, when, and the score at that moment.
+On confirm, record who decided, when, and the score at that moment. The status change and the record are saved together in one database call (`decide_rfp`); the record is append-only (`rfp_decisions`). Reopening a closed RFP is also recorded.
 
 **Pass.** The confirmation modal ("Pass on this RFP?"):
 
@@ -136,7 +137,7 @@ On confirm, record who decided, when, and the score at that moment.
 - Has an optional note.
 - The Pass button stays disabled until a reason is chosen.
 
-On confirm, record who decided, when, the reason, the note, and the score at that moment.
+On confirm, record who decided, when, the reason, the note, and the score at that moment. The Drive folder moves first; if saving the decision fails, the folder is moved back.
 
 ## Dates and times
 

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
+import { DecisionRecord } from '@/components/DecisionRecord'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { KeyFacts } from '@/components/KeyFacts'
@@ -11,6 +12,7 @@ import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/componen
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
+import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
 import { statusLabel, statusVariant } from '@/lib/rfp-status'
 
 export default function RfpPage() {
@@ -31,6 +33,8 @@ export default function RfpPage() {
   const data = rfp.data
   const status = data.status
   const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
+  const completedReview = reviews.data?.find((r) => r.status === 'complete')
+  const scoreText = completedReview?.total_score != null ? `${completedReview.total_score} / ${MAX_TOTAL} · ${cleanBandLabel(completedReview.decision_band)}` : null
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -85,8 +89,9 @@ export default function RfpPage() {
 
       <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
       {status === 'evaluate_ready' && (
-        <DecisionCard rfpId={id} enabled={reviews.data?.some((r) => r.status === 'complete') ?? false} />
+        <DecisionCard rfp={data} scoreText={scoreText} enabled={completedReview !== undefined} />
       )}
+      <DecisionRecord rfpId={id} />
 
       <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40">
         <CardHeader>

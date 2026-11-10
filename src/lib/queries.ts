@@ -51,6 +51,20 @@ export const rubricVersionsQuery = queryOptions({
   },
 })
 
+export const rfpDecisionsQuery = (rfpId: string) =>
+  queryOptions({
+    queryKey: ['rfps', rfpId, 'decisions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('rfp_decisions')
+        .select('*, profiles(full_name, email)')
+        .eq('rfp_id', rfpId)
+        .order('decided_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+  })
+
 export const rfpReviewsQuery = (rfpId: string) =>
   queryOptions({
     queryKey: ['rfps', rfpId, 'reviews'],

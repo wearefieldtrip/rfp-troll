@@ -6,6 +6,7 @@ import { moveFile } from "./google.ts";
 const DEAD_FOLDER_ID = Deno.env.get("DRIVE_DEAD_FOLDER_ID") ?? "0B22CMSUAolRUVHRRNTdReUVxVW8";
 const BUSY_MS = 10 * 60 * 1000;
 const PASSABLE = ["evaluate_ready", "questions_drafting", "questions_sent", "questions_answers_in", "proposal_drafting", "proposal_in_review"];
+const REASONS = ["Budget", "Timeline", "Not a fit", "Capacity", "Scope", "Other"];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -30,9 +31,11 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (userError || !userData.user) return json({ error: "Not signed in" }, 401);
 
-  const { rfp_id, reason } = await req.json().catch(() => ({}));
+  const { rfp_id, reason, note } = await req.json().catch(() => ({}));
   if (typeof rfp_id !== "string") return json({ error: "rfp_id is required" }, 400);
-  const note = typeof reason === "string" && reason.trim() ? reason.trim().slice(0, 2000) : null;
+  // Checked before anything moves, so a bad request never leaves a folder in the wrong place.
+  if (typeof reason !== "string" || !REASONS.includes(reason)) return json({ error: "Choose a reason for passing." }, 400);
+  const cleanNote = typeof note === "string" && note.trim() ? note.trim().slice(0, 2000) : null;
 
   const { data: rfp, error } = await supabase
     .from("rfps")
@@ -45,7 +48,7 @@ Deno.serve(async (req) => {
     return json({ error: "The Drive folder is still being set up. Try again in a minute." }, 409);
   }
 
-  // Drive first: if the move fails, the status is left untouched.
+  // Drive first: if the move fails, nothing has changed.
   let originalParent: string | null = null;
   if (rfp.drive_folder_id) {
     try {
@@ -56,19 +59,22 @@ Deno.serve(async (req) => {
     }
   }
 
-  const { data: updated, error: updateError } = await supabase
-    .from("rfps")
-    .update({ status: "closed_passed", passed_from_status: rfp.status, outcome_notes: note, passed_at: new Date().toISOString() })
-    .eq("id", rfp_id)
-    .eq("status", rfp.status)
-    .select("id");
+  // The status change and the decision record happen together in the database.
+  const { error: decideError } = await supabase.rpc("decide_rfp", {
+    p_rfp_id: rfp_id,
+    p_decision: "pass",
+    p_reason: reason,
+    p_note: cleanNote ?? undefined,
+    p_expected_status: rfp.status,
+  });
 
-  if (updateError || !updated?.length) {
+  if (decideError) {
     // Put the folder back so Drive and the app stay in agreement.
     if (rfp.drive_folder_id && originalParent && originalParent !== DEAD_FOLDER_ID) {
       await moveFile(rfp.drive_folder_id, originalParent).catch((e) => console.error("move back failed", e));
     }
-    return json({ error: "Could not save the decision. Please try again." }, 500);
+    console.error("decide failed", decideError);
+    return json({ error: decideError.message || "Could not save the decision. Please try again." }, 409);
   }
 
   return json({ passed: true, folder_moved: !!rfp.drive_folder_id });

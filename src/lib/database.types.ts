@@ -20,6 +20,7 @@ export type Database = {
           budget_source: string | null
           budget_wording: string | null
           client_name: string | null
+          closed_reason: string | null
           created_at: string
           created_by: string | null
           drive_error: string | null
@@ -65,6 +66,7 @@ export type Database = {
           budget_source?: string | null
           budget_wording?: string | null
           client_name?: string | null
+          closed_reason?: string | null
           created_at?: string
           created_by?: string | null
           drive_error?: string | null
@@ -103,6 +105,44 @@ export type Database = {
         }
         Update: Partial<Database['public']['Tables']['rfps']['Insert']>
         Relationships: []
+      }
+      rfp_decisions: {
+        Row: {
+          decided_at: string
+          decided_by: string | null
+          destination: string | null
+          from_status: string
+          id: string
+          kind: string
+          note: string | null
+          reason: string | null
+          review_id: string | null
+          rfp_id: string
+          score_band: string | null
+          score_total: number | null
+          to_status: string
+        }
+        Insert: {
+          decided_at?: string
+          decided_by?: string | null
+          destination?: string | null
+          from_status: string
+          id?: string
+          kind: string
+          note?: string | null
+          reason?: string | null
+          review_id?: string | null
+          rfp_id: string
+          score_band?: string | null
+          score_total?: number | null
+          to_status: string
+        }
+        Update: Partial<Database['public']['Tables']['rfp_decisions']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'rfp_decisions_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_decisions_decided_by_fkey'; columns: ['decided_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_decisions_review_id_fkey'; columns: ['review_id']; isOneToOne: false; referencedRelation: 'rfp_reviews'; referencedColumns: ['id'] },
+        ]
       }
       rfp_documents: {
         Row: { created_at: string; drive_file_id: string | null; file_name: string; id: string; mime_type: string | null; rfp_id: string; size_bytes: number | null; storage_path: string; uploaded_by: string | null }
@@ -160,6 +200,10 @@ export type Database = {
     Views: { [_ in never]: never }
     Functions: {
       save_rubric_version: { Args: { p_content: string }; Returns: string }
+      decide_rfp: {
+        Args: { p_rfp_id: string; p_decision: string; p_destination?: string; p_reason?: string; p_note?: string; p_expected_status?: string }
+        Returns: string
+      }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }
