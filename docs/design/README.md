@@ -2,6 +2,8 @@
 
 Mockups of the RFP profile and its modals, exported from the design canvas. Use them for **layout, order, copy and states**. Build the real UI with the app's shadcn components and theme; don't copy the markup.
 
+The mockups predate two changes. The product is now named **RFP Troll** (the mockups still say RFP Buddy), and the band and score colors use a traffic-light scale (green, yellow, orange, red) instead of the mockups' goldenrod. Layout, order and copy are still the reference.
+
 How to read the files:
 
 - Each `.dc.html` file is one screen. The visible markup is inside `<x-dc>`; styles are inline.

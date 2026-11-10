@@ -1,4 +1,4 @@
-# RFP Buddy: process overview
+# RFP Troll: process overview
 
 Five steps. Each ends with a team decision or a hand-off. Pass is possible at any step, always with a reason.
 

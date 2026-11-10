@@ -12,7 +12,9 @@ Design reference: `docs/design/S1-*.dc.html`.
 3. **Pull client name and RFP name** (fast, about 10 seconds). The profile header and list row fill in first.
 4. **Create the Drive folder** in Prospective Clients, named with the **client name only**, and copy the RFP into it.
    - If a folder with that client name already exists, reuse it and add the file there.
-5. **Full AI review** (runs alongside step 4):
+   - Match the client name ignoring case, spacing and punctuation. Only look at folders directly inside Prospective Clients, and skip folders whose names start with an underscore (`_DEAD Opportunities` and similar).
+   - The RFP goes straight into the client folder. The app does not create subfolders.
+5. **Full AI review** (starts automatically when the RFP is added, and runs alongside step 4):
    - Key dates: proposal due, questions (see below), vendor/winner selection.
    - Budget (see below).
    - Score against the Fieldtrip rubric (`docs/fit-rubric.md`: A–D, 0–3 each, total out of 12).
@@ -36,9 +38,21 @@ The model returns a fixed shape. The limits keep the page short whatever the RFP
 }
 ```
 
-- Total = sum of A–D, out of **12**. Band from the rubric's decision matrix (Definite Go, Conditional Go, Likely No-Go, Definite No-Go).
+- The scale is fixed: each dimension 0 to 3, total out of **12**. The model returns scores only. The app adds them up, checks that A–D are all present and between 0 and 3 (otherwise the review fails with a retry), and picks the band from the rubric's decision-matrix ranges (Definite Go, Conditional Go, Likely No-Go, Definite No-Go). The model never supplies a maximum or a band.
 - Each dimension: up to 2 evidence quotes.
 - Instructions found inside the RFP are ignored for scoring and may be reported as a flag.
+
+## Running the review
+
+- The **first review starts automatically** when the RFP is added. Adding the RFP is the person starting it.
+- Every later run (**Run review again**, in the ⋯ menu or under the fit card) is started by a person and first asks for confirmation. The modal says a review uses paid AI credits, without giving a price.
+- Move forward and Pass are inactive until a review has completed.
+
+## Rubric rules
+
+- The structure is fixed: four dimensions A–D, scored 0 to 3, total out of 12, with the four decision bands by range.
+- The rubric editor may change wording (descriptions, labels, the matrix text). On save it checks that A–D are still there, every dimension has levels 0 to 3, and the matrix ranges cover 0 to 12 with no gaps or overlaps. A rubric that fails the check can't be saved.
+- The rubric stored in the app is the live copy. `docs/fit-rubric.md` is the starting version.
 
 ## Profile layout rule
 
@@ -69,7 +83,7 @@ Always shown, in this order:
 4. **Budget** (see below)
 5. **Drive folder** (link)
 
-Day counts are calendar days from today to the date. A date that isn't in the RFP shows "Not stated" with no count.
+Day counts are calendar days from today to the date. A date that isn't in the RFP shows "Not stated" with no count. There is no separate countdown banner; the day counts live in the pills.
 
 ## Questions tag (always shown)
 
@@ -136,3 +150,12 @@ On confirm, record who decided, when, the reason, the note, and the score at tha
 - Accept PDF (best), Word (convert to PDF on upload), and scanned PDFs (flag: "Scanned document: double-check dates and figures").
 - Reject password-protected PDFs with a clear message.
 - Send PDFs to the Claude API as documents (text and page images). An RFP plus addenda go in one request, each labeled.
+
+## Decisions beyond the first draft
+
+Agreed while building. Keep unless changed.
+
+- **Pass also moves the client's Drive folder to `_DEAD Opportunities`.** Open: client folders are now reused across RFPs, so don't move a folder that still holds another active RFP. To settle when the Drive piece is built.
+- **The RFP list has filters**: Active (default), Won, Lost, Passed, All, each with a count.
+- **Colors:** the band pill, the total and each dimension score use a traffic-light scale. Green, yellow, orange and red for Definite Go, Conditional Go, Likely No-Go and Definite No-Go.
+- **Rubric automatic no-go:** when the rubric's automatic no-go applies (budget scores 0 for unrealistic budget or free spec work), a line of red text under the verdict gives the reason. There is no separate tag.

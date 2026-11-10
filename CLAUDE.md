@@ -1,4 +1,4 @@
-# RFP Buddy
+# RFP Troll
 
 Internal web app for Fieldtrip (a Louisville, KY marketing agency for nonprofit, cause-driven and civic clients). It cuts the hours the team spends evaluating and responding to RFPs, while the team keeps every decision and does the writing.
 
@@ -28,7 +28,7 @@ The specs are the source of truth. If a build decision changes a spec, update th
 
 ## Rules that apply everywhere
 
-- **The AI never acts on its own.** Every AI step is started by a person, and every decision (move forward, pass) goes through a confirmation modal.
+- **The AI never acts on its own.** Every AI step is started by a person. Adding an RFP starts its first fit review; every later run is started by someone and asks first, because it uses paid credits. Every decision (move forward, pass) goes through a confirmation modal.
 - **No AI-written creative work**, written or visual. The app places structure, requirements and Fieldtrip's own past content; the team writes.
 - **Show AI output as a draft**, with its sources (page or answer numbers, source proposal and year).
 - **Keep AI output short.** The fit review returns a fixed shape with limits (see step 1 spec); the page never shows walls of text.
