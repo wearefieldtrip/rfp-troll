@@ -6,7 +6,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { dayCountLabel, daysUntilMoment } from '@/lib/key-dates'
+import { momentFrom } from '@/lib/moment-columns'
+import { nextStep } from '@/lib/next-step'
 import { rfpsQuery } from '@/lib/queries'
+import { formatMoment } from '@/lib/rfp-dates'
 import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
 import { ACTIVE_STATUSES, statusLabel, statusVariant } from '@/lib/rfp-status'
 
@@ -25,9 +29,6 @@ const EMPTY_TEXT: Record<string, string> = {
   passed: 'No passed RFPs yet. RFPs you pass on are kept here.',
   all: 'No RFPs yet. Add one to get started.',
 }
-
-const formatDate = (date: string | null) =>
-  date ? new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
 
 export default function HomePage() {
   const { data: rfps, isPending, error } = useQuery(rfpsQuery)
@@ -74,9 +75,8 @@ export default function HomePage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Client</TableHead>
-              <TableHead>Due</TableHead>
+              <TableHead>RFP</TableHead>
+              <TableHead>Next step</TableHead>
               <TableHead>Fit</TableHead>
               <TableHead>Status</TableHead>
             </TableRow>
@@ -87,15 +87,34 @@ export default function HomePage() {
               const review = rfp.rfp_reviews
                 .filter((r) => r.status === 'complete')
                 .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+              const next = nextStep({
+                status: rfp.status,
+                questions_policy: rfp.questions_policy,
+                questions: momentFrom(rfp, 'questions_due'),
+                proposal: momentFrom(rfp, 'proposal_due'),
+                vendorSelection: momentFrom(rfp, 'vendor_selection'),
+              })
               return (
                 <TableRow key={rfp.id}>
-                  <TableCell className="font-medium">
-                    <Link to={`/rfps/${rfp.id}`} className="hover:underline">
+                  <TableCell>
+                    {rfp.client_name && <div className="text-xs text-muted-foreground">{rfp.client_name}</div>}
+                    <Link to={`/rfps/${rfp.id}`} className="font-medium hover:underline">
                       {rfp.title}
                     </Link>
                   </TableCell>
-                  <TableCell>{rfp.client_name ?? '—'}</TableCell>
-                  <TableCell>{formatDate(rfp.due_date)}</TableCell>
+                  <TableCell>
+                    {next ? (
+                      <>
+                        <div className="text-xs text-muted-foreground">{next.label}</div>
+                        <div>
+                          {formatMoment(next.moment)}
+                          <span className="text-muted-foreground"> · {dayCountLabel(daysUntilMoment(next.moment))}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </TableCell>
                   <TableCell>
                     {review ? (
                       <FitBadge band={cleanBandLabel(review.decision_band)} total={review.total_score} max={MAX_TOTAL} showScore />
