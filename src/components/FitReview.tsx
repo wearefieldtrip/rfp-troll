@@ -26,7 +26,7 @@ export function CheckThis({ flags }: { flags: string[] }) {
 }
 
 /** The score, the verdict and the four rubric rows. Clicking a row shows its quotes from the RFP. */
-export function FitCard({ view, footer }: { view: ReviewView; footer: ReactNode }) {
+export function FitCard({ view, footer, actions }: { view: ReviewView; footer: ReactNode; actions?: ReactNode }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const totalTone = fitTone(view.band, view.total, view.max)
 
@@ -54,6 +54,8 @@ export function FitCard({ view, footer }: { view: ReviewView; footer: ReactNode 
             </dl>
           )}
         </div>
+
+        {actions}
 
         <div>
           {view.dimensions.map((d) => {

@@ -1,3 +1,4 @@
+import { checkPdf } from './pdf-check'
 import { supabase } from './supabase'
 
 const BUCKET = 'rfp-documents'
@@ -37,4 +38,15 @@ export async function uploadRfpFiles(rfpId: string, files: File[]) {
       throw rowError
     }
   }
+}
+
+export type FileCheck = { ok: true; scanned: boolean } | { ok: false; reason: string }
+
+/** Everything worth telling someone before an upload starts: type, size, a password, a scan. */
+export async function checkRfpFile(file: File): Promise<FileCheck> {
+  if (!isAcceptedFile(file)) return { ok: false, reason: `${file.name} isn't a PDF or Word (.docx) file.` }
+  if (file.size === 0) return { ok: false, reason: `${file.name} is empty.` }
+  if (file.size > MAX_FILE_BYTES) return { ok: false, reason: `${file.name} is over 50 MB.` }
+  if (extensionOf(file.name) === '.pdf') return await checkPdf(file)
+  return { ok: true, scanned: false }
 }

@@ -1,9 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
-import { moveFile } from "./google.ts";
+import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
+import { moveFile, parentOf } from "./google.ts";
 
 // "_DEAD Opportunities", inside Prospective Clients.
 const DEAD_FOLDER_ID = Deno.env.get("DRIVE_DEAD_FOLDER_ID") ?? "0B22CMSUAolRUVHRRNTdReUVxVW8";
+// Prospective Clients: where a client folder lives until the RFP is passed on.
+const ROOT_FOLDER_ID = Deno.env.get("DRIVE_ROOT_FOLDER_ID") ?? "0B22CMSUAolRUcVJlWjctM2xZX1U";
 const BUSY_MS = 10 * 60 * 1000;
 const PASSABLE = ["evaluate_ready", "questions_drafting", "questions_sent", "questions_answers_in", "proposal_drafting", "proposal_in_review"];
 const REASONS = ["Budget", "Timeline", "Not a fit", "Capacity", "Scope", "Other"];
@@ -13,6 +15,35 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
+
+/** Reopening a passed RFP brings its client folder back out of _DEAD Opportunities, then records the decision. */
+async function reopen(supabase: SupabaseClient, rfpId: string) {
+  const { data: rfp, error } = await supabase.from("rfps").select("id, status, drive_folder_id").eq("id", rfpId).single();
+  if (error || !rfp) return json({ error: "RFP not found" }, 404);
+  if (!["closed_passed", "closed_lost", "closed_won"].includes(rfp.status)) return json({ error: "Only a closed RFP can be reopened." }, 409);
+
+  // Only a folder that is sitting in _DEAD Opportunities is moved; one left in place (another RFP was open) stays put.
+  let moved = false;
+  if (rfp.drive_folder_id) {
+    try {
+      if ((await parentOf(rfp.drive_folder_id)) === DEAD_FOLDER_ID) {
+        await moveFile(rfp.drive_folder_id, ROOT_FOLDER_ID);
+        moved = true;
+      }
+    } catch (err) {
+      console.error("drive move failed", err);
+      return json({ error: "Could not move the Drive folder back to Prospective Clients, so the RFP was not reopened. Please try again." }, 502);
+    }
+  }
+
+  const { error: decideError } = await supabase.rpc("decide_rfp", { p_rfp_id: rfpId, p_decision: "reopen", p_expected_status: rfp.status });
+  if (decideError) {
+    if (moved) await moveFile(rfp.drive_folder_id!, DEAD_FOLDER_ID).catch((e) => console.error("move back failed", e));
+    console.error("reopen failed", decideError);
+    return json({ error: decideError.message || "Could not reopen this RFP. Please try again." }, 409);
+  }
+  return json({ reopened: true, folder_moved: moved });
+}
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -31,8 +62,9 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (userError || !userData.user) return json({ error: "Not signed in" }, 401);
 
-  const { rfp_id, reason, note } = await req.json().catch(() => ({}));
+  const { rfp_id, reason, note, action } = await req.json().catch(() => ({}));
   if (typeof rfp_id !== "string") return json({ error: "rfp_id is required" }, 400);
+  if (action === "reopen") return await reopen(supabase, rfp_id);
   // Checked before anything moves, so a bad request never leaves a folder in the wrong place.
   if (typeof reason !== "string" || !REASONS.includes(reason)) return json({ error: "Choose a reason for passing." }, 400);
   const cleanNote = typeof note === "string" && note.trim() ? note.trim().slice(0, 2000) : null;

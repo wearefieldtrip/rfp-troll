@@ -10,4 +10,6 @@ export async function invokeFunction(name: string, body: Record<string, unknown>
   }
 }
 
-export const syncRfpFolder = (rfpId: string) => invokeFunction('sync-rfp-folder', { rfp_id: rfpId })
+/** `refresh` is for a replaced file: read the details again without touching the title or client. */
+export const syncRfpFolder = (rfpId: string, options: { refresh?: boolean } = {}) =>
+  invokeFunction('sync-rfp-folder', { rfp_id: rfpId, ...options })

@@ -5,8 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { syncRfpFolder } from '@/lib/functions'
-import { checkPdf } from '@/lib/pdf-check'
-import { ACCEPT_ATTR, isAcceptedFile, MAX_FILE_BYTES, uploadRfpFiles } from '@/lib/rfp-files'
+import { ACCEPT_ATTR, checkRfpFile, uploadRfpFiles } from '@/lib/rfp-files'
 import { supabase } from '@/lib/supabase'
 
 const titleFromFileName = (name: string) => name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim() || 'New RFP'
@@ -58,17 +57,11 @@ export function NewRfpDialog() {
   const choose = async (picked: File | undefined) => {
     reset()
     if (!picked) return
-    if (!isAcceptedFile(picked)) return setFileError(`${picked.name} isn't a PDF or Word (.docx) file.`)
-    if (picked.size === 0) return setFileError(`${picked.name} is empty.`)
-    if (picked.size > MAX_FILE_BYTES) return setFileError(`${picked.name} is over 50 MB.`)
-
-    if (picked.name.toLowerCase().endsWith('.pdf')) {
-      setChecking(true)
-      const result = await checkPdf(picked)
-      setChecking(false)
-      if (!result.ok) return setFileError(result.reason)
-      setScanned(result.scanned)
-    }
+    setChecking(true)
+    const result = await checkRfpFile(picked)
+    setChecking(false)
+    if (!result.ok) return setFileError(result.reason)
+    setScanned(result.scanned)
     setFile(picked)
   }
 

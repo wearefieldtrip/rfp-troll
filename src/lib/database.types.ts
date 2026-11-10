@@ -51,6 +51,7 @@ export type Database = {
           vendor_selection_has_time: boolean
           vendor_selection_text: string | null
           vendor_selection_tz: string | null
+          owner_id: string | null
           passed_from_status: string | null
           source_url: string | null
           status: string
@@ -98,6 +99,7 @@ export type Database = {
           vendor_selection_has_time?: boolean
           vendor_selection_text?: string | null
           vendor_selection_tz?: string | null
+          owner_id?: string | null
           passed_from_status?: string | null
           source_url?: string | null
           status?: string
@@ -147,8 +149,8 @@ export type Database = {
         ]
       }
       rfp_documents: {
-        Row: { created_at: string; drive_file_id: string | null; file_name: string; id: string; mime_type: string | null; rfp_id: string; size_bytes: number | null; storage_path: string; uploaded_by: string | null }
-        Insert: { created_at?: string; drive_file_id?: string | null; file_name: string; id?: string; mime_type?: string | null; rfp_id: string; size_bytes?: number | null; storage_path: string; uploaded_by?: string | null }
+        Row: { created_at: string; drive_file_id: string | null; file_name: string; id: string; mime_type: string | null; rfp_id: string; size_bytes: number | null; storage_path: string; superseded_at: string | null; uploaded_by: string | null }
+        Insert: { created_at?: string; drive_file_id?: string | null; file_name: string; id?: string; mime_type?: string | null; rfp_id: string; size_bytes?: number | null; storage_path: string; superseded_at?: string | null; uploaded_by?: string | null }
         Update: Partial<Database['public']['Tables']['rfp_documents']['Insert']>
         Relationships: [
           { foreignKeyName: 'rfp_documents_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },

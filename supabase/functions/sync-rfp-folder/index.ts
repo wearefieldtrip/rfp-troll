@@ -4,7 +4,7 @@ import { extractRfpDetails } from "./extract.ts";
 import { estimateBudget } from "./nonprofit-estimate.ts";
 import { calendarDate, type Moment } from "./rfp-dates.ts";
 import { findClientFolder } from "./client-folder.ts";
-import { createFolder, listChildren, uploadFile } from "./google.ts";
+import { createFolder, listChildren, trashFile, uploadFile } from "./google.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
@@ -31,6 +31,8 @@ type Rfp = {
   drive_rfp_subfolder_id: string | null;
   extract_status: string;
   created_at: string;
+  due_date_source: string | null;
+  budget_source: string | null;
 };
 
 const MIME_BY_EXTENSION: Record<string, string> = {
@@ -50,8 +52,11 @@ function momentColumns(prefix: string, moment: Moment | null) {
   };
 }
 
-/** Best-effort: a failure here never blocks the folder; the team can fix the details by hand. */
-async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
+/**
+ * Best-effort: a failure here never blocks the folder; the team can fix the details by hand.
+ * When the file was replaced (refresh), the title and client stay as they are, and a date or budget the team typed is kept.
+ */
+async function extractDetails(supabase: SupabaseClient, rfp: Rfp, refresh: boolean) {
   try {
     const { data: staged } = await supabase
       .from("rfp_documents")
@@ -69,26 +74,34 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
     const { proposal, questionsPolicy, questions, vendorSelection } = details.dates;
     const { budget } = details;
     // Only when the RFP states no budget: a rough size-based estimate from the issuer's Form 990. Never blocks the rest.
-    const estimate = budget ? null : await estimateBudget({ ...details.issuer, name: details.issuer.name || rfp.client_name || "" });
+    const estimate = budget || (refresh && rfp.budget_source === "manual") ? null : await estimateBudget({ ...details.issuer, name: details.issuer.name || rfp.client_name || "" });
+    const keepBudget = refresh && rfp.budget_source === "manual";
+    const keepProposal = refresh && rfp.due_date_source === "manual";
     const patch: Record<string, unknown> = {
       extract_status: "done",
       extract_error: null,
       questions_policy: questionsPolicy,
-      ...momentColumns("proposal_due", proposal),
+      ...(keepProposal ? {} : momentColumns("proposal_due", proposal)),
       ...momentColumns("questions_due", questions),
       ...momentColumns("vendor_selection", vendorSelection),
-      budget_min_usd: budget?.min ?? null,
-      budget_max_usd: budget?.max ?? null,
-      budget_qualifier: budget?.qualifier || null,
-      budget_wording: budget?.wording || null,
-      budget_source: budget ? "inferred" : null,
-      budget_estimate: estimate,
+      ...(keepBudget
+        ? {}
+        : {
+            budget_min_usd: budget?.min ?? null,
+            budget_max_usd: budget?.max ?? null,
+            budget_qualifier: budget?.qualifier || null,
+            budget_wording: budget?.wording || null,
+            budget_source: budget ? "inferred" : null,
+            budget_estimate: estimate,
+          }),
     };
 
-    if (details.title.trim()) patch.title = details.title.trim();
-    if (details.issuing_organization.trim() && !rfp.client_name) patch.client_name = details.issuing_organization.trim();
+    if (!refresh) {
+      if (details.title.trim()) patch.title = details.title.trim();
+      if (details.issuing_organization.trim() && !rfp.client_name) patch.client_name = details.issuing_organization.trim();
+    }
     // The older columns the page still reads until the pills replace them.
-    if (proposal) {
+    if (proposal && !keepProposal) {
       patch.due_date = calendarDate(proposal);
       patch.due_date_source = "inferred";
       patch.due_date_evidence = proposal.text || null;
@@ -123,14 +136,14 @@ async function startFirstReview(supabase: SupabaseClient, rfp: Rfp, authHeader: 
   }
 }
 
-async function sync(supabase: SupabaseClient, rfp: Rfp, authHeader: string) {
+async function sync(supabase: SupabaseClient, rfp: Rfp, authHeader: string, refresh: boolean) {
   // A retry soon after upload still counts as the first run; an old RFP never starts a review by itself.
-  const firstUpload = rfp.extract_status === "pending" || Date.now() - new Date(rfp.created_at).getTime() < NEW_RFP_MS;
+  const firstUpload = !refresh && (rfp.extract_status === "pending" || Date.now() - new Date(rfp.created_at).getTime() < NEW_RFP_MS);
   const setStatus = (patch: Record<string, unknown>) => supabase.from("rfps").update(patch).eq("id", rfp.id);
 
   try {
     // A new upload starts with a provisional title. Read the real details first so the folder is named properly.
-    if (rfp.extract_status === "pending") await extractDetails(supabase, rfp);
+    if (rfp.extract_status === "pending" || refresh) await extractDetails(supabase, rfp, refresh);
 
     let folderId = rfp.drive_folder_id;
     // RFPs made before client folders were shared keep their own RFP subfolder; new ones go straight into the client folder.
@@ -181,6 +194,17 @@ async function sync(supabase: SupabaseClient, rfp: Rfp, authHeader: string) {
       await supabase.storage.from("rfp-documents").remove([doc.storage_path]);
     }
 
+    // A replaced file: once the new one is in Drive, the old one goes to the Drive trash and out of the app.
+    // Never when nothing else is left, so a half-finished replacement can't empty the RFP.
+    const { data: all } = await supabase.from("rfp_documents").select("id, drive_file_id, superseded_at").eq("rfp_id", rfp.id);
+    if (all?.some((d) => !d.superseded_at && d.drive_file_id)) {
+      for (const doc of all.filter((d) => d.superseded_at)) {
+        if (doc.drive_file_id) await trashFile(doc.drive_file_id);
+        const { error: removeError } = await supabase.from("rfp_documents").delete().eq("id", doc.id);
+        if (removeError) throw new Error("Could not remove the replaced file.");
+      }
+    }
+
     await setStatus({ drive_status: "ready", drive_error: null });
     if (firstUpload) await startFirstReview(supabase, rfp, authHeader);
   } catch (err) {
@@ -205,12 +229,12 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (userError || !userData.user) return json({ error: "Not signed in" }, 401);
 
-  const { rfp_id } = await req.json().catch(() => ({}));
+  const { rfp_id, refresh } = await req.json().catch(() => ({}));
   if (typeof rfp_id !== "string") return json({ error: "rfp_id is required" }, 400);
 
   const { data: rfp, error } = await supabase
     .from("rfps")
-    .select("id, title, client_name, drive_folder_id, drive_rfp_subfolder_id, extract_status, created_at, drive_status, updated_at")
+    .select("id, title, client_name, drive_folder_id, drive_rfp_subfolder_id, extract_status, created_at, due_date_source, budget_source, drive_status, updated_at")
     .eq("id", rfp_id)
     .single();
   if (error || !rfp) return json({ error: "RFP not found" }, 404);
@@ -223,6 +247,6 @@ Deno.serve(async (req) => {
   await supabase.from("rfps").update({ drive_status: "syncing", drive_error: null }).eq("id", rfp_id);
 
   // Respond now; the sync keeps running in the background and the page polls the RFP.
-  EdgeRuntime.waitUntil(sync(supabase, rfp, authHeader));
+  EdgeRuntime.waitUntil(sync(supabase, rfp, authHeader, refresh === true));
   return json({ status: "syncing" }, 202);
 });

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon } from 'lucide-react'
-import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { CheckThis, FitCard, QuestionsCard, RisksCard } from '@/components/FitReview'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -14,9 +14,18 @@ const formatShortDate = (iso: string) => new Date(iso).toLocaleDateString(undefi
 
 const startReview = (rfpId: string) => invokeFunction('review-rfp', { rfp_id: rfpId })
 
-export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocuments: boolean }) {
+type Props = {
+  rfpId: string
+  hasDocuments: boolean
+  /** Asking to run the review again is lifted so the page's menu can open the same confirmation. */
+  confirming: boolean
+  onConfirmingChange: (open: boolean) => void
+  /** The decision buttons, told whether a finished review exists yet. */
+  renderDecision?: (enabled: boolean) => ReactNode
+}
+
+export function ReviewSection({ rfpId, hasDocuments, confirming, onConfirmingChange: setConfirming, renderDecision }: Props) {
   const queryClient = useQueryClient()
-  const [confirming, setConfirming] = useState(false)
   const reviews = useQuery(rfpReviewsQuery(rfpId))
   const start = useMutation({
     mutationFn: () => startReview(rfpId),
@@ -71,6 +80,7 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
         <CheckThis flags={view.flags} />
         <FitCard
           view={view}
+          actions={renderDecision?.(true)}
           footer={
             <>
               AI review · {formatShortDate(completed.created_at)}
@@ -105,6 +115,7 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
       </CardHeader>
       <CardContent className="space-y-3">
         {start.error && <p className="text-sm text-destructive">{start.error.message}</p>}
+        {renderDecision?.(false)}
         {!hasDocuments && <p className="text-sm text-muted-foreground">Add the RFP document to run a review.</p>}
         {reviews.isPending ? (
           <Skeleton className="h-16 w-full" />

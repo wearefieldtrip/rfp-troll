@@ -96,3 +96,12 @@ export const rubricQuery = (id?: string) =>
     queryKey: ['rubric', id ?? 'active'],
     queryFn: () => fetchRubric(id),
   })
+
+export const teamQuery = queryOptions({
+  queryKey: ['team'],
+  queryFn: async () => {
+    const { data, error } = await supabase.from('profiles').select('id, full_name, email').order('full_name')
+    if (error) throw error
+    return data
+  },
+})

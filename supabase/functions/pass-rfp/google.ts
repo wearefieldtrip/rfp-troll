@@ -121,3 +121,10 @@ export async function listChildren(parentId: string): Promise<{ id: string; name
   if (!res.ok) throw await failure(res, "list a folder");
   return (await res.json()).files;
 }
+
+/** The folder a file or folder currently sits in, or null when Drive doesn't say. */
+export async function parentOf(fileId: string): Promise<string | null> {
+  const res = await fetch(`${DRIVE}/files/${fileId}?supportsAllDrives=true&fields=parents`, { headers: await authHeaders() });
+  if (!res.ok) throw await failure(res, "look up a folder");
+  return ((await res.json()).parents as string[] | undefined)?.[0] ?? null;
+}

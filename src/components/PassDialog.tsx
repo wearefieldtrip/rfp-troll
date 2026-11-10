@@ -36,7 +36,7 @@ export function PassDialog({ rfpId, open, onOpenChange }: { rfpId: string; open:
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Pass on this RFP?</DialogTitle>
-          <DialogDescription>It moves to Closed · Passed. You can reopen it later.</DialogDescription>
+          <DialogDescription>It moves to Closed · Passed, and its Drive folder moves to _DEAD Opportunities unless the client has another open RFP. You can reopen it later.</DialogDescription>
         </DialogHeader>
 
         <fieldset className="space-y-2">

@@ -9,7 +9,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -19,12 +18,13 @@ type Props = {
   rfp: { id: string; title: string; drive_folder_id: string | null }
   documentCount: number
   reviewCount: number
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
-export function DeleteRfpDialog({ rfp, documentCount, reviewCount }: Props) {
-  const [open, setOpen] = useState(false)
+export function DeleteRfpDialog({ rfp, documentCount, reviewCount, open, onOpenChange: setOpen }: Props) {
   const [typed, setTyped] = useState('')
   const [trashFolder, setTrashFolder] = useState(false)
   const queryClient = useQueryClient()
@@ -54,7 +54,6 @@ export function DeleteRfpDialog({ rfp, documentCount, reviewCount }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogTrigger render={<Button variant="destructive" size="sm" />}>Delete RFP</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete this RFP?</DialogTitle>

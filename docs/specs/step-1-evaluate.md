@@ -169,6 +169,12 @@ On confirm, record who decided, when, the reason, the note, and the score at tha
 
 Agreed while building. Keep unless changed.
 
+- **Owner.** Each RFP has an owner (starts as whoever added it; **Change owner** in the ⋯ menu). Shown under the title.
+- **⋯ menu.** Run review again (asks first, only once a review exists), Replace RFP file, Change owner, Delete RFP; **Reopen** replaces the first two on a closed RFP. The red Delete card at the bottom stays as well.
+- **Replace RFP file.** The old file goes to the Drive trash after the new one is in Drive, and the row is removed. Title and client are kept; dates and budget are read again except ones the team typed. No new review starts by itself.
+- **Reopen** puts a passed RFP back at the step it was passed from, moves its folder out of `_DEAD Opportunities` (only if it was moved), and adds a "reopen" line to the decision record.
+- **Step sections.** Evaluate is a folded section once the RFP moves on, with a one-line summary: score, band and the latest decision. Later steps show a plain "not built yet" placeholder until they are.
+
 - **One Drive folder per client**, named with the client name only, directly under Prospective Clients. A client with an existing folder (matched on the name ignoring case, punctuation, "the" and "&"; helper folders starting with `_` are skipped) reuses it. The RFP file goes straight into the client folder, with no subfolders. Two simultaneous uploads for a brand-new client could create two folders; merge them by hand.
 - **Pass moves the client's folder to `_DEAD Opportunities`** only when no other open RFP uses it. Delete with "move to trash" trashes the whole folder only when this is the client's last RFP; otherwise only this RFP's files.
 - **The RFP list has filters**: Active (default), Won, Lost, Passed, All, each with a count.
