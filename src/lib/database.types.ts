@@ -33,6 +33,7 @@ export type Database = {
           due_date_source: string | null
           extract_error: string | null
           extract_status: string
+          upload_note: string | null
           key_dates: Json
           id: string
           outcome_notes: string | null
@@ -79,6 +80,7 @@ export type Database = {
           due_date_source?: string | null
           extract_error?: string | null
           extract_status?: string
+          upload_note?: string | null
           key_dates?: Json
           id?: string
           outcome_notes?: string | null

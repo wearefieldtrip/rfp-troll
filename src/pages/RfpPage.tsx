@@ -6,14 +6,17 @@ import { DecisionRecord } from '@/components/DecisionRecord'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { KeyFacts } from '@/components/KeyFacts'
+import { ProgressStrip } from '@/components/ProgressStrip'
 import { ReviewSection } from '@/components/ReviewSection'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
+import { jobStates, type ReviewState } from '@/lib/progress'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
 import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
 import { statusLabel, statusVariant } from '@/lib/rfp-status'
+import { supabase } from '@/lib/supabase'
 
 export default function RfpPage() {
   const { id = '' } = useParams()
@@ -26,6 +29,15 @@ export default function RfpPage() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['rfps', id] })
 
   const retrySync = useMutation({ mutationFn: () => syncRfpFolder(id), onSettled: refresh })
+  // Reading the names again is a sync with the extraction step switched back on.
+  const retryNames = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('rfps').update({ extract_status: 'pending', extract_error: null }).eq('id', id)
+      if (error) throw error
+      await syncRfpFolder(id)
+    },
+    onSettled: refresh,
+  })
 
   if (rfp.isPending) return <Skeleton className="h-48 w-full max-w-3xl" />
   if (rfp.error) return <p className="text-destructive">Could not load this RFP.</p>
@@ -35,6 +47,11 @@ export default function RfpPage() {
   const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
   const completedReview = reviews.data?.find((r) => r.status === 'complete')
   const scoreText = completedReview?.total_score != null ? `${completedReview.total_score} / ${MAX_TOTAL} · ${cleanBandLabel(completedReview.decision_band)}` : null
+
+  const latestReview = reviews.data?.[0]
+  const reviewState: ReviewState = completedReview ? 'complete' : latestReview?.status === 'running' ? 'running' : latestReview?.status === 'failed' ? 'failed' : 'none'
+  const jobs = jobStates(data, reviewState)
+  const retryingJob = retrySync.isPending || retryNames.isPending
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -48,8 +65,11 @@ export default function RfpPage() {
         </div>
       </div>
 
+      {status === 'evaluate_reading' && (
+        <ProgressStrip jobs={jobs} retrying={retryingJob} onRetry={(key) => (key === 'names' ? retryNames.mutate() : retrySync.mutate())} />
+      )}
       <KeyFacts rfp={data} reading={reading} onRetryDrive={() => retrySync.mutate()} retryingDrive={retrySync.isPending} />
-      {retrySync.error && <p className="text-sm text-destructive">{retrySync.error.message}</p>}
+      {(retrySync.error || retryNames.error) && <p className="text-sm text-destructive">{(retrySync.error ?? retryNames.error)?.message}</p>}
 
       <Card>
         <CardHeader>
@@ -80,6 +100,7 @@ export default function RfpPage() {
               Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit to add them.
             </p>
           )}
+          {data.upload_note && <p className="text-sm text-amber-700 dark:text-amber-400">{data.upload_note}</p>}
           <dl className="grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
             <dt className="text-muted-foreground">Client</dt>
             <dd>{data.client_name ?? '—'}</dd>
@@ -87,7 +108,11 @@ export default function RfpPage() {
         </CardContent>
       </Card>
 
-      <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
+      {reading ? (
+        <Skeleton className="h-40 w-full" />
+      ) : (
+        <ReviewSection rfpId={id} hasDocuments={(documents.data?.length ?? 0) > 0} />
+      )}
       {status === 'evaluate_ready' && (
         <DecisionCard rfp={data} scoreText={scoreText} enabled={completedReview !== undefined} />
       )}

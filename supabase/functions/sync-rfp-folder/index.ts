@@ -12,6 +12,7 @@ declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 // Prospective Clients, inside the Business Development shared drive.
 const ROOT_FOLDER_ID = Deno.env.get("DRIVE_ROOT_FOLDER_ID") ?? "0B22CMSUAolRUcVJlWjctM2xZX1U";
 const SYNC_STALE_MS = 5 * 60 * 1000;
+const NEW_RFP_MS = 6 * 60 * 60 * 1000;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,6 +30,7 @@ type Rfp = {
   drive_folder_id: string | null;
   drive_rfp_subfolder_id: string | null;
   extract_status: string;
+  created_at: string;
 };
 
 const MIME_BY_EXTENSION: Record<string, string> = {
@@ -105,7 +107,25 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
   }
 }
 
-async function sync(supabase: SupabaseClient, rfp: Rfp) {
+/** The first fit review starts on its own once the file is safe in Drive. Best-effort: the profile has a Run button if this doesn't happen. */
+async function startFirstReview(supabase: SupabaseClient, rfp: Rfp, authHeader: string) {
+  try {
+    const { data: existing } = await supabase.from("rfp_reviews").select("id").eq("rfp_id", rfp.id).limit(1);
+    if (existing?.length) return;
+    const res = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/review-rfp`, {
+      method: "POST",
+      headers: { Authorization: authHeader, apikey: Deno.env.get("SUPABASE_ANON_KEY")!, "Content-Type": "application/json" },
+      body: JSON.stringify({ rfp_id: rfp.id }),
+    });
+    if (!res.ok) console.error("first review did not start", res.status, await res.text().catch(() => ""));
+  } catch (err) {
+    console.error("first review did not start", err);
+  }
+}
+
+async function sync(supabase: SupabaseClient, rfp: Rfp, authHeader: string) {
+  // A retry soon after upload still counts as the first run; an old RFP never starts a review by itself.
+  const firstUpload = rfp.extract_status === "pending" || Date.now() - new Date(rfp.created_at).getTime() < NEW_RFP_MS;
   const setStatus = (patch: Record<string, unknown>) => supabase.from("rfps").update(patch).eq("id", rfp.id);
 
   try {
@@ -162,6 +182,7 @@ async function sync(supabase: SupabaseClient, rfp: Rfp) {
     }
 
     await setStatus({ drive_status: "ready", drive_error: null });
+    if (firstUpload) await startFirstReview(supabase, rfp, authHeader);
   } catch (err) {
     console.error("sync failed", err);
     await setStatus({ drive_status: "failed", drive_error: err instanceof Error ? err.message : "The Drive sync failed." });
@@ -189,7 +210,7 @@ Deno.serve(async (req) => {
 
   const { data: rfp, error } = await supabase
     .from("rfps")
-    .select("id, title, client_name, drive_folder_id, drive_rfp_subfolder_id, extract_status, drive_status, updated_at")
+    .select("id, title, client_name, drive_folder_id, drive_rfp_subfolder_id, extract_status, created_at, drive_status, updated_at")
     .eq("id", rfp_id)
     .single();
   if (error || !rfp) return json({ error: "RFP not found" }, 404);
@@ -202,6 +223,6 @@ Deno.serve(async (req) => {
   await supabase.from("rfps").update({ drive_status: "syncing", drive_error: null }).eq("id", rfp_id);
 
   // Respond now; the sync keeps running in the background and the page polls the RFP.
-  EdgeRuntime.waitUntil(sync(supabase, rfp));
+  EdgeRuntime.waitUntil(sync(supabase, rfp, authHeader));
   return json({ status: "syncing" }, 202);
 });

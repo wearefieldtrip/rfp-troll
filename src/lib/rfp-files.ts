@@ -2,14 +2,13 @@ import { supabase } from './supabase'
 
 const BUCKET = 'rfp-documents'
 
-export const ACCEPTED_EXTENSIONS = ['.pdf', '.docx', '.txt', '.md']
+export const ACCEPTED_EXTENSIONS = ['.pdf', '.docx']
+export const MAX_FILE_BYTES = 50 * 1024 * 1024
 export const ACCEPT_ATTR = ACCEPTED_EXTENSIONS.join(',')
 
 const MIME_BY_EXTENSION: Record<string, string> = {
   '.pdf': 'application/pdf',
   '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  '.txt': 'text/plain',
-  '.md': 'text/markdown',
 }
 
 const extensionOf = (name: string) => name.slice(name.lastIndexOf('.')).toLowerCase()

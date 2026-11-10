@@ -156,9 +156,14 @@ On confirm, record who decided, when, the reason, the note, and the score at tha
 
 ## File format
 
-- Accept PDF (best), Word (convert to PDF on upload), and scanned PDFs (flag: "Scanned document: double-check dates and figures").
-- Reject password-protected PDFs with a clear message.
+- Accept PDF (best) and Word (.docx), up to 50 MB. Word files are read as text; they are not converted to PDF, because the conversion can't run in a background function. Anything else is refused with a clear message.
+- The browser checks a PDF before upload (pdf.js, loaded on demand): a password-protected PDF is refused with a clear message; a scanned PDF (almost no text on its first pages) is accepted with the note "Scanned document: double-check dates and figures." The note is stored on the RFP (`upload_note`) and shown on the profile. If the check can't read a file for any other reason, the upload goes ahead.
 - Send PDFs to the Claude API as documents (text and page images). An RFP plus addenda go in one request, each labeled.
+
+## Loading and retry
+
+- The first fit review starts on its own once the file is in Drive (the sync function starts it). If that doesn't happen, the fit card shows **Run fit review**.
+- A progress strip shows the four jobs (RFP saved · Client and RFP name · Drive folder · Dates and fit review) until all are done. A failed name-reading or Drive job has its own **Retry**; a failed review is run again from the fit card.
 
 ## Decisions beyond the first draft
 
