@@ -2,6 +2,7 @@
 import Anthropic from "npm:@anthropic-ai/sdk";
 import mammoth from "npm:mammoth@1.8.0";
 import { Buffer } from "node:buffer";
+import type { Issuer } from "./nonprofit-estimate.ts";
 import { interpretBudget, type Budget, type BudgetRead } from "./rfp-budget.ts";
 import { interpretDates, type DateFact, type InterpretedDates } from "./rfp-dates.ts";
 
@@ -14,11 +15,15 @@ export type RfpDetails = {
   dates: InterpretedDates;
   /** Null when the RFP states no amount. */
   budget: Budget | null;
+  /** Who issued the RFP: used to look up their Form 990 when no budget is stated. */
+  issuer: Issuer;
 };
 
 type Reading = {
   title: string;
   issuing_organization: string;
+  issuer_state: string;
+  issuer_type: Issuer["type"];
   proposal_due: DateFact;
   questions: DateFact & { policy: "due" | "not_allowed" | "not_stated" };
   vendor_selection: DateFact;
@@ -41,10 +46,12 @@ const dateFact = {
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
-  required: ["title", "issuing_organization", "proposal_due", "questions", "vendor_selection", "budget"],
+  required: ["title", "issuing_organization", "issuer_state", "issuer_type", "proposal_due", "questions", "vendor_selection", "budget"],
   properties: {
     title: str,
     issuing_organization: str,
+    issuer_state: str,
+    issuer_type: { type: "string", enum: ["nonprofit", "government", "for_profit", "unknown"] },
     proposal_due: dateFact,
     questions: {
       type: "object",
@@ -66,6 +73,8 @@ const SYSTEM = `You read a Request for Proposals (RFP) and report a few facts fr
 
 - title: the RFP's own title or the name of the project it describes. Plain text, no file numbers or "RFP #" prefixes unless they are part of the name.
 - issuing_organization: the organization that issued the RFP and will hire the winning firm.
+- issuer_state: the two-letter US state where the issuing organization is based (from its address in the RFP), or empty if the RFP does not show one.
+- issuer_type: "nonprofit" for a nonprofit, foundation, association or charity; "government" for a city, county, state, agency, school district, public university or other public body; "for_profit" for a business; "unknown" if the RFP does not make it clear.
 - proposal_due: when proposals must be submitted.
 - questions: whether vendors may ask questions, and by when. policy is "due" when the RFP gives a deadline for questions; "not_allowed" only when the RFP explicitly says questions are not accepted; otherwise "not_stated" (including when questions are allowed but no deadline is given). For "not_allowed" and "not_stated" leave date, time and timezone empty.
 - vendor_selection: when the issuer expects to select or announce the winning vendor (award or notification date). Leave it empty if the RFP gives none.
@@ -140,5 +149,6 @@ export async function extractRfpDetails(files: StagedFile[]): Promise<RfpDetails
     issuing_organization: reading.issuing_organization,
     dates: interpretDates({ proposal: reading.proposal_due, questions: reading.questions, vendorSelection: reading.vendor_selection }),
     budget: interpretBudget(reading.budget),
+    issuer: { name: reading.issuing_organization.trim(), state: reading.issuer_state.trim() || null, type: reading.issuer_type },
   };
 }

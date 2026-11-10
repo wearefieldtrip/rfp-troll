@@ -118,7 +118,7 @@ async function buildDocumentBlocks(supabase: SupabaseClient, docs: Doc[]) {
   return blocks;
 }
 
-async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record<string, string | null>, docs: Doc[], rubricContent: string) {
+async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record<string, string | number | null>, docs: Doc[], rubricContent: string) {
   const fail = (error: string) =>
     supabase.from("rfp_reviews").update({ status: "failed", error, completed_at: new Date().toISOString() }).eq("id", reviewId);
 
@@ -166,7 +166,9 @@ async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record
 
     let review;
     try {
-      review = buildReview(JSON.parse(text.text), bands);
+      // The rubric's top level for budget needs a budget the RFP states (or a person entered).
+      const budgetStated = rfp.budget_min_usd !== null || rfp.budget_max_usd !== null;
+      review = buildReview(JSON.parse(text.text), bands, { budgetStated });
     } catch (err) {
       if (err instanceof ReviewInvalid || err instanceof SyntaxError) {
         console.error("review rejected", err);

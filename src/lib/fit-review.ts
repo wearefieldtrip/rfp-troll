@@ -28,7 +28,11 @@ export class ReviewInvalid extends Error {}
 const text = (value: unknown) => (typeof value === 'string' ? value.trim() : '')
 const textList = (value: unknown) => (Array.isArray(value) ? value.map(text).filter(Boolean) : [])
 
-export function buildReview(raw: unknown, bands: Band[]): ReviewV2 {
+/** Dimension B's top level needs a budget the RFP states. An estimate or a guess can score at most this. */
+export const UNSTATED_BUDGET_MAX_B = 2
+
+export function buildReview(raw: unknown, bands: Band[], options: { budgetStated?: boolean } = {}): ReviewV2 {
+  const budgetStated = options.budgetStated ?? true
   if (typeof raw !== 'object' || raw === null) throw new ReviewInvalid('The review was not in the expected format.')
   const r = raw as Record<string, unknown>
 
@@ -56,6 +60,10 @@ export function buildReview(raw: unknown, bands: Band[]): ReviewV2 {
       })
       .filter((e): e is Evidence => e !== null)
       .slice(0, LIMITS.evidencePerDimension)
+    // Budget and value (B) can't be a 3 when the RFP states no budget, however the model scored it.
+    if (key === 'B' && !budgetStated && score > UNSTATED_BUDGET_MAX_B) {
+      return { key, score: UNSTATED_BUDGET_MAX_B, reason: `${text(d.reason)} Capped at ${UNSTATED_BUDGET_MAX_B}: the RFP states no budget.`.trim(), evidence }
+    }
     return { key, score, reason: text(d.reason), evidence }
   })
 

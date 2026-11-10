@@ -100,3 +100,28 @@ test('flags and the automatic no-go reason pass through', () => {
   assert.deepEqual(review.flags, ['The RFP is future-dated.'])
   assert.equal(review.auto_no_go, 'Free spec work is required.')
 })
+
+test('with no stated budget, dimension B can never be a 3', () => {
+  const review = buildReview(raw([3, 3, 3, 3]), bands, { budgetStated: false })
+  assert.equal(review.dimensions[1].score, 2)
+  assert.match(review.dimensions[1].reason, /Capped at 2: the RFP states no budget/)
+  assert.equal(review.total, 11) // 3 + 2 + 3 + 3, not 12
+  assert.equal(review.band.label, 'Definite Go')
+})
+
+test('the cap changes nothing else: other dimensions, lower B scores, and a stated budget', () => {
+  const unstated = buildReview(raw([3, 1, 3, 3]), bands, { budgetStated: false })
+  assert.equal(unstated.dimensions[1].score, 1)
+  assert.doesNotMatch(unstated.dimensions[1].reason, /Capped/)
+  assert.equal(unstated.dimensions[0].score, 3) // A is never capped
+  const stated = buildReview(raw([3, 3, 3, 3]), bands, { budgetStated: true })
+  assert.equal(stated.dimensions[1].score, 3)
+  assert.equal(buildReview(raw([3, 3, 3, 3]), bands).dimensions[1].score, 3) // default: stated
+})
+
+test('the cap can move a total across a band line', () => {
+  // 3+3+2+1 = 9 uncapped would still be Conditional Go; with B capped from 3 to 2 it is 8, still Conditional.
+  // 3+3+3+1 = 10 is Definite Go; capped it is 9, Conditional Go.
+  assert.equal(buildReview(raw([3, 3, 3, 1]), bands).band.label, 'Definite Go')
+  assert.equal(buildReview(raw([3, 3, 3, 1]), bands, { budgetStated: false }).band.label, 'Conditional Go')
+})

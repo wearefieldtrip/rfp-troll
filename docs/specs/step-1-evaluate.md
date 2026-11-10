@@ -102,10 +102,12 @@ Exactly one of:
 - **Stated:** **Budget** $95K–$125K · all-inclusive (the amount or range from the RFP, plus a short qualifier such as "all-inclusive" or "plus media").
 - **Not stated:** **Budget** Not stated · est. $40K–$70K from 990.
   - The estimate is only run when the RFP has no budget.
-  - For nonprofits: look up the organization's latest Form 990 through the ProPublica Nonprofit Explorer API (by name and state, then EIN). Use total expenses, advertising and promotion, and fees for outside services.
+  - For nonprofits: look up the organization's latest Form 990 through the ProPublica Nonprofit Explorer API (by name and state, then EIN).
+  - **Changed from the first draft:** the API returns total expenses but not the advertising or outside-fees lines (those exist only in the filing PDF, which ProPublica does not serve to apps). The estimate is therefore sized from **total expenses alone**: 0.3% to 0.9% of total expenses, at least $10K to $25K, never above $400K, rounded to $5K. It is a rough guide to scale, not a budget, and is labeled as such. The rule is one small function (`src/lib/nonprofit-estimate.ts`) to tune once past proposals give budgets to compare against.
+  - The match must be clear: an exact name (ignoring Inc, The, of) in the RFP's state, or an exact name when the state isn't known. Two matches, or a close but inexact name, give no estimate rather than a guess.
   - Show the tax year, the figures used, and the EIN matched so the team can catch a wrong match.
   - Organizations that don't file a full 990 (government and civic bodies, 990-N filers): **Budget** Not stated · no estimate available.
-  - An estimate can score rubric dimension B at most 2, never 3.
+  - Dimension B can score at most 2 whenever the RFP states no budget (an estimate does not count as stated). The app enforces this: a 3 is lowered to 2 and the reason says so.
 - **How the stated budget is stored.** Whole US dollars: a single amount has min = max; a range has both; "up to" has only a max; "at least" has only a min. A short qualifier (at most a few words, such as "all-inclusive" or "plus media"; a longer sentence is left out) and a quote from the RFP are kept with it. A budget a person types in the Edit dialog is marked as entered by the team. The pill shows the amount short ("$95K–$125K"), and hovering shows the RFP's own wording.
 
 ## Decision buttons and confirmation

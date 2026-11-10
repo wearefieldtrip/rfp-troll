@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { extractRfpDetails } from "./extract.ts";
+import { estimateBudget } from "./nonprofit-estimate.ts";
 import { calendarDate, type Moment } from "./rfp-dates.ts";
 import { createFolder, listChildren, uploadFile } from "./google.ts";
 
@@ -65,6 +66,8 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
     const details = await extractRfpDetails(files);
     const { proposal, questionsPolicy, questions, vendorSelection } = details.dates;
     const { budget } = details;
+    // Only when the RFP states no budget: a rough size-based estimate from the issuer's Form 990. Never blocks the rest.
+    const estimate = budget ? null : await estimateBudget({ ...details.issuer, name: details.issuer.name || rfp.client_name || "" });
     const patch: Record<string, unknown> = {
       extract_status: "done",
       extract_error: null,
@@ -77,6 +80,7 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
       budget_qualifier: budget?.qualifier || null,
       budget_wording: budget?.wording || null,
       budget_source: budget ? "inferred" : null,
+      budget_estimate: estimate,
     };
 
     if (details.title.trim()) patch.title = details.title.trim();
