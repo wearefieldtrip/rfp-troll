@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Skeleton } from '@/components/ui/skeleton'
 import { invokeFunction } from '@/lib/functions'
 import { rfpReviewsQuery } from '@/lib/queries'
-import type { ReviewResult } from '@/lib/review-result'
+import { toReviewView } from '@/lib/review-result'
 
 const formatDateTime = (iso: string) =>
   new Date(iso).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })
@@ -83,7 +83,7 @@ export function ReviewSection({ rfpId, hasDocuments }: { rfpId: string; hasDocum
               Rubric version {latest.rubrics?.version} · {formatDateTime(latest.created_at)}
               {author && ` · run by ${author}`}
             </p>
-            <ReviewReport result={latest.result as unknown as ReviewResult} totalScore={latest.total_score ?? 0} />
+            <ReviewReport view={toReviewView(latest.result, latest.total_score, latest.decision_band)} />
           </>
         )}
       </CardContent>

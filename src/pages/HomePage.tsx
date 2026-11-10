@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { rfpsQuery } from '@/lib/queries'
+import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
 
 const VIEWS = [
@@ -98,7 +99,7 @@ export default function HomePage() {
                   <TableCell>{formatDate(rfp.due_date)}</TableCell>
                   <TableCell>
                     {review ? (
-                      <FitBadge band={review.decision_band} total={review.total_score} max={Number(review.max_total) || null} showScore />
+                      <FitBadge band={cleanBandLabel(review.decision_band)} total={review.total_score} max={MAX_TOTAL} showScore />
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}

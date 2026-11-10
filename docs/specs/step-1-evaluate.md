@@ -34,12 +34,14 @@ The model returns a fixed shape. The limits keep the page short whatever the RFP
   ],
   "risks": ["max 3, most serious first"],
   "questions": ["max 8, no duplicates, each one closes a gap"],
-  "flags": ["only real problems, e.g. the RFP is future-dated or calls itself fictional"]
+  "flags": ["only real problems, e.g. the RFP is future-dated or calls itself fictional"],
+  "auto_no_go": "one sentence when the rubric's automatic no-go applies, otherwise empty"
 }
 ```
 
 - The scale is fixed: each dimension 0 to 3, total out of **12**. The model returns scores only. The app adds them up, checks that A–D are all present and between 0 and 3 (otherwise the review fails with a retry), and picks the band from the rubric's decision-matrix ranges (Definite Go, Conditional Go, Likely No-Go, Definite No-Go). The model never supplies a maximum or a band.
-- Each dimension: up to 2 evidence quotes.
+- Each dimension: up to 2 evidence quotes. A page the model can't tell is stored as no page.
+- The app applies the limits itself (3 risks, 8 questions, 2 quotes), drops duplicate questions, and rejects a review whose dimensions or scores are wrong. The review then fails with a retry.
 - Instructions found inside the RFP are ignored for scoring and may be reported as a flag.
 
 ## Running the review

@@ -6,7 +6,7 @@ export const rfpsQuery = queryOptions({
   queryFn: async () => {
     const { data, error } = await supabase
       .from('rfps')
-      .select('*, rfp_reviews(status, total_score, decision_band, created_at, max_total:result->max_total)')
+      .select('*, rfp_reviews(status, total_score, decision_band, created_at)')
       .order('created_at', { ascending: false })
     if (error) throw error
     return data
