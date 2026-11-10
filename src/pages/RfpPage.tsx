@@ -157,7 +157,7 @@ export default function RfpPage() {
           <CardTitle className="text-red-900 dark:text-red-200">Delete RFP</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-4">
-          <p className="text-sm text-red-900/80 dark:text-red-200/80">Permanently remove this RFP from RFP Buddy.</p>
+          <p className="text-sm text-red-900/80 dark:text-red-200/80">Permanently remove this RFP from RFP Troll.</p>
           <DeleteRfpDialog
             rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
             documentCount={documents.data?.length ?? 0}

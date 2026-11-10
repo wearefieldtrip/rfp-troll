@@ -1,4 +1,4 @@
-// Minimal Google Drive client for the RFP Buddy service account.
+// Minimal Google Drive client for the RFP Troll service account.
 // Identical copies live in each function folder that needs it (functions deploy independently).
 import { importPKCS8, SignJWT } from "npm:jose@5";
 

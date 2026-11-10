@@ -59,7 +59,7 @@ export function DeleteRfpDialog({ rfp, documentCount, reviewCount }: Props) {
         <DialogHeader>
           <DialogTitle>Delete this RFP?</DialogTitle>
           <DialogDescription>
-            This permanently deletes <strong>{rfp.title}</strong> from RFP Buddy. This can't be undone.
+            This permanently deletes <strong>{rfp.title}</strong> from RFP Troll. This can't be undone.
           </DialogDescription>
         </DialogHeader>
 

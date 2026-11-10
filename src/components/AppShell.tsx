@@ -30,7 +30,7 @@ export function AppShell() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarHeader className="px-4 py-3 text-base font-semibold">RFP Buddy</SidebarHeader>
+        <SidebarHeader className="px-4 py-3 text-base font-semibold">RFP Troll</SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
             <SidebarMenu>

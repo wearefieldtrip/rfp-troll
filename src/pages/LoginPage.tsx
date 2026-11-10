@@ -11,7 +11,7 @@ export default function LoginPage() {
     <div className="flex min-h-svh items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>RFP Buddy</CardTitle>
+          <CardTitle>RFP Troll</CardTitle>
           <CardDescription>Sign in with your Fieldtrip Google account.</CardDescription>
         </CardHeader>
         <CardContent>
