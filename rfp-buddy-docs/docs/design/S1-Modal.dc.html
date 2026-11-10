@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>New RFP modal – RFP Buddy</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/fieldtrip/tokens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+.navi{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:14px;color:var(--ink);text-decoration:none}
+.th{padding:10px 12px;font-size:13px;color:#5e5858;font-weight:500;text-align:left;border-bottom:1px solid #e7e4e4}
+.td{padding:12px;font-size:14px;border-bottom:1px solid #e7e4e4}
+</style>
+</helmet>
+<div data-theme="light" style="position:relative;min-height:800px;background:var(--surface);color:var(--ink);font-family:var(--font-sans);font-size:14px;line-height:20px;display:flex;flex-wrap:wrap">
+
+<aside style="flex:1 1 220px;max-width:100%;background:#f7f6f5;border-right:1px solid #e7e4e4;padding:16px 12px;display:flex;flex-direction:column;gap:4px">
+<strong style="font-size:15px;font-weight:600;padding:2px 10px 14px">RFP Buddy</strong>
+<a class="navi" href="#" style="background:#ebe8e7">RFPs</a>
+<a class="navi" href="#">Rubric</a>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:24px 32px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;justify-content:space-between;align-items:center">
+<h1 style="margin:0;font-size:24px;line-height:30px;font-weight:500;letter-spacing:-0.02em">RFPs</h1>
+<button type="button" style="height:36px;padding:0 14px;border-radius:6px;border:0;background:var(--ink);color:var(--surface);font-weight:500">New RFP</button>
+</div>
+<div style="overflow-x:auto">
+<table style="width:100%;min-width:720px;border-collapse:collapse">
+<thead><tr><th class="th">RFP</th><th class="th">Next step</th><th class="th">Fit</th><th class="th">Status</th></tr></thead>
+<tbody><tr>
+<td class="td"><div style="font-weight:500">Riverbend Youth Wellness Alliance</div><div style="color:#5e5858">Brand Strategy, Visual Identity, Campaign Toolkit, and Website Redesign</div></td>
+<td class="td">Jan 15<div style="color:#5e5858">Proposal due</div></td>
+<td class="td">7/12 · Conditional Go</td>
+<td class="td">Evaluate</td>
+</tr></tbody>
+</table>
+</div>
+</main>
+
+<div style="position:absolute;inset:0;background:rgba(15,5,5,0.45);display:flex;justify-content:center;align-items:flex-start;padding:120px 16px">
+<section role="dialog" aria-modal="true" aria-labelledby="m-title" style="width:480px;max-width:100%;background:var(--surface);border-radius:10px;border:1px solid #e7e4e4;padding:24px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+<h2 id="m-title" style="margin:0;font-size:18px;line-height:24px;font-weight:600">New RFP</h2>
+<button type="button" aria-label="Close" style="width:28px;height:28px;border:0;background:transparent;border-radius:6px;display:inline-flex;align-items:center;justify-content:center">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"></path><path d="M18 6L6 18"></path></svg>
+</button>
+</div>
+
+<label for="rfp-file" style="border:1px dashed #8f8989;border-radius:8px;padding:28px 20px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;cursor:pointer">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"></path><path d="M7 9l5-5 5 5"></path><path d="M4 15v5h16v-5"></path></svg>
+<span style="font-weight:500">Drop the RFP here, or browse</span>
+<span style="font-size:13px;color:#5e5858">PDF or Word</span>
+<input id="rfp-file" type="file" accept=".pdf,.doc,.docx" style="position:absolute;width:1px;height:1px;opacity:0">
+</label>
+
+<div style="display:flex;justify-content:flex-end;gap:8px">
+<button type="button" style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #d6d2d2;background:transparent">Cancel</button>
+<button type="button" disabled="" style="height:36px;padding:0 14px;border-radius:6px;border:0;background:#d6d2d2;color:#5e5858;cursor:default">Add RFP</button>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":800}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

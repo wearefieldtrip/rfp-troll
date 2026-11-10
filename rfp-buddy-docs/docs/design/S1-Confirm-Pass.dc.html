@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Confirm pass – RFP Buddy</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/fieldtrip/tokens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+.reason{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid #d6d2d2;border-radius:6px;cursor:pointer;font-size:14px}
+.reason input{margin:0;width:16px;height:16px;accent-color:var(--ink)}
+.reason.is-on{border-color:var(--ink);background:#f7f6f5}
+</style>
+</helmet>
+<div data-theme="light" style="position:relative;height:900px;overflow:hidden;background:var(--surface);font-family:var(--font-sans);color:var(--ink)">
+<dc-import name="S1-Ready" hint-size="100%,1400px"></dc-import>
+
+<div style="position:absolute;inset:0;background:rgba(15,5,5,0.45);display:flex;justify-content:center;align-items:flex-start;padding:120px 16px">
+<section role="dialog" aria-modal="true" aria-labelledby="p-title" style="width:480px;max-width:100%;background:var(--surface);border-radius:10px;border:1px solid #e7e4e4;padding:24px;display:flex;flex-direction:column;gap:16px;font-size:14px;line-height:20px">
+<div style="display:flex;flex-direction:column;gap:4px">
+<h2 id="p-title" style="margin:0;font-size:18px;line-height:24px;font-weight:600">Pass on this RFP?</h2>
+<p style="margin:0;color:#5e5858">It moves to Closed · Passed. You can reopen it later.</p>
+</div>
+
+<fieldset style="border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px">
+<legend style="font-weight:600;padding:0 0 8px">Reason</legend>
+<div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+<sc-for list="{{reasons}}" as="r" hint-placeholder-count="6">
+<label class="{{r.cls}}"><input type="radio" name="reason" value="{{r.label}}" checked="{{r.on}}" onChange="{{r.pick}}">{{r.label}}</label>
+</sc-for>
+</div>
+</fieldset>
+
+<div style="display:flex;flex-direction:column;gap:6px">
+<label for="p-note" style="font-weight:600">Note <span style="font-weight:400;color:#5e5858">(optional)</span></label>
+<textarea id="p-note" rows="2" style="width:100%;padding:8px 10px;border:1px solid #8f8989;border-radius:6px;font-size:14px;line-height:20px;resize:vertical"></textarea>
+</div>
+
+<div style="display:flex;justify-content:flex-end;gap:8px;padding-top:4px">
+<button type="button" style="height:36px;padding:0 14px;border-radius:6px;border:1px solid #d6d2d2;background:transparent">Cancel</button>
+<sc-if value="{{ready}}" hint-placeholder-val="{{false}}">
+<button type="button" style="height:36px;padding:0 14px;border-radius:6px;border:0;background:var(--ink);color:var(--surface);font-weight:500">Pass</button>
+</sc-if>
+<sc-if value="{{notReady}}" hint-placeholder-val="{{true}}">
+<button type="button" disabled="" style="height:36px;padding:0 14px;border-radius:6px;border:0;background:#d6d2d2;color:#5e5858;cursor:default">Pass</button>
+</sc-if>
+</div>
+</section>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { reason: null };
+  }
+  renderVals() {
+    var self = this;
+    var cur = this.state.reason;
+    var labels = ['Budget', 'Timeline', 'Not a fit', 'Capacity', 'Scope', 'Other'];
+    return {
+      reasons: labels.map(function (l) {
+        var on = cur === l;
+        return { label: l, on: on, cls: on ? 'reason is-on' : 'reason', pick: function () { self.setState({ reason: l }); } };
+      }),
+      ready: cur !== null,
+      notReady: cur === null
+    };
+  }
+}
+</script>
+</body>
+</html>

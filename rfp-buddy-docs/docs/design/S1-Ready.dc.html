@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RFP profile ready – RFP Buddy</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/fieldtrip/tokens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+.navi{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:14px;color:var(--ink);text-decoration:none}
+.card{border:1px solid #e7e4e4;border-radius:10px;padding:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid #e7e4e4;background:#f7f6f5;font-size:13px;line-height:18px;white-space:nowrap}
+.chip b{font-weight:600}
+.rubric{width:100%;display:grid;grid-template-columns:220px 44px minmax(0,1fr) 20px;gap:16px;align-items:start;padding:14px 0;border:0;border-top:1px solid #e7e4e4;background:transparent;text-align:left;font-size:14px;line-height:20px}
+.rubric:hover{background:#faf9f9}
+.h2{margin:0;font-size:16px;line-height:22px;font-weight:600}
+.muted{color:#5e5858}
+</style>
+</helmet>
+<div data-theme="light" style="min-height:1400px;background:var(--surface);color:var(--ink);font-family:var(--font-sans);font-size:14px;line-height:20px;display:flex;flex-wrap:wrap">
+
+<aside style="flex:1 1 220px;max-width:100%;background:#f7f6f5;border-right:1px solid #e7e4e4;padding:16px 12px;display:flex;flex-direction:column;gap:4px">
+<strong style="font-size:15px;font-weight:600;padding:2px 10px 14px">RFP Buddy</strong>
+<a class="navi" href="#" style="background:#ebe8e7">RFPs</a>
+<a class="navi" href="#">Rubric</a>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:24px 32px 48px">
+<div style="max-width:960px;display:flex;flex-direction:column;gap:20px">
+
+<a href="#" style="font-size:14px;color:#5e5858;text-decoration:none">← All RFPs</a>
+
+<!-- Header -->
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px">
+<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 480px">
+<span class="muted" style="font-size:14px">Riverbend Youth Wellness Alliance</span>
+<h1 style="margin:0;font-size:24px;line-height:30px;font-weight:500;letter-spacing:-0.02em">Brand Strategy, Visual Identity, Campaign Toolkit, and Website Redesign</h1>
+</div>
+<div style="display:flex;align-items:center;gap:6px">
+<span style="padding:3px 10px;border-radius:999px;border:1px solid #d6d2d2;font-size:13px;white-space:nowrap">Evaluate · Ready for decision</span>
+<button type="button" aria-label="More actions" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;display:inline-flex;align-items:center;justify-content:center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+</button>
+</div>
+</div>
+
+<!-- Key facts -->
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span class="chip"><b>Proposal due</b> Jan 15, 2027, 5:00 PM ET <span class="muted">· 66 days</span></span>
+<span class="chip"><b>Questions</b> Due Dec 29, 2026, 5:00 PM ET <span class="muted">· 49 days</span></span>
+<span class="chip"><b>Vendor selected</b> Feb 12, 2027 <span class="muted">· 94 days</span></span>
+<span class="chip"><b>Budget</b> {{budgetValue}} <span class="muted">· {{budgetNote}}</span></span>
+<a class="chip" href="#" style="color:var(--ink);text-decoration:none;background:transparent">Drive folder
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></a>
+</div>
+
+<!-- One flag, only when needed -->
+<div role="note" style="display:flex;gap:10px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #e7e4e4">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-top:2px;flex:none"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+<span><b style="font-weight:600">Check this:</b> the RFP is dated Dec 16, 2026, which is in the future, and calls the organization fictional. Confirm it’s a real solicitation before spending time on it.</span>
+</div>
+
+<!-- Fit + decision -->
+<section class="card" aria-label="Fit review" style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px">
+<div style="display:flex;flex-direction:column;gap:8px;flex:1 1 420px">
+<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+<span style="font-size:36px;line-height:40px;font-weight:500;letter-spacing:-0.03em">7<span class="muted" style="font-size:20px"> / 12</span></span>
+<span style="padding:3px 10px;border-radius:999px;background:var(--goldenrod-tint);color:var(--fieldtrip-black);font-size:13px;font-weight:600">Conditional Go</span>
+</div>
+<p style="margin:0;font-size:15px;line-height:22px;max-width:560px">Strong mission fit, but a tight budget and a compressed build window. Worth asking questions before committing.</p>
+</div>
+<div style="display:flex;gap:8px">
+<button type="button" style="height:38px;padding:0 16px;border-radius:6px;border:0;background:var(--ink);color:var(--surface);font-weight:500">Move forward</button>
+<button type="button" style="height:38px;padding:0 16px;border-radius:6px;border:1px solid #d6d2d2;background:transparent">Pass</button>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="4">
+<div style="display:flex;flex-direction:column">
+<button type="button" class="rubric" aria-expanded="{{r.expanded}}" onClick="{{r.toggle}}">
+<span style="font-weight:500">{{r.name}}</span>
+<span style="font-weight:600">{{r.score}}</span>
+<span class="muted">{{r.reason}}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{r.chevron}}"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<sc-if value="{{r.open}}" hint-placeholder-val="{{false}}">
+<div style="padding:0 0 14px 236px;display:flex;flex-direction:column;gap:8px">
+<span style="font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase" class="muted">From the RFP</span>
+<sc-for list="{{r.evidence}}" as="e" hint-placeholder-count="2">
+<blockquote style="margin:0;padding-left:12px;border-left:2px solid #d6d2d2;font-style:italic" class="muted">{{e.q}} <span style="font-style:normal">({{e.p}})</span></blockquote>
+</sc-for>
+</div>
+</sc-if>
+</div>
+</sc-for>
+</div>
+<span class="muted" style="font-size:13px">AI review · Nov 10 · <button type="button" style="border:0;background:transparent;padding:0;text-decoration:underline;text-underline-offset:3px;font-size:13px;color:#5e5858">Run again</button></span>
+</section>
+
+<!-- Risks + questions -->
+<div style="display:flex;flex-direction:column;gap:20px">
+<section class="card" aria-label="Top risks" style="display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">Top risks</h2>
+<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+<li>Only 26 days between visual identity approval (June 4) and the website being substantially complete (June 30).</li>
+<li>The all-inclusive budget has to cover travel, accessibility testing, and Spanish content.</li>
+<li>No clear decision-maker. The only contact is an interim director, through written Q&amp;A.</li>
+</ol>
+</section>
+
+<section class="card" aria-label="Questions to ask" style="display:flex;flex-direction:column;gap:10px">
+<h2 class="h2">Questions to ask</h2>
+<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px">
+<sc-for list="{{questions}}" as="q" hint-placeholder-count="5">
+<li>{{q}}</li>
+</sc-for>
+</ol>
+<button type="button" onClick="{{toggleQ}}" style="align-self:flex-start;border:0;background:transparent;padding:0;text-decoration:underline;text-underline-offset:3px;font-size:14px">{{qLabel}}</button>
+</section>
+</div>
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"budgetStated":{"editor":"boolean","default":true},"$preview":{"width":1280,"height":1400}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: 'D', allQ: false };
+  }
+  renderVals() {
+    var self = this;
+    var data = [
+      { key: 'A', name: 'A. Mission and segment', score: '3/3', reason: 'Youth mental-health nonprofit in our home region. The mission is clear and easy to amplify.',
+        evidence: [{ q: 'works to improve youth mental health, reduce stigma around seeking support', p: 'p. 2' }] },
+      { key: 'B', name: 'B. Budget and value', score: '1/3', reason: 'Budget is stated ($95K–$125K, all-inclusive), but they admit it may not cover the full scope.',
+        evidence: [{ q: 'the full scope described in this RFP may exceed the available budget', p: 'p. 6' }] },
+      { key: 'C', name: 'C. Scope and relationship', score: '2/3', reason: 'Deliverables are listed, but toolkit volume and Spanish translation are undefined. Access is written Q&A only.',
+        evidence: [{ q: 'Respondents may submit written questions by December 29, 2026 at 5:00 PM ET', p: 'p. 9' }] },
+      { key: 'D', name: 'D. Timeline and capacity', score: '1/3', reason: 'The project timeline is compressed: 26 days between identity approval and a finished website.',
+        evidence: [{ q: 'Visual identity direction approved June 4, 2027', p: 'p. 8' }, { q: 'Website design and development substantially complete June 30, 2027', p: 'p. 8' }] }
+    ];
+    var open = this.state.open;
+    var rows = data.map(function (d) {
+      var isOpen = open === d.key;
+      return Object.assign({}, d, {
+        open: isOpen,
+        expanded: isOpen ? 'true' : 'false',
+        chevron: isOpen ? 'transform:rotate(180deg);margin-top:2px' : 'margin-top:2px',
+        toggle: function () { self.setState({ open: isOpen ? null : d.key }); }
+      });
+    });
+    var allQ = [
+      'Who has final approval on brand and website work, and will they be available from March through July?',
+      'Is the July 15, 2027 launch fixed, or could the website launch in phases?',
+      'Who translates the Spanish content, and how many pages need to be bilingual at launch?',
+      'Can identity and website design overlap, given only 26 days between approval and completion?',
+      'Is the 60-day post-launch support included in the $95K–$125K range?',
+      'How many entries are in the current resource directory, and does it need cleanup?',
+      'How many review rounds should we plan for in each phase?',
+      'How many assets are expected in the “You Belong Here” campaign toolkit?'
+    ];
+    var showAll = this.state.allQ;
+    var stated = this.props.budgetStated ?? true;
+    return {
+      budgetValue: stated ? '$95K–$125K' : 'Not stated',
+      budgetNote: stated ? 'all-inclusive' : 'est. $40K–$70K from 990',
+      rows: rows,
+      questions: showAll ? allQ : allQ.slice(0, 5),
+      qLabel: showAll ? 'Show fewer' : 'Show all ' + allQ.length,
+      toggleQ: function () { self.setState({ allQ: !showAll }); }
+    };
+  }
+}
+</script>
+</body>
+</html>

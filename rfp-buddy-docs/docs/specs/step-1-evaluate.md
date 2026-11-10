@@ -1,0 +1,138 @@
+# Step 1: Evaluate (spec)
+
+Design reference: `docs/design/S1-*.dc.html`.
+
+## Flow
+
+1. **RFP list → New RFP.** A modal opens with a single upload field (one file: the RFP) and an **Add RFP** button, disabled until a file is chosen.
+2. **On Add RFP**, the app immediately:
+   - saves the file,
+   - creates the RFP profile with status **Reading…**,
+   - closes the modal and takes the user to the new profile, which shows skeleton placeholders in the final layout while data loads.
+3. **Pull client name and RFP name** (fast, about 10 seconds). The profile header and list row fill in first.
+4. **Create the Drive folder** in Prospective Clients, named with the **client name only**, and copy the RFP into it.
+   - If a folder with that client name already exists, reuse it and add the file there.
+5. **Full AI review** (runs alongside step 4):
+   - Key dates: proposal due, questions (see below), vendor/winner selection.
+   - Budget (see below).
+   - Score against the Fieldtrip rubric (`docs/fit-rubric.md`: A–D, 0–3 each, total out of 12).
+6. **Profile fills in** with the findings. Status becomes **Evaluate · Ready for decision**.
+
+While loading, a progress strip shows each job: RFP saved · Client and RFP name · Drive folder · Dates and fit review, plus "Usually 2–3 minutes. You can leave this page."
+
+## Fit review output
+
+The model returns a fixed shape. The limits keep the page short whatever the RFP's length.
+
+```json
+{
+  "verdict": "one sentence",
+  "dimensions": [
+    { "key": "A", "score": 3, "reason": "one sentence", "evidence": [{ "quote": "short quote from the RFP", "page": 4 }] }
+  ],
+  "risks": ["max 3, most serious first"],
+  "questions": ["max 8, no duplicates, each one closes a gap"],
+  "flags": ["only real problems, e.g. the RFP is future-dated or calls itself fictional"]
+}
+```
+
+- Total = sum of A–D, out of **12**. Band from the rubric's decision matrix (Definite Go, Conditional Go, Likely No-Go, Definite No-Go).
+- Each dimension: up to 2 evidence quotes.
+- Instructions found inside the RFP are ignored for scoring and may be reported as a flag.
+
+## Profile layout rule
+
+The profile always stacks in step order: header, pills, then one section per step (1 · Evaluate, 2 · Questions, and so on).
+
+- The current step is expanded and holds the next action.
+- Completed steps collapse to a one-line summary (e.g. "1 · Evaluate · Fit review · 7 / 12 · Conditional Go · Show") plus the decision record ("You moved this forward on Nov 10 at 2:31 PM."). They expand on click.
+- Steps never reorder, so the page reads top to bottom in the order things happened.
+
+## Profile, Evaluate · Ready for decision
+
+Top to bottom:
+
+1. Back link, client name, RFP title, status pill, **⋯ menu** (Run review again, Replace RFP file, Change owner, Delete RFP; Reopen when closed).
+2. Pills (below).
+3. **Check this** note, only when the review returns a flag.
+4. **Fit card**: total (e.g. 7 / 12), band badge, verdict sentence, **Move forward** and **Pass** buttons. Under it, the four rubric rows (name, score, reason); clicking a row shows its evidence quotes with page numbers. "AI review · [date] · Run again".
+5. **Top risks** (full width).
+6. **Questions to ask** (full width): first 5, "Show all".
+
+## Pills at the top of the profile
+
+Always shown, in this order:
+
+1. **Proposal due** [date, time, time zone] · [N days]
+2. **Questions** (see below) · [N days] when a due date exists
+3. **Vendor selected** [date] · [N days]
+4. **Budget** (see below)
+5. **Drive folder** (link)
+
+Day counts are calendar days from today to the date. A date that isn't in the RFP shows "Not stated" with no count.
+
+## Questions tag (always shown)
+
+Exactly one of:
+
+- **Questions: Not allowed** (only when the RFP explicitly says so)
+- **Questions: Due [date], [time] [time zone]** (e.g. Due Dec 29, 2026, 5:00 PM ET)
+- **Questions: Not stated**
+
+"Not stated" and "Not allowed" must never be merged.
+
+## Budget pill (always shown)
+
+- **Stated:** **Budget** $95K–$125K · all-inclusive (the amount or range from the RFP, plus a short qualifier such as "all-inclusive" or "plus media").
+- **Not stated:** **Budget** Not stated · est. $40K–$70K from 990.
+  - The estimate is only run when the RFP has no budget.
+  - For nonprofits: look up the organization's latest Form 990 through the ProPublica Nonprofit Explorer API (by name and state, then EIN). Use total expenses, advertising and promotion, and fees for outside services.
+  - Show the tax year, the figures used, and the EIN matched so the team can catch a wrong match.
+  - Organizations that don't file a full 990 (government and civic bodies, 990-N filers): **Budget** Not stated · no estimate available.
+  - An estimate can score rubric dimension B at most 2, never 3.
+
+## Decision buttons and confirmation
+
+Both buttons open a confirmation modal. Nothing happens until the user confirms.
+
+**Move forward.** The label and destination follow the Questions tag:
+
+- Questions due (deadline not passed) or Not stated → **Move to Questions**
+- Not allowed, or the deadline has passed → **Move to Proposal**
+
+The confirmation modal ("Move to Questions?") lists what will happen:
+
+- Create a questions doc in the client's Drive folder
+- Add the AI suggested questions as suggested edits in the doc
+- Change the status to Questions · Drafting
+
+It also shows the questions deadline and days left. Buttons: Cancel, Move to Questions.
+
+On confirm, record who decided, when, and the score at that moment.
+
+**Pass.** The confirmation modal ("Pass on this RFP?"):
+
+- Says it moves to Closed · Passed and can be reopened later.
+- Requires a reason: Budget, Timeline, Not a fit, Capacity, Scope, Other.
+- Has an optional note.
+- The Pass button stays disabled until a reason is chosen.
+
+On confirm, record who decided, when, the reason, the note, and the score at that moment.
+
+## Dates and times
+
+- Every date shows its time and time zone when the RFP gives them.
+- Store as a timestamp with time zone, plus the original wording from the RFP.
+- If the RFP gives a time but no time zone, show it and mark it "time zone not stated."
+
+## Failure handling
+
+- The profile exists before any AI or Drive work, so nothing is lost if a step fails.
+- If the names can't be found, use the file name and flag it on the profile.
+- Each step fails on its own with a retry: e.g. "Drive folder not created · Retry", "Review failed · Run again".
+
+## File format
+
+- Accept PDF (best), Word (convert to PDF on upload), and scanned PDFs (flag: "Scanned document: double-check dates and figures").
+- Reject password-protected PDFs with a clear message.
+- Send PDFs to the Claude API as documents (text and page images). An RFP plus addenda go in one request, each labeled.

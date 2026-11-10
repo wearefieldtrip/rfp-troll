@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Decide without answers – RFP Buddy</title>
+<script src="./support.js"></script>
+<link rel="stylesheet" href="ds/fieldtrip/tokens.css">
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+.navi{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;font-size:14px;color:var(--ink);text-decoration:none}
+.card{border:1px solid #e7e4e4;border-radius:10px;padding:20px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;border:1px solid #e7e4e4;background:#f7f6f5;font-size:13px;line-height:18px;white-space:nowrap}
+.chip b{font-weight:600}
+.muted{color:#5e5858}
+.rrow{display:grid;grid-template-columns:220px 44px minmax(0,1fr);gap:16px;padding:12px 0;border-top:1px solid #e7e4e4;font-size:14px;line-height:20px}
+.spin{width:14px;height:14px;border:2px solid #e7e4e4;border-top-color:var(--ink);border-radius:50%;animation:ftspin 0.9s linear infinite}
+@keyframes ftspin{to{transform:rotate(360deg)}}
+</style>
+</helmet>
+<div data-theme="light" style="min-height:1000px;background:var(--surface);color:var(--ink);font-family:var(--font-sans);font-size:14px;line-height:20px;display:flex;flex-wrap:wrap">
+
+<aside style="flex:1 1 220px;max-width:100%;background:#f7f6f5;border-right:1px solid #e7e4e4;padding:16px 12px;display:flex;flex-direction:column;gap:4px">
+<strong style="font-size:15px;font-weight:600;padding:2px 10px 14px">RFP Buddy</strong>
+<a class="navi" href="#" style="background:#ebe8e7">RFPs</a>
+<a class="navi" href="#">Rubric</a>
+</aside>
+
+<main style="flex:999 1 560px;min-width:0;padding:24px 32px 48px">
+<div style="max-width:960px;display:flex;flex-direction:column;gap:20px">
+
+<a href="#" style="font-size:14px;color:#5e5858;text-decoration:none">← All RFPs</a>
+
+<!-- Header -->
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px">
+<div style="display:flex;flex-direction:column;gap:2px;min-width:0;flex:1 1 480px">
+<span class="muted" style="font-size:14px">Riverbend Youth Wellness Alliance</span>
+<h1 style="margin:0;font-size:24px;line-height:30px;font-weight:500;letter-spacing:-0.02em">Brand Strategy, Visual Identity, Campaign Toolkit, and Website Redesign</h1>
+</div>
+<div style="display:flex;align-items:center;gap:6px">
+<span style="padding:3px 10px;border-radius:999px;border:1px solid #d6d2d2;font-size:13px;white-space:nowrap">Questions · Decision needed</span>
+<button type="button" aria-label="More actions" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;display:inline-flex;align-items:center;justify-content:center">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg>
+</button>
+</div>
+</div>
+
+<!-- Key facts -->
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<span class="chip"><b>Proposal due</b> Jan 15, 2027, 5:00 PM ET <span class="muted">· 26 days</span></span>
+<span class="chip"><b>Questions</b> Sent Nov 10 <span class="muted">· no answers yet</span></span>
+<span class="chip"><b>Vendor selected</b> Feb 12, 2027 <span class="muted">· 54 days</span></span>
+<span class="chip"><b>Budget</b> $95K–$125K <span class="muted">· all-inclusive</span></span>
+<a class="chip" href="#" style="color:var(--ink);text-decoration:none;background:transparent">Drive folder
+<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></a>
+</div>
+
+<!-- Step 1: Evaluate (done) -->
+<section class="card" aria-label="Fit review" style="display:flex;flex-direction:column;gap:12px;padding:16px 20px">
+<button type="button" aria-expanded="{{fitExpanded}}" onClick="{{toggleFit}}" style="display:flex;align-items:center;gap:12px;border:0;background:transparent;padding:0;text-align:left;width:100%">
+<span class="muted" style="font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">1 · Evaluate</span>
+<span style="font-weight:600">Fit review</span>
+<span>7 / 12</span>
+<span style="padding:2px 8px;border-radius:999px;background:var(--goldenrod-tint);color:var(--fieldtrip-black);font-size:12px;font-weight:600">Conditional Go</span>
+<span style="flex:1"></span>
+<span class="muted" style="font-size:13px">{{fitLabel}}</span>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="{{fitChevron}}"><path d="M6 9l6 6 6-6"></path></svg>
+</button>
+<p class="muted" style="margin:0;font-size:13px;line-height:18px;display:flex;align-items:center;gap:8px">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5L20 7"></path></svg>
+You moved this forward on Nov 10 at 2:31 PM.
+</p>
+<sc-if value="{{fitOpen}}" hint-placeholder-val="{{false}}">
+<div style="display:flex;flex-direction:column">
+<div class="rrow"><span style="font-weight:500">A. Mission and segment</span><span style="font-weight:600">3/3</span><span class="muted">Youth mental-health nonprofit in our home region. The mission is clear and easy to amplify.</span></div>
+<div class="rrow"><span style="font-weight:500">B. Budget and value</span><span style="font-weight:600">1/3</span><span class="muted">Budget is stated ($95K–$125K, all-inclusive), but they admit it may not cover the full scope.</span></div>
+<div class="rrow"><span style="font-weight:500">C. Scope and relationship</span><span style="font-weight:600">2/3</span><span class="muted">Deliverables are listed, but toolkit volume and Spanish translation are undefined. Access is written Q&amp;A only.</span></div>
+<div class="rrow"><span style="font-weight:500">D. Timeline and capacity</span><span style="font-weight:600">1/3</span><span class="muted">The project timeline is compressed: 26 days between identity approval and a finished website.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid #e7e4e4">
+<span style="font-weight:600">Top risks</span>
+<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+<li>Only 26 days between visual identity approval (June 4) and the website being substantially complete (June 30).</li>
+<li>The all-inclusive budget has to cover travel, accessibility testing, and Spanish content.</li>
+<li>No clear decision-maker. The only contact is an interim director, through written Q&amp;A.</li>
+</ol>
+</div>
+</div>
+</sc-if>
+</section>
+
+<!-- Step 2: Questions (current) -->
+<section class="card" aria-label="Questions" style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px">
+<div style="display:flex;flex-direction:column;gap:6px;flex:1 1 420px">
+<span class="muted" style="font-size:12px;line-height:16px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase">2 · Questions · Decision needed</span>
+<h2 style="margin:0;font-size:20px;line-height:26px;font-weight:500;letter-spacing:-0.01em">No answers yet. Move to Proposal?</h2>
+<p style="margin:0;font-size:15px;line-height:22px;display:flex;flex-wrap:wrap;align-items:center;gap:8px">Fit stays at <b style="font-weight:600;font-size:18px">7 / 12</b>
+<span style="padding:2px 8px;border-radius:999px;background:var(--goldenrod-tint);color:var(--fieldtrip-black);font-size:12px;font-weight:600">Conditional Go</span>
+<span class="muted" style="font-size:14px">Based on the RFP alone</span></p>
+</div>
+<div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+<div style="display:flex;gap:8px">
+<button type="button" style="height:38px;padding:0 16px;border-radius:6px;border:0;background:var(--ink);color:var(--surface);font-weight:500">Move to Proposal</button>
+<button type="button" style="height:38px;padding:0 16px;border-radius:6px;border:1px solid #d6d2d2;background:transparent">Pass</button>
+</div>
+<button type="button" style="border:0;background:transparent;padding:0;font-size:13px;color:#5e5858;text-decoration:underline;text-underline-offset:3px">Back to waiting</button>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px;padding-top:14px;border-top:1px solid #e7e4e4">
+<span style="font-weight:600">Still unanswered</span>
+<span class="muted" style="font-size:13px;line-height:18px;margin-top:-4px">The open questions that matter most to the score. You’d be deciding without these.</span>
+<ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+<li>Is the July 15, 2027 launch fixed, or could the website launch in phases? <span class="muted">(D. Timeline)</span></li>
+<li>Who translates the Spanish content, and does it come out of the $95K–$125K? <span class="muted">(B. Budget)</span></li>
+<li>Who has final approval, and will they be available from March through July? <span class="muted">(C. Relationship)</span></li>
+</ol>
+</div>
+
+<div style="display:flex;flex-wrap:wrap;gap:16px;padding-top:12px;border-top:1px solid #e7e4e4;font-size:13px">
+<a href="#" style="display:inline-flex;align-items:center;gap:4px;color:var(--ink)">Questions as sent (PDF) <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></a>
+<a href="#" style="display:inline-flex;align-items:center;gap:4px;color:var(--ink)">Questions doc <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17L17 7"></path><path d="M8 7h9v9"></path></svg></a>
+</div>
+</section>
+
+
+
+</div>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { fitOpen: false };
+  }
+  renderVals() {
+    var self = this;
+    var ready = this.props.docReady ?? true;
+    var open = this.state.fitOpen;
+    return {
+      ready: ready,
+      creating: !ready,
+      fitOpen: open,
+      fitExpanded: open ? 'true' : 'false',
+      fitLabel: open ? 'Hide' : 'Show',
+      fitChevron: open ? 'transform:rotate(180deg)' : '',
+      toggleFit: function () { self.setState({ fitOpen: !open }); }
+    };
+  }
+}
+</script>
+</body>
+</html>
