@@ -3,17 +3,14 @@ import { LoaderCircleIcon } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import { DecisionCard } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
-import { DueCountdown } from '@/components/DueCountdown'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
+import { KeyFacts } from '@/components/KeyFacts'
 import { ReviewSection } from '@/components/ReviewSection'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
-import { momentFrom } from '@/lib/moment-columns'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
-import { formatMoment } from '@/lib/rfp-dates'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
 
 export default function RfpPage() {
@@ -33,9 +30,6 @@ export default function RfpPage() {
 
   const data = rfp.data
   const status = data.status as RfpStatus
-  const proposalDue = momentFrom(data, 'proposal_due')
-  const questionsDue = data.questions_policy === 'due' ? momentFrom(data, 'questions_due') : null
-  const vendorSelection = momentFrom(data, 'vendor_selection')
   const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
 
   return (
@@ -50,9 +44,8 @@ export default function RfpPage() {
         </div>
       </div>
 
-      {data.due_date && ['evaluating', 'questions', 'proposal'].includes(status) && (
-        <DueCountdown dueDate={data.due_date} />
-      )}
+      <KeyFacts rfp={data} reading={reading} onRetryDrive={() => retrySync.mutate()} retryingDrive={retrySync.isPending} />
+      {retrySync.error && <p className="text-sm text-destructive">{retrySync.error.message}</p>}
 
       <Card>
         <CardHeader>
@@ -76,70 +69,7 @@ export default function RfpPage() {
           <dl className="grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
             <dt className="text-muted-foreground">Client</dt>
             <dd>{data.client_name ?? '—'}</dd>
-            {!reading && (
-              <>
-                <dt className="text-muted-foreground">Proposal due</dt>
-                <dd>
-                  {proposalDue ? formatMoment(proposalDue) : <span className="text-muted-foreground">Not stated</span>}
-                  {proposalDue && data.due_date_source === 'inferred' && (
-                    <Badge variant="outline" className="ml-2">
-                      From the RFP
-                    </Badge>
-                  )}
-                  {data.due_date_source === 'inferred' && data.proposal_due_text && (
-                    <span className="mt-1 block text-xs text-muted-foreground italic">{data.proposal_due_text}</span>
-                  )}
-                </dd>
-                <dt className="text-muted-foreground">Questions</dt>
-                <dd>
-                  {data.questions_policy === 'not_allowed' ? (
-                    'Not allowed'
-                  ) : questionsDue ? (
-                    <>Due {formatMoment(questionsDue)}</>
-                  ) : (
-                    <span className="text-muted-foreground">Not stated</span>
-                  )}
-                  {data.questions_due_text && <span className="mt-1 block text-xs text-muted-foreground italic">{data.questions_due_text}</span>}
-                </dd>
-                <dt className="text-muted-foreground">Vendor selected</dt>
-                <dd>{vendorSelection ? formatMoment(vendorSelection) : <span className="text-muted-foreground">Not stated</span>}</dd>
-              </>
-            )}
           </dl>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Drive folder</CardTitle>
-          <CardAction>
-            {data.drive_status === 'ready' && data.drive_folder_url && (
-              <Button size="sm" variant="outline" render={<a href={data.drive_folder_url} target="_blank" rel="noreferrer" />}>
-                Open in Drive
-              </Button>
-            )}
-            {(data.drive_status === 'pending' || data.drive_status === 'failed') && (
-              <Button size="sm" variant="outline" disabled={retrySync.isPending} onClick={() => retrySync.mutate()}>
-                {data.drive_status === 'failed' ? 'Retry' : 'Create folder'}
-              </Button>
-            )}
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-1 text-sm">
-          {data.drive_status === 'syncing' && (
-            <p className="flex items-center gap-2 text-muted-foreground">
-              <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
-              Setting up the folder in Drive…
-            </p>
-          )}
-          {data.drive_status === 'ready' && (
-            <p className="text-muted-foreground">
-              Business Development / Prospective Clients. Everything for this RFP lives in this folder.
-            </p>
-          )}
-          {data.drive_status === 'pending' && <p className="text-muted-foreground">No Drive folder yet.</p>}
-          {data.drive_status === 'failed' && <p className="text-destructive">{data.drive_error ?? 'The folder could not be created.'}</p>}
-          {retrySync.error && <p className="text-destructive">{retrySync.error.message}</p>}
         </CardContent>
       </Card>
 
