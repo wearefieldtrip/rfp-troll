@@ -20,6 +20,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Skeleton } from '@/components/ui/skeleton'
 import { decisionWhat, decisionWhen, decisionWho } from '@/lib/decision-text'
 import { syncRfpFolder } from '@/lib/functions'
+import { momentFrom } from '@/lib/moment-columns'
 import { jobStates, type ReviewState } from '@/lib/progress'
 import { rfpDecisionsQuery, rfpDocumentsQuery, rfpQuery, rfpReviewsQuery, teamQuery } from '@/lib/queries'
 import { isClosed, statusLabel, statusVariant, stepOf } from '@/lib/rfp-status'
@@ -139,7 +140,7 @@ export default function RfpPage() {
                 id,
                 title: data.title,
                 client_name: data.client_name,
-                due_date: data.due_date,
+                proposal: momentFrom(data, 'proposal_due'),
                 budget_min_usd: data.budget_min_usd,
                 budget_max_usd: data.budget_max_usd,
                 budget_qualifier: data.budget_qualifier,

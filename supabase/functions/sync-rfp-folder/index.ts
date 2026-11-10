@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { extractRfpDetails } from "./extract.ts";
 import { estimateBudget } from "./nonprofit-estimate.ts";
-import { calendarDate, type Moment } from "./rfp-dates.ts";
+import type { Moment } from "./rfp-dates.ts";
 import { findClientFolder } from "./client-folder.ts";
 import { createFolder, listChildren, trashFile, uploadFile } from "./google.ts";
 
@@ -100,12 +100,8 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp, refresh: boole
       if (details.title.trim()) patch.title = details.title.trim();
       if (details.issuing_organization.trim() && !rfp.client_name) patch.client_name = details.issuing_organization.trim();
     }
-    // The older columns the page still reads until the pills replace them.
-    if (proposal && !keepProposal) {
-      patch.due_date = calendarDate(proposal);
-      patch.due_date_source = "inferred";
-      patch.due_date_evidence = proposal.text || null;
-    }
+    // Remembers whether the proposal date was read from the RFP or typed by the team.
+    if (!keepProposal) patch.due_date_source = proposal ? "inferred" : null;
 
     // Never ignore a failed save: the details would be lost and the RFP left looking unread.
     const { error: saveError } = await supabase.from("rfps").update(patch).eq("id", rfp.id);

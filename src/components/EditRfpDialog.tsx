@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { manualDayColumns } from '@/lib/moment-columns'
+import { calendarDate, type Moment } from '@/lib/rfp-dates'
 import { formatBudget, parseBudgetInput } from '@/lib/rfp-budget'
 import { supabase } from '@/lib/supabase'
 
@@ -13,7 +14,7 @@ type Props = {
     id: string
     title: string
     client_name: string | null
-    due_date: string | null
+    proposal: Moment | null
     budget_min_usd: number | null
     budget_max_usd: number | null
     budget_qualifier: string | null
@@ -31,6 +32,7 @@ export function EditRfpDialog({ rfp }: Props) {
     mutationFn: async (form: FormData) => {
       const text = (key: string) => ((form.get(key) as string) ?? '').trim() || null
       const dueDate = text('due_date')
+      const currentDay = rfp.proposal ? calendarDate(rfp.proposal) : null
 
       // A budget someone typed is confirmed, not read from the RFP. Only touch it if they changed it.
       const typedBudget = parseBudgetInput((form.get('budget') as string) ?? '')
@@ -45,9 +47,8 @@ export function EditRfpDialog({ rfp }: Props) {
         .update({
           title: text('title') ?? rfp.title,
           client_name: text('client_name'),
-          due_date: dueDate,
           // A date someone typed is confirmed, not inferred.
-          ...(dueDate !== rfp.due_date ? { due_date_source: dueDate ? 'manual' : null, due_date_evidence: null, ...manualDayColumns('proposal_due', dueDate) } : {}),
+          ...(dueDate !== currentDay ? { due_date_source: dueDate ? 'manual' : null, ...manualDayColumns('proposal_due', dueDate) } : {}),
           ...(budgetChanged
             ? {
                 budget_min_usd: typedBudget.min,
@@ -93,7 +94,7 @@ export function EditRfpDialog({ rfp }: Props) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-due">Proposal due date</Label>
-            <Input id="edit-due" name="due_date" type="date" defaultValue={rfp.due_date ?? ''} />
+            <Input id="edit-due" name="due_date" type="date" defaultValue={rfp.proposal ? calendarDate(rfp.proposal) : ''} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="edit-budget">Budget</Label>

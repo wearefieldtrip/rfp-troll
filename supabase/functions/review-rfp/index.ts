@@ -82,6 +82,16 @@ Rules:
 ${rubric}
 </rubric>`;
 
+const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
+
+/** The budget the team typed, in words the model can use: a single amount, a range, "up to" or "at least". */
+function budgetEntered(rfp: Record<string, string | number | null>) {
+  const min = rfp.budget_min_usd as number | null;
+  const max = rfp.budget_max_usd as number | null;
+  const amount = min !== null && max !== null ? (min === max ? usd(min) : `${usd(min)} to ${usd(max)}`) : max !== null ? `up to ${usd(max)}` : min !== null ? `at least ${usd(min)}` : "";
+  return amount && `Budget (entered by team): ${amount}${rfp.budget_qualifier ? ` (${rfp.budget_qualifier})` : ""}`;
+}
+
 type Doc = { id: string; file_name: string; storage_path: string; mime_type: string | null; drive_file_id: string | null };
 
 async function buildDocumentBlocks(supabase: SupabaseClient, docs: Doc[]) {
@@ -132,8 +142,9 @@ async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record
     const known = [
       `Title: ${rfp.title}`,
       rfp.client_name && `Client (entered by team): ${rfp.client_name}`,
-      rfp.due_date && `Proposal due date (entered by team): ${rfp.due_date}`,
-      rfp.budget_text && `Budget (entered by team): ${rfp.budget_text}`,
+      // Dates and budgets read from the RFP are already in the document. Only what the team typed is new information.
+      rfp.due_date_source === "manual" && rfp.proposal_due_at && `Proposal due date (entered by team): ${String(rfp.proposal_due_at).slice(0, 10)}`,
+      rfp.budget_source === "manual" && budgetEntered(rfp),
     ].filter(Boolean).join("\n");
 
     const client = new Anthropic();
@@ -219,7 +230,7 @@ Deno.serve(async (req) => {
 
   const [rfpRes, docsRes, rubricRes] = await Promise.all([
     supabase.from("rfps").select("*").eq("id", rfp_id).single(),
-    supabase.from("rfp_documents").select("id, file_name, storage_path, mime_type, drive_file_id").eq("rfp_id", rfp_id).order("created_at"),
+    supabase.from("rfp_documents").select("id, file_name, storage_path, mime_type, drive_file_id").eq("rfp_id", rfp_id).is("superseded_at", null).order("created_at"),
     supabase.from("rubrics").select("id, content").eq("is_active", true).single(),
   ]);
   if (rfpRes.error || !rfpRes.data) return json({ error: "RFP not found" }, 404);
