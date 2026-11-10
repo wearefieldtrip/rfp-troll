@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { manualDayColumns } from '@/lib/moment-columns'
 import { supabase } from '@/lib/supabase'
 
 type Props = { rfp: { id: string; title: string; client_name: string | null; due_date: string | null } }
@@ -23,7 +24,7 @@ export function EditRfpDialog({ rfp }: Props) {
           client_name: text('client_name'),
           due_date: dueDate,
           // A date someone typed is confirmed, not inferred.
-          ...(dueDate !== rfp.due_date ? { due_date_source: dueDate ? 'manual' : null, due_date_evidence: null } : {}),
+          ...(dueDate !== rfp.due_date ? { due_date_source: dueDate ? 'manual' : null, due_date_evidence: null, ...manualDayColumns('proposal_due', dueDate) } : {}),
         })
         .eq('id', rfp.id)
       if (error) throw error

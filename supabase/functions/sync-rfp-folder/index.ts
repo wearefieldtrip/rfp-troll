@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { extractRfpDetails } from "./extract.ts";
+import { calendarDate, type Moment } from "./rfp-dates.ts";
 import { createFolder, listChildren, uploadFile } from "./google.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -36,6 +37,16 @@ const MIME_BY_EXTENSION: Record<string, string> = {
   md: "text/markdown",
 };
 
+/** The four columns that hold one date: the instant, whether a time was given, the zone, and the RFP's wording. */
+function momentColumns(prefix: string, moment: Moment | null) {
+  return {
+    [`${prefix}_at`]: moment?.at ?? null,
+    [`${prefix}_has_time`]: moment?.hasTime ?? false,
+    [`${prefix}_tz`]: moment?.tz ?? null,
+    [`${prefix}_text`]: moment?.text || null,
+  };
+}
+
 /** Best-effort: a failure here never blocks the folder; the team can fix the details by hand. */
 async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
   try {
@@ -52,17 +63,28 @@ async function extractDetails(supabase: SupabaseClient, rfp: Rfp) {
     }
 
     const details = await extractRfpDetails(files);
-    const patch: Record<string, unknown> = { extract_status: "done", extract_error: null, key_dates: details.key_dates };
+    const { proposal, questionsPolicy, questions, vendorSelection } = details.dates;
+    const patch: Record<string, unknown> = {
+      extract_status: "done",
+      extract_error: null,
+      questions_policy: questionsPolicy,
+      ...momentColumns("proposal_due", proposal),
+      ...momentColumns("questions_due", questions),
+      ...momentColumns("vendor_selection", vendorSelection),
+    };
 
     if (details.title.trim()) patch.title = details.title.trim();
     if (details.issuing_organization.trim() && !rfp.client_name) patch.client_name = details.issuing_organization.trim();
-    if (details.proposal_due.date) {
-      patch.due_date = details.proposal_due.date;
+    // The older columns the page still reads until the pills replace them.
+    if (proposal) {
+      patch.due_date = calendarDate(proposal);
       patch.due_date_source = "inferred";
-      patch.due_date_evidence = [details.proposal_due.time, details.proposal_due.evidence].filter(Boolean).join(" — ") || null;
+      patch.due_date_evidence = proposal.text || null;
     }
 
-    await supabase.from("rfps").update(patch).eq("id", rfp.id);
+    // Never ignore a failed save: the details would be lost and the RFP left looking unread.
+    const { error: saveError } = await supabase.from("rfps").update(patch).eq("id", rfp.id);
+    if (saveError) throw new Error("The details were read but could not be saved.");
     // The folder name is built from these.
     rfp.title = (patch.title as string | undefined) ?? rfp.title;
     rfp.client_name = (patch.client_name as string | undefined) ?? rfp.client_name;

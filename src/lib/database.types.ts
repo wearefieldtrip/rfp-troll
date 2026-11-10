@@ -30,6 +30,19 @@ export type Database = {
           id: string
           outcome_notes: string | null
           passed_at: string | null
+          proposal_due_at: string | null
+          proposal_due_has_time: boolean
+          proposal_due_text: string | null
+          proposal_due_tz: string | null
+          questions_due_at: string | null
+          questions_due_has_time: boolean
+          questions_due_text: string | null
+          questions_due_tz: string | null
+          questions_policy: string
+          vendor_selection_at: string | null
+          vendor_selection_has_time: boolean
+          vendor_selection_text: string | null
+          vendor_selection_tz: string | null
           passed_from_status: string | null
           source_url: string | null
           status: string
@@ -56,6 +69,19 @@ export type Database = {
           id?: string
           outcome_notes?: string | null
           passed_at?: string | null
+          proposal_due_at?: string | null
+          proposal_due_has_time?: boolean
+          proposal_due_text?: string | null
+          proposal_due_tz?: string | null
+          questions_due_at?: string | null
+          questions_due_has_time?: boolean
+          questions_due_text?: string | null
+          questions_due_tz?: string | null
+          questions_policy?: string
+          vendor_selection_at?: string | null
+          vendor_selection_has_time?: boolean
+          vendor_selection_text?: string | null
+          vendor_selection_tz?: string | null
           passed_from_status?: string | null
           source_url?: string | null
           status?: string

@@ -11,19 +11,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { syncRfpFolder } from '@/lib/functions'
-import { asKeyDates, formatLongDate } from '@/lib/key-dates'
+import { momentFrom } from '@/lib/moment-columns'
 import { rfpDocumentsQuery, rfpQuery, rfpReviewsQuery } from '@/lib/queries'
+import { formatMoment } from '@/lib/rfp-dates'
 import { STATUS_LABELS, STATUS_VARIANTS, type RfpStatus } from '@/lib/rfp-status'
-
-/**
- * A date; or, when the RFP gave no date but said something (for example "No questions will be accepted"),
- * that statement; otherwise "Date not specified".
- */
-function DateValue({ date, time, note }: { date?: string | null; time?: string | null; note?: string }) {
-  if (date) return <>{formatLongDate(date) + (time ? `, ${time}` : '')}</>
-  if (note?.trim()) return <>{note.trim()}</>
-  return <span className="text-muted-foreground">Date not specified</span>
-}
 
 export default function RfpPage() {
   const { id = '' } = useParams()
@@ -42,9 +33,9 @@ export default function RfpPage() {
 
   const data = rfp.data
   const status = data.status as RfpStatus
-  const keyDates = asKeyDates(data.key_dates)
-  const questionsDue = keyDates.find((d) => d.label === 'Questions due')
-  const vendorSelection = keyDates.find((d) => d.label === 'Vendor selection (anticipated)')
+  const proposalDue = momentFrom(data, 'proposal_due')
+  const questionsDue = data.questions_policy === 'due' ? momentFrom(data, 'questions_due') : null
+  const vendorSelection = momentFrom(data, 'vendor_selection')
   const reading = data.extract_status === 'pending' && data.drive_status === 'syncing'
 
   return (
@@ -89,24 +80,29 @@ export default function RfpPage() {
               <>
                 <dt className="text-muted-foreground">Proposal due</dt>
                 <dd>
-                  <DateValue date={data.due_date} time={null} />
-                  {data.due_date && data.due_date_source === 'inferred' && (
+                  {proposalDue ? formatMoment(proposalDue) : <span className="text-muted-foreground">Not stated</span>}
+                  {proposalDue && data.due_date_source === 'inferred' && (
                     <Badge variant="outline" className="ml-2">
                       From the RFP
                     </Badge>
                   )}
-                  {data.due_date_source === 'inferred' && data.due_date_evidence && (
-                    <span className="mt-1 block text-xs text-muted-foreground italic">{data.due_date_evidence}</span>
+                  {data.due_date_source === 'inferred' && data.proposal_due_text && (
+                    <span className="mt-1 block text-xs text-muted-foreground italic">{data.proposal_due_text}</span>
                   )}
                 </dd>
-                <dt className="text-muted-foreground">Questions due</dt>
+                <dt className="text-muted-foreground">Questions</dt>
                 <dd>
-                  <DateValue date={questionsDue?.date} time={questionsDue?.time} note={questionsDue?.evidence} />
+                  {data.questions_policy === 'not_allowed' ? (
+                    'Not allowed'
+                  ) : questionsDue ? (
+                    <>Due {formatMoment(questionsDue)}</>
+                  ) : (
+                    <span className="text-muted-foreground">Not stated</span>
+                  )}
+                  {data.questions_due_text && <span className="mt-1 block text-xs text-muted-foreground italic">{data.questions_due_text}</span>}
                 </dd>
-                <dt className="text-muted-foreground">Vendor selection</dt>
-                <dd>
-                  <DateValue date={vendorSelection?.date} time={vendorSelection?.time} note={vendorSelection?.evidence} />
-                </dd>
+                <dt className="text-muted-foreground">Vendor selected</dt>
+                <dd>{vendorSelection ? formatMoment(vendorSelection) : <span className="text-muted-foreground">Not stated</span>}</dd>
               </>
             )}
           </dl>

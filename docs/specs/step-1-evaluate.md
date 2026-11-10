@@ -138,7 +138,10 @@ On confirm, record who decided, when, the reason, the note, and the score at tha
 ## Dates and times
 
 - Every date shows its time and time zone when the RFP gives them.
-- Store as a timestamp with time zone, plus the original wording from the RFP.
+- Store each date as a moment: the instant (timestamp with time zone), whether the RFP gave a time, the time zone (an IANA name such as America/New_York), and the RFP's own wording as a short quote. Three dates are stored this way: proposal due, questions due, vendor selection.
+- A day with no time is stored as that day at 12:00 UTC and shown as a day only, so it never shifts across time zones.
+- Day counts use the calendar day as written in the RFP, in the RFP's own time zone.
+- The Questions tag is kept as its own value (`due`, `not_allowed`, `not_stated`), never inferred from whether a date exists.
 - If the RFP gives a time but no time zone, show it and mark it "time zone not stated."
 
 ## Failure handling
