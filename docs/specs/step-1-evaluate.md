@@ -164,7 +164,8 @@ On confirm, record who decided, when, the reason, the note, and the score at tha
 
 Agreed while building. Keep unless changed.
 
-- **Pass also moves the client's Drive folder to `_DEAD Opportunities`.** Open: client folders are now reused across RFPs, so don't move a folder that still holds another active RFP. To settle when the Drive piece is built.
+- **One Drive folder per client**, named with the client name only, directly under Prospective Clients. A client with an existing folder (matched on the name ignoring case, punctuation, "the" and "&"; helper folders starting with `_` are skipped) reuses it. The RFP file goes straight into the client folder, with no subfolders. Two simultaneous uploads for a brand-new client could create two folders; merge them by hand.
+- **Pass moves the client's folder to `_DEAD Opportunities`** only when no other open RFP uses it. Delete with "move to trash" trashes the whole folder only when this is the client's last RFP; otherwise only this RFP's files.
 - **The RFP list has filters**: Active (default), Won, Lost, Passed, All, each with a count.
 - **Colors:** the band pill, the total and each dimension score use a traffic-light scale. Green, yellow, orange and red for Definite Go, Conditional Go, Likely No-Go and Definite No-Go.
 - **Rubric automatic no-go:** when the rubric's automatic no-go applies (budget scores 0 for unrealistic budget or free spec work), a line of red text under the verdict gives the reason. There is no separate tag.

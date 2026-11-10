@@ -3,6 +3,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { extractRfpDetails } from "./extract.ts";
 import { estimateBudget } from "./nonprofit-estimate.ts";
 import { calendarDate, type Moment } from "./rfp-dates.ts";
+import { findClientFolder } from "./client-folder.ts";
 import { createFolder, listChildren, uploadFile } from "./google.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -10,7 +11,6 @@ declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
 // Prospective Clients, inside the Business Development shared drive.
 const ROOT_FOLDER_ID = Deno.env.get("DRIVE_ROOT_FOLDER_ID") ?? "0B22CMSUAolRUcVJlWjctM2xZX1U";
-const SUBFOLDERS = ["RFP", "Questions", "Research", "Proposal"];
 const SYNC_STALE_MS = 5 * 60 * 1000;
 
 const corsHeaders = {
@@ -113,22 +113,16 @@ async function sync(supabase: SupabaseClient, rfp: Rfp) {
     if (rfp.extract_status === "pending") await extractDetails(supabase, rfp);
 
     let folderId = rfp.drive_folder_id;
-    let rfpSubfolderId = rfp.drive_rfp_subfolder_id;
+    // RFPs made before client folders were shared keep their own RFP subfolder; new ones go straight into the client folder.
+    const targetId = () => rfp.drive_rfp_subfolder_id ?? folderId!;
 
-    if (!folderId || !rfpSubfolderId) {
-      const name = rfp.client_name ? `${rfp.client_name} – ${rfp.title}` : rfp.title;
-      const folder = await createFolder(name, ROOT_FOLDER_ID);
-      folderId = folder.id;
-      for (const sub of SUBFOLDERS) {
-        const created = await createFolder(sub, folder.id);
-        if (sub === "RFP") rfpSubfolderId = created.id;
-      }
+    if (!folderId) {
+      // One folder per client, named with the client name only. Reuse it if the client already has one.
+      const name = rfp.client_name || rfp.title;
+      const existing = rfp.client_name ? findClientFolder(await listChildren(ROOT_FOLDER_ID), rfp.client_name) : null;
+      folderId = existing?.id ?? (await createFolder(name, ROOT_FOLDER_ID)).id;
       // Save immediately so a retry never creates a second folder.
-      await setStatus({
-        drive_folder_id: folderId,
-        drive_rfp_subfolder_id: rfpSubfolderId,
-        drive_folder_url: `https://drive.google.com/drive/folders/${folderId}`,
-      });
+      await setStatus({ drive_folder_id: folderId, drive_folder_url: `https://drive.google.com/drive/folders/${folderId}` });
     }
 
     const { data: staged, error } = await supabase
@@ -153,7 +147,7 @@ async function sync(supabase: SupabaseClient, rfp: Rfp) {
 
       if (!blob) {
         // An earlier run may have copied the file to Drive without finishing its bookkeeping. Adopt that copy.
-        const existing = (await listChildren(rfpSubfolderId!)).find((f) => f.name === doc.file_name);
+        const existing = (await listChildren(targetId())).find((f) => f.name === doc.file_name);
         if (!existing) throw new Error(`Could not read ${doc.file_name} from staging.`);
         await markInDrive(doc.id, existing.id);
         continue;
@@ -161,7 +155,7 @@ async function sync(supabase: SupabaseClient, rfp: Rfp) {
 
       const extension = doc.file_name.split(".").pop()?.toLowerCase() ?? "";
       const mimeType = doc.mime_type ?? MIME_BY_EXTENSION[extension] ?? "application/octet-stream";
-      const fileId = await uploadFile(doc.file_name, rfpSubfolderId!, mimeType, await blob.arrayBuffer());
+      const fileId = await uploadFile(doc.file_name, targetId(), mimeType, await blob.arrayBuffer());
 
       await markInDrive(doc.id, fileId);
       await supabase.storage.from("rfp-documents").remove([doc.storage_path]);

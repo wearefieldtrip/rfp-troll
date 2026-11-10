@@ -48,9 +48,23 @@ Deno.serve(async (req) => {
     return json({ error: "The Drive folder is still being set up. Try again in a minute." }, 409);
   }
 
+  // The client's folder can hold other RFPs. Only move it when none of them is still open.
+  let sharedWithActive = false;
+  if (rfp.drive_folder_id) {
+    const { data: others } = await supabase
+      .from("rfps")
+      .select("id")
+      .eq("drive_folder_id", rfp.drive_folder_id)
+      .neq("id", rfp_id)
+      .not("status", "in", "(closed_won,closed_lost,closed_passed)")
+      .limit(1);
+    sharedWithActive = !!others?.length;
+  }
+  const moveFolder = !!rfp.drive_folder_id && !sharedWithActive;
+
   // Drive first: if the move fails, nothing has changed.
   let originalParent: string | null = null;
-  if (rfp.drive_folder_id) {
+  if (moveFolder) {
     try {
       originalParent = await moveFile(rfp.drive_folder_id, DEAD_FOLDER_ID);
     } catch (err) {
@@ -70,12 +84,12 @@ Deno.serve(async (req) => {
 
   if (decideError) {
     // Put the folder back so Drive and the app stay in agreement.
-    if (rfp.drive_folder_id && originalParent && originalParent !== DEAD_FOLDER_ID) {
-      await moveFile(rfp.drive_folder_id, originalParent).catch((e) => console.error("move back failed", e));
+    if (moveFolder && originalParent && originalParent !== DEAD_FOLDER_ID) {
+      await moveFile(rfp.drive_folder_id!, originalParent).catch((e) => console.error("move back failed", e));
     }
     console.error("decide failed", decideError);
     return json({ error: decideError.message || "Could not save the decision. Please try again." }, 409);
   }
 
-  return json({ passed: true, folder_moved: !!rfp.drive_folder_id });
+  return json({ passed: true, folder_moved: moveFolder, folder_kept_open: sharedWithActive });
 });

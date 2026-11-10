@@ -46,17 +46,33 @@ Deno.serve(async (req) => {
     .from("rfp_reviews").select("id").eq("rfp_id", rfp_id).eq("status", "running").gte("created_at", since).limit(1);
   if (running?.length) return json({ error: "A fit review is still running. Try again when it finishes." }, 409);
 
+  // The client's folder may hold other RFPs. Trash the whole folder only when this is the last one in it.
+  let folderShared = false;
+  if (rfp.drive_folder_id) {
+    const { data: others } = await supabase.from("rfps").select("id").eq("drive_folder_id", rfp.drive_folder_id).neq("id", rfp_id).limit(1);
+    folderShared = !!others?.length;
+  }
+
   // Anything still staged in Storage (not yet moved to Drive) needs cleaning up afterward.
   const { data: docs } = await supabase.from("rfp_documents").select("storage_path, drive_file_id").eq("rfp_id", rfp_id);
   const staged = (docs ?? []).filter((d) => !d.drive_file_id).map((d) => d.storage_path);
 
   // Drive first: if that fails, nothing has been deleted yet. It only ever goes to the Drive trash.
   const wantsTrash = trash_drive_folder === true && !!rfp.drive_folder_id;
+  // In a shared folder only this RFP's own files go to the trash.
+  const toTrash: string[] = folderShared
+    ? (docs ?? []).map((d) => d.drive_file_id).filter((id): id is string => !!id)
+    : [rfp.drive_folder_id];
+  const trashed: string[] = [];
   if (wantsTrash) {
     try {
-      await trashFile(rfp.drive_folder_id);
+      for (const id of toTrash) {
+        await trashFile(id);
+        trashed.push(id);
+      }
     } catch (err) {
       console.error("drive trash failed", err);
+      for (const id of trashed) await trashFile(id, false).catch((e) => console.error("restore failed", e));
       return json({ error: "Could not move the Drive folder to the trash, so nothing was deleted. Please try again." }, 502);
     }
   }
@@ -64,10 +80,10 @@ Deno.serve(async (req) => {
   const { data: deleted, error: deleteError } = await supabase.from("rfps").delete().eq("id", rfp_id).select("id");
   if (deleteError || !deleted?.length) {
     // Put the folder back so the app and Drive stay consistent.
-    if (wantsTrash) await trashFile(rfp.drive_folder_id, false).catch((e) => console.error("restore failed", e));
+    for (const id of trashed) await trashFile(id, false).catch((e) => console.error("restore failed", e));
     return json({ error: "Could not delete the RFP." }, 500);
   }
 
   if (staged.length) await supabase.storage.from("rfp-documents").remove(staged);
-  return json({ deleted: true, drive_folder_trashed: wantsTrash });
+  return json({ deleted: true, drive_folder_trashed: wantsTrash && !folderShared, drive_files_trashed: wantsTrash && folderShared });
 });

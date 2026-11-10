@@ -115,9 +115,18 @@ export async function moveFile(fileId: string, newParentId: string): Promise<str
 
 export async function listChildren(parentId: string): Promise<{ id: string; name: string; mimeType: string }[]> {
   const q = encodeURIComponent(`'${parentId}' in parents and trashed = false`);
-  const res = await fetch(`${DRIVE}/files?q=${q}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=files(id,name,mimeType)&pageSize=100`, {
-    headers: await authHeaders(),
-  });
-  if (!res.ok) throw await failure(res, "list a folder");
-  return (await res.json()).files;
+  const files: { id: string; name: string; mimeType: string }[] = [];
+  let pageToken = "";
+  // Follow every page: a client folder can sit past the first hundred.
+  do {
+    const res = await fetch(
+      `${DRIVE}/files?q=${q}&supportsAllDrives=true&includeItemsFromAllDrives=true&fields=nextPageToken,files(id,name,mimeType)&pageSize=100${pageToken && `&pageToken=${encodeURIComponent(pageToken)}`}`,
+      { headers: await authHeaders() },
+    );
+    if (!res.ok) throw await failure(res, "list a folder");
+    const body = await res.json();
+    files.push(...body.files);
+    pageToken = body.nextPageToken ?? "";
+  } while (pageToken);
+  return files;
 }

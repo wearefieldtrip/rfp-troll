@@ -88,10 +88,11 @@ export function DeleteRfpDialog({ rfp, documentCount, reviewCount }: Props) {
               <label className="flex items-start gap-2">
                 <input type="radio" name="drive-folder" className="mt-1" checked={trashFolder} onChange={() => setTrashFolder(true)} />
                 <span>
-                  <span className="font-medium">Move the folder to the Drive trash</span>
+                  <span className="font-medium">Move to the Drive trash</span>
                   <span className="block text-muted-foreground">
-                    Everything inside it, including your team's own work, goes to the trash. It can be restored from the
-                    shared drive's trash for about 30 days.
+                    If this is the client's only RFP, the whole folder goes to the trash, including your team's own work. If the
+                    client has other RFPs here, only this RFP's files do. Either can be restored from the shared drive's trash
+                    for about 30 days.
                   </span>
                 </span>
               </label>
