@@ -12,7 +12,7 @@ Every RFP, new or past, gets the same tags. They drive "similar past RFPs": the 
 | Topic | What the work is about | Many | Grows over time, e.g. youth mental health · recycling · ridership · stormwater · fundraising · recruitment |
 | Audience | Who it must reach | Many | Youth · Parents & families · Donors · Residents · Riders · Students · Spanish speakers · Employees |
 | Budget band | How big it is | One | Under $50K · $50–100K · $100–250K · $250K+ · Not stated |
-| Geography | Where it is | Automatic | State; Louisville/KY or out of state |
+| Geography | Where it is | Automatic | Two values: Louisville/KY or Out of state, plus the state code |
 | Procurement | What kind of process | Automatic | RFP / RFI / RFQ · public or private · multi-year or AOR · pitch round · DBE/WBE preference |
 | Requirements | What comes with it | Many | Bilingual · WCAG compliance · Media buy pass-through · Subcontractors allowed · Spec work requested · Insurance minimums |
 
@@ -25,7 +25,7 @@ Every RFP, new or past, gets the same tags. They drive "similar past RFPs": the 
 - **Fixed lists.** Values come from lists kept in the Library (Library → Tags). No free text.
 - **Client type, sector, services, procurement and budget band change rarely.** Topic and audience grow.
 - **The AI tags, a person confirms.** The fit review returns tags from the lists. The AI may suggest a new value (e.g. "wildfire prevention"); it's stored as *suggested* and only joins the list when someone approves it in the Library.
-- **Editable on the profile.** Tags show as chips in a single row under the pills, with an Edit action. Edits are recorded (who, when) and re-run nothing.
+- **Stored, not shown on the profile.** (Decision 2026-11-11.) Tags are not displayed or edited on the RFP profile. The fit review writes them, as unconfirmed AI tags; a re-run replaces earlier unconfirmed AI tags and never touches a group a person confirmed or that came from the tracker. Past RFPs are confirmed on Review imports. Open question: how a person corrects a wrong tag on a new RFP.
 - **Past RFPs get the same tags** (see backfill below).
 
 ## Fit review output
@@ -44,7 +44,7 @@ Add to the step 1 output:
 }
 ```
 
-Geography, procurement and budget band are filled from the extracted facts, not guessed separately.
+Budget band is worked out from the stated budget. Geography comes from the issuer's state, which the review reports along with the procurement values (document type, public or private, and the flags the RFP states). Values not in a list are dropped; a suggested new value is stored as suggested.
 
 ## Storage (Supabase)
 

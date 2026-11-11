@@ -11,8 +11,8 @@ test('there are nine groups with distinct keys', () => {
   assert.ok(!isTagGroup('nope'))
 })
 
-test('one-value groups are client type, sector, budget band and geography', () => {
-  assert.deepEqual(TAG_GROUPS.filter((g) => !g.many).map((g) => g.key), ['client_type', 'sector', 'budget_band', 'geography'])
+test('one-value groups are client type, sector and budget band; geography holds the state and local or not', () => {
+  assert.deepEqual(TAG_GROUPS.filter((g) => !g.many).map((g) => g.key), ['client_type', 'sector', 'budget_band'])
 })
 
 test('values are shown by name, only of the group and status asked for', () => {

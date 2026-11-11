@@ -7,7 +7,7 @@ export const TAG_GROUPS = [
   { key: 'topics', label: 'Topic', answers: 'What the work is about', many: true, automatic: false },
   { key: 'audiences', label: 'Audience', answers: 'Who it must reach', many: true, automatic: false },
   { key: 'budget_band', label: 'Budget band', answers: 'How big it is', many: false, automatic: true },
-  { key: 'geography', label: 'Geography', answers: 'Where it is', many: false, automatic: true },
+  { key: 'geography', label: 'Geography', answers: 'Where it is', many: true, automatic: true },
   { key: 'procurement', label: 'Procurement', answers: 'What kind of process', many: true, automatic: true },
   { key: 'requirements', label: 'Requirements', answers: 'What comes with it', many: true, automatic: false },
 ] as const
