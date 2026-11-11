@@ -87,7 +87,7 @@ export function NewRfpDialog() {
             The client, title and dates are read from the RFP, its Drive folder is set up, and the fit review starts on its own.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-3">
+        <div className="min-w-0 space-y-3">
           <div
             onDragOver={(e) => {
               e.preventDefault()
@@ -95,7 +95,7 @@ export function NewRfpDialog() {
             }}
             onDragLeave={() => setDragging(false)}
             onDrop={onDrop}
-            className={`flex flex-col items-center gap-2 rounded-lg border border-dashed p-6 text-center text-sm ${dragging ? 'border-foreground bg-muted' : ''}`}
+            className={`flex min-w-0 flex-col items-center gap-2 rounded-lg border border-dashed p-6 text-center text-sm ${dragging ? 'border-foreground bg-muted' : ''}`}
           >
             {checking ? (
               <LoaderCircleIcon className="size-5 animate-spin text-muted-foreground" aria-hidden />
@@ -105,7 +105,7 @@ export function NewRfpDialog() {
               <UploadIcon className="size-5 text-muted-foreground" aria-hidden />
             )}
             {file ? (
-              <p>
+              <p className="max-w-full text-center break-all">
                 <span className="font-medium">{file.name}</span> <span className="text-muted-foreground">· {formatSize(file.size)}</span>
               </p>
             ) : (
