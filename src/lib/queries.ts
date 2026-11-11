@@ -170,3 +170,16 @@ export const importedRfpsQuery = queryOptions({
     return data
   },
 })
+
+/** Every RFP that has finished (won or lost), with its tags, for finding the ones most like another. */
+export const pastRfpsQuery = queryOptions({
+  queryKey: ['rfps', 'past'],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from('rfps')
+      .select('id, client_name, title, status, outcome, furthest_stage, submission_year, created_at, proposal_doc_id, rfp_tags(tag_values(tag_group, value))')
+      .in('status', ['closed_won', 'closed_lost'])
+    if (error) throw error
+    return data
+  },
+})

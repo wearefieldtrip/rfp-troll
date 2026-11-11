@@ -15,6 +15,7 @@ import { QuestionsRecord, QuestionsSection } from '@/components/QuestionsSection
 import { ReopenDialog } from '@/components/ReopenDialog'
 import { ReplaceFileDialog } from '@/components/ReplaceFileDialog'
 import { ReviewSection } from '@/components/ReviewSection'
+import { SimilarRfps } from '@/components/SimilarRfps'
 import { StepSection } from '@/components/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -179,6 +180,7 @@ export default function RfpPage() {
             ) : (
               <ReviewSection rfpId={id} hasDocuments={canReview} confirming={rerunning} onConfirmingChange={setRerunning} renderDecision={decisionControls} />
             )}
+            {!reading && <SimilarRfps rfpId={id} year={new Date(data.created_at).getFullYear()} />}
           </StepSection>
 
           {step !== 'questions' && step !== 'evaluate' && data.questions_doc_id && (
