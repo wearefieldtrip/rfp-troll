@@ -125,3 +125,14 @@ test('the cap can move a total across a band line', () => {
   assert.equal(buildReview(raw([3, 3, 3, 1]), bands).band.label, 'Definite Go')
   assert.equal(buildReview(raw([3, 3, 3, 1]), bands, { budgetStated: false }).band.label, 'Conditional Go')
 })
+
+test('a question keeps the rubric line it affects; plain text and unknown lines have none', () => {
+  const review = buildReview(
+    raw([3, 1, 2, 1], {
+      questions: [{ question: 'Budget scope?', line: 'B' }, 'Plain text?', { question: 'Odd line?', line: 'Z' }, { question: '  ', line: 'A' }, { question: 'budget scope', line: 'C' }],
+    }),
+    bands,
+  )
+  assert.deepEqual(review.questions, ['Budget scope?', 'Plain text?', 'Odd line?'])
+  assert.deepEqual(review.question_lines, ['B', null, null])
+})

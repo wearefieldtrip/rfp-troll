@@ -174,6 +174,46 @@ export type Database = {
           { foreignKeyName: 'rfp_documents_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
         ]
       }
+      rfp_answers: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          drive_file_id: string | null
+          error: string | null
+          file_name: string | null
+          id: string
+          pasted_text: string | null
+          received_on: string
+          result: Json | null
+          review_id: string | null
+          rfp_id: string
+          status: string
+          storage_path: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          drive_file_id?: string | null
+          error?: string | null
+          file_name?: string | null
+          id?: string
+          pasted_text?: string | null
+          received_on: string
+          result?: Json | null
+          review_id?: string | null
+          rfp_id: string
+          status?: string
+          storage_path?: string | null
+        }
+        Update: Partial<Database['public']['Tables']['rfp_answers']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'rfp_answers_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_answers_review_id_fkey'; columns: ['review_id']; isOneToOne: false; referencedRelation: 'rfp_reviews'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_answers_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
+      }
       rfp_reviews: {
         Row: {
           completed_at: string | null

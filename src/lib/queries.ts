@@ -89,6 +89,18 @@ export const rfpReviewsQuery = (rfpId: string, rfpCreatedAt?: string) =>
     },
   })
 
+/** Batches of the issuer's answers, newest first. Checks again while one is being read. */
+export const rfpAnswersQuery = (rfpId: string) =>
+  queryOptions({
+    queryKey: ['rfps', rfpId, 'answers'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('rfp_answers').select('*').eq('rfp_id', rfpId).order('created_at', { ascending: false })
+      if (error) throw error
+      return data
+    },
+    refetchInterval: (query) => (query.state.data?.some((a) => a.status === 'reading') ? 3000 : false),
+  })
+
 async function fetchRubric(id?: string) {
   const query = supabase.from('rubrics').select('*')
   const { data, error } = await (id ? query.eq('id', id) : query.eq('is_active', true)).single()

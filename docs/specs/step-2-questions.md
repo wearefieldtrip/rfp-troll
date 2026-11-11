@@ -28,20 +28,20 @@ Starts when the user confirms **Move to Questions**. The confirmation is the per
 
 ## Questions · Sent (waiting)
 
-- Card: "Waiting for answers", how many questions were sent and when, when answers are expected and days left (if the RFP gives that date).
+- Card: "Waiting for answers", how many questions were sent and when. (Not built yet: when answers are expected and days left. The app doesn't read that date from the RFP.)
 - **Add answers** button, and a small **Decide without answers** link.
 - Links: Questions as sent (PDF), Questions doc.
-- If the expected date passes with nothing added, flag "Answers overdue" on the RFP list and suggest deciding without answers.
+- Not built yet: flagging "Answers overdue" on the RFP list. It needs the expected-answers date above.
 
 ## Add answers
 
 - Modal: upload a file (PDF or Word), or paste text. Date received (defaults to today). **Add answers** disabled until there's a file or text.
-- Save the file to the client's Drive folder ("Answers – [date].pdf").
+- Save the file to the client's Drive folder ("Answers – [RFP title] – [date]", keeping its PDF or Word extension). The batch is saved as a row before anything is read, so a failure never loses it; a failed reading shows its reason and **Retry** (it costs AI credit again). A reading that never finishes is treated as failed after 15 minutes.
 - Card shows "Reading the answers" with placeholders (about a minute).
 - The AI:
   - matches answers to our questions; lists any of ours that weren't answered,
   - checks for changed facts. A changed deadline updates its pill and says so ("Proposal due Jan 22, 2027 · updated from Jan 15"),
-  - re-scores the fit and names the rubric line that moved,
+  - re-scores the fit and names the rubric line that moved. The re-score is saved as a new fit review, so the fit card, the decision record and the list all use it; what the answers left open becomes that review's questions,
   - summarizes other agencies' questions: count and main themes.
 - Answers can come in batches. After the first, **Add more answers** stays available; each batch shows only what it changed.
 
@@ -59,3 +59,11 @@ Starts when the user confirms **Move to Questions**. The confirmation is the per
 - "Still unanswered": the 2–3 open questions that matter most to the score, each tagged with its rubric line.
 - **Move to Proposal**, **Pass** (with their modals) and a **Back to waiting** link.
 - The decision record notes it was made without answers. Add answers stays available afterward.
+
+## Built notes (2026-11-11)
+
+- One function, `read-answers`, does the whole reading with the same Opus model and rubric as the fit review. The model supplies scores and words only; totals and bands are worked out by the app (`buildReview`).
+- A changed proposal, questions or vendor-selection date, or a changed budget, replaces the old value (even one the team typed, because the issuer's answer is newer) and the card lists "updated from [old]".
+- The fit review's questions now carry the rubric line each would affect (`question_lines`). **Decide without answers** uses those, lowest-scoring line first, so it needs no AI call. Reviews made before this have no tags and show without them.
+- **Move to Proposal** from Questions is allowed in `decide_rfp` from Sent and Answers in, to Proposal only. Deciding without answers adds the note "Decided without answers from the issuer."
+- Deleting an RFP also trashes its questions doc, questions PDF and answers files when the client folder is shared.

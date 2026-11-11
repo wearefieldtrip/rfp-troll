@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
   const { data: rfp, error } = await supabase
     .from("rfps")
-    .select("id, drive_folder_id, drive_status, updated_at")
+    .select("id, drive_folder_id, drive_status, updated_at, questions_doc_id, questions_sent_pdf_id")
     .eq("id", rfp_id)
     .single();
   if (error || !rfp) return json({ error: "RFP not found" }, 404);
@@ -55,14 +55,22 @@ Deno.serve(async (req) => {
 
   // Anything still staged in Storage (not yet moved to Drive) needs cleaning up afterward.
   const { data: docs } = await supabase.from("rfp_documents").select("storage_path, drive_file_id").eq("rfp_id", rfp_id);
-  const staged = (docs ?? []).filter((d) => !d.drive_file_id).map((d) => d.storage_path);
+  const { data: answers } = await supabase.from("rfp_answers").select("storage_path, drive_file_id").eq("rfp_id", rfp_id);
+  const staged = [
+    ...(docs ?? []).filter((d) => !d.drive_file_id).map((d) => d.storage_path),
+    ...(answers ?? []).filter((a) => a.storage_path).map((a) => a.storage_path as string),
+  ];
 
   // Drive first: if that fails, nothing has been deleted yet. It only ever goes to the Drive trash.
   const wantsTrash = trash_drive_folder === true && !!rfp.drive_folder_id;
   // In a shared folder only this RFP's own files go to the trash.
-  const toTrash: string[] = folderShared
-    ? (docs ?? []).map((d) => d.drive_file_id).filter((id): id is string => !!id)
-    : [rfp.drive_folder_id];
+  const ownFiles = [
+    ...(docs ?? []).map((d) => d.drive_file_id),
+    ...(answers ?? []).map((a) => a.drive_file_id),
+    rfp.questions_doc_id,
+    rfp.questions_sent_pdf_id,
+  ].filter((id): id is string => !!id);
+  const toTrash: string[] = folderShared ? ownFiles : [rfp.drive_folder_id];
   const trashed: string[] = [];
   if (wantsTrash) {
     try {

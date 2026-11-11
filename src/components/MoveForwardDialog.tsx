@@ -11,10 +11,21 @@ import type { Database } from '@/lib/database.types'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
 
-export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange }: { rfp: Rfp; scoreText: string | null; open: boolean; onOpenChange: (open: boolean) => void }) {
+type Props = {
+  rfp: Rfp
+  scoreText: string | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  /** From Questions the only way forward is Proposal. */
+  proposalOnly?: boolean
+  /** The decision is made before any answers arrived; the record says so. */
+  withoutAnswers?: boolean
+}
+
+export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposalOnly = false, withoutAnswers = false }: Props) {
   const queryClient = useQueryClient()
   const deadline = rfp.questions_policy === 'due' ? momentFrom(rfp, 'questions_due') : null
-  const choice = moveForwardDestination({ policy: rfp.questions_policy, deadline })
+  const choice = proposalOnly ? { destination: 'proposal' as const, why: '' } : moveForwardDestination({ policy: rfp.questions_policy, deadline })
   const label = destinationLabel(choice.destination)
 
   const move = useMutation({
@@ -23,6 +34,7 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange }: { rfp:
         p_rfp_id: rfp.id,
         p_decision: 'move_forward',
         p_destination: choice.destination,
+        p_note: withoutAnswers ? 'Decided without answers from the issuer.' : undefined,
         p_expected_status: rfp.status,
       })
       if (error) throw new Error(error.message)
@@ -46,6 +58,7 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange }: { rfp:
           <ul className="list-disc space-y-1.5 pl-5">
             <li>Change the status to {destinationStatus(choice.destination)}</li>
             <li>Record this decision{scoreText ? ` with the current score (${scoreText})` : ''}</li>
+            {withoutAnswers && <li>Note on the record that this was decided without answers</li>}
             {choice.destination === 'questions' && (
               <>
                 <li>Create a questions doc in the client's Drive folder from the template, keeping the template questions that fit this RFP</li>
@@ -53,7 +66,7 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange }: { rfp:
               </>
             )}
           </ul>
-          {choice.destination === 'questions' && deadline && (
+          {!proposalOnly && choice.destination === 'questions' && deadline && (
             <p className="rounded-lg bg-muted px-3 py-2">
               Questions are due <b className="font-semibold">{formatMoment(deadline)}</b> ({dayCountLabel(daysUntilMoment(deadline))}).
             </p>

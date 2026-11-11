@@ -167,7 +167,7 @@ export default function RfpPage() {
 
       {step === 'questions' && (
         <StepSection number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} open onToggle={() => undefined}>
-          <QuestionsSection rfp={data} />
+          <QuestionsSection rfp={data} scoreText={scoreText} />
         </StepSection>
       )}
 

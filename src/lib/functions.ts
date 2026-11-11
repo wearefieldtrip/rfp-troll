@@ -17,3 +17,6 @@ export const syncRfpFolder = (rfpId: string, options: { refresh?: boolean } = {}
 /** The questions doc: build it, retry its suggestions, or mark it sent (`sentOn` is a YYYY-MM-DD day). */
 export const questionsDoc = (rfpId: string, action: 'build' | 'suggest' | 'send', options: { sentOn?: string } = {}) =>
   invokeFunction('questions-doc', { rfp_id: rfpId, action, sent_on: options.sentOn })
+
+/** Reads one batch of answers: matches them to the questions, re-scores, and picks up changed dates. */
+export const readAnswers = (answersId: string) => invokeFunction('read-answers', { answers_id: answersId })

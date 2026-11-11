@@ -17,6 +17,8 @@ export type ReviewV2 = {
   band: Band
   risks: string[]
   questions: string[]
+  /** The rubric line each question would most affect, in the same order as `questions`. Reviews made before this was added have none. */
+  question_lines?: (DimensionKey | null)[]
   flags: string[]
   /** A one-sentence reason when the rubric's automatic no-go applies; empty otherwise. */
   auto_no_go: string
@@ -73,14 +75,22 @@ export function buildReview(raw: unknown, bands: Band[], options: { budgetStated
   const band = bandFor(total, bands)
   if (!band) throw new ReviewInvalid(`No decision band matches a total of ${total}.`)
 
-  // The same question asked twice, however it is capitalized or punctuated, is shown once.
+  // A question comes as text, or as text with the rubric line it affects. The same question asked twice, however
+  // it is capitalized or punctuated, is shown once.
   const seen = new Set<string>()
-  const questions = textList(r.questions).filter((q) => {
-    const k = q.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
-    if (seen.has(k)) return false
-    seen.add(k)
-    return true
-  })
+  const asked = (Array.isArray(r.questions) ? r.questions : [])
+    .map((q) => {
+      const item: Record<string, unknown> = typeof q === 'object' && q !== null ? (q as Record<string, unknown>) : { question: q }
+      const line = text(item.line)
+      return { question: text(item.question), line: (DIMENSION_KEYS as readonly string[]).includes(line) ? (line as DimensionKey) : null }
+    })
+    .filter((q) => {
+      const k = q.question.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+      if (!k || seen.has(k)) return false
+      seen.add(k)
+      return true
+    })
+    .slice(0, LIMITS.questions)
 
   return {
     version: 2,
@@ -90,7 +100,8 @@ export function buildReview(raw: unknown, bands: Band[], options: { budgetStated
     max_total: MAX_TOTAL,
     band,
     risks: textList(r.risks).slice(0, LIMITS.risks),
-    questions: questions.slice(0, LIMITS.questions),
+    questions: asked.map((q) => q.question),
+    question_lines: asked.map((q) => q.line),
     flags: textList(r.flags),
     auto_no_go: text(r.auto_no_go),
   }

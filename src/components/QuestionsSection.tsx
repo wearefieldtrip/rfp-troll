@@ -1,26 +1,22 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ExternalLinkIcon, LoaderCircleIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { AddAnswersDialog } from '@/components/AddAnswersDialog'
+import { AnswersInCard, FailedReadingCard, NoAnswersCard, ReadingCard, WaitingCard } from '@/components/AnswersCards'
 import { MarkSentDialog } from '@/components/MarkSentDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { questionsDoc } from '@/lib/functions'
-import { docContents, docUrl, fileUrl, formatDay } from '@/lib/questions-view'
+import { Skeleton } from '@/components/ui/skeleton'
+import { answersState, stillUnanswered, toAnswersResult } from '@/lib/answers-view'
+import { questionsDoc, readAnswers } from '@/lib/functions'
+import { rfpAnswersQuery, rfpReviewsQuery } from '@/lib/queries'
+import { docContents, docUrl } from '@/lib/questions-view'
 import type { Database } from '@/lib/database.types'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
 
-function ExternalLink({ href, children }: { href: string; children: string }) {
-  return (
-    <a href={href} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline underline-offset-4">
-      {children}
-      <ExternalLinkIcon className="size-3" aria-hidden />
-    </a>
-  )
-}
-
 /** Step 2. What it shows follows the status. */
-export function QuestionsSection({ rfp }: { rfp: Rfp }) {
+export function QuestionsSection({ rfp, scoreText }: { rfp: Rfp; scoreText: string | null }) {
   const queryClient = useQueryClient()
   const [marking, setMarking] = useState(false)
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['rfps', rfp.id] })
@@ -28,24 +24,7 @@ export function QuestionsSection({ rfp }: { rfp: Rfp }) {
   const build = useMutation({ mutationFn: () => questionsDoc(rfp.id, 'build'), onSettled: refresh })
   const retrySuggestions = useMutation({ mutationFn: () => questionsDoc(rfp.id, 'suggest'), onSettled: refresh })
 
-  if (rfp.status === 'questions_sent' || rfp.status === 'questions_answers_in') {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Waiting for answers</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <p>
-            {rfp.questions_sent_count ?? 0} questions sent{rfp.questions_sent_on ? ` on ${formatDay(rfp.questions_sent_on)}` : ''}.
-          </p>
-          <p className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
-            {rfp.questions_sent_pdf_id && <ExternalLink href={fileUrl(rfp.questions_sent_pdf_id)}>Questions as sent (PDF)</ExternalLink>}
-            {rfp.questions_doc_id && <ExternalLink href={docUrl(rfp.questions_doc_id)}>Questions doc</ExternalLink>}
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
+  if (rfp.status === 'questions_sent' || rfp.status === 'questions_answers_in') return <AnswersStep rfp={rfp} scoreText={scoreText} />
 
   const status = rfp.questions_doc_status
 
@@ -124,6 +103,70 @@ export function QuestionsSection({ rfp }: { rfp: Rfp }) {
         </CardContent>
       </Card>
       <MarkSentDialog rfpId={rfp.id} open={marking} onOpenChange={setMarking} />
+    </>
+  )
+}
+
+/** After the questions are sent: waiting, reading the answers, and the decision. */
+function AnswersStep({ rfp, scoreText }: { rfp: Rfp; scoreText: string | null }) {
+  const queryClient = useQueryClient()
+  const answers = useQuery(rfpAnswersQuery(rfp.id))
+  const reviews = useQuery(rfpReviewsQuery(rfp.id))
+  const [adding, setAdding] = useState(false)
+  const [withoutAnswers, setWithoutAnswers] = useState(false)
+
+  const rows = answers.data ?? []
+  const latest = rows[0]
+  const latestState = latest ? answersState(latest) : null
+  const latestDone = rows.find((r) => answersState(r) === 'done')
+
+  // When a batch finishes, the RFP's status, dates and score have changed too.
+  useEffect(() => {
+    if (latestState === 'done') void queryClient.invalidateQueries({ queryKey: ['rfps', rfp.id] })
+  }, [latestState, latest?.id, queryClient, rfp.id])
+
+  const retry = useMutation({
+    mutationFn: (id: string) => readAnswers(id),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['rfps', rfp.id] }),
+  })
+
+  if (answers.isPending) return <Skeleton className="h-32 w-full" />
+
+  const addDialog = <AddAnswersDialog rfpId={rfp.id} more={rows.length > 0} open={adding} onOpenChange={setAdding} />
+
+  if (latest && latestState === 'reading') return <ReadingCard />
+
+  const failedCard =
+    latest && latestState === 'failed' ? (
+      <FailedReadingCard error={latest.error} retrying={retry.isPending} onRetry={() => retry.mutate(latest.id)} />
+    ) : null
+
+  if (rfp.status === 'questions_answers_in' && latestDone) {
+    return (
+      <>
+        {failedCard}
+        <AnswersInCard rfp={rfp} answers={rows} result={toAnswersResult(latestDone.result)} scoreText={scoreText} onAddMore={() => setAdding(true)} />
+        {addDialog}
+      </>
+    )
+  }
+
+  if (withoutAnswers) {
+    // No answers have been read yet, so the latest review is still the one from the RFP alone.
+    const review = reviews.data?.find((r) => r.status === 'complete')
+    return (
+      <>
+        {failedCard}
+        <NoAnswersCard rfp={rfp} scoreText={scoreText} open={stillUnanswered(review?.result)} onBack={() => setWithoutAnswers(false)} />
+      </>
+    )
+  }
+
+  return (
+    <>
+      {failedCard}
+      <WaitingCard rfp={rfp} answers={rows} onAdd={() => setAdding(true)} onDecideWithout={() => setWithoutAnswers(true)} />
+      {addDialog}
     </>
   )
 }
