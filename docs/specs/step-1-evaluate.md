@@ -73,7 +73,7 @@ Top to bottom:
 3. **Check this** note, only when the review returns a flag.
 4. **Fit card**: total (e.g. 7 / 12), band badge, verdict sentence, **Move forward** and **Pass** buttons. Under it, the four rubric rows (name, score, reason); clicking a row shows its evidence quotes with page numbers. "AI review · [date] · Run again".
 5. **Top risks** (full width).
-6. **Questions to ask** (full width): first 5, "Show all".
+6. **Questions to consider** (full width): first 5, "Show all".
 
 ## Pills at the top of the profile
 

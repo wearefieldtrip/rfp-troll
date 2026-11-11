@@ -150,9 +150,9 @@ export function QuestionsCard({ questions }: { questions: string[] }) {
   const shown = all ? questions : questions.slice(0, QUESTIONS_SHOWN)
 
   return (
-    <Card aria-label="Questions to ask">
+    <Card aria-label="Questions to consider">
       <CardHeader>
-        <CardTitle>Questions to ask</CardTitle>
+        <CardTitle>Questions to consider</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <ol className="list-decimal space-y-2 pl-5">
