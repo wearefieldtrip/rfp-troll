@@ -1,7 +1,7 @@
 // The history list for one RFP, put together from rows that already record who and when.
-// Marking the questions as sent has only a day, no person; owner changes and file replacements are not recorded yet.
-import { decisionScore, decisionWhat, decisionWho, type DecisionRow } from './decision-text.ts'
-import { cleanBandLabel, MAX_TOTAL } from './rubric-structure.ts'
+// Entries say what happened, when and who. Scores and counts live on the cards, not here.
+// Marking the questions as sent has no person; owner changes and file replacements are not recorded yet.
+import { decisionWhat, decisionWho, type DecisionRow } from './decision-text.ts'
 
 export type HistoryEntry = {
   id: string
@@ -26,7 +26,6 @@ export type HistoryInput = {
 }
 
 const day = (value: string) => new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', dateStyle: 'medium' }).format(new Date(`${value}T12:00:00Z`))
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
 /** Newest first. */
 export function buildHistory({ rfp, reviews, decisions, answers, people }: HistoryInput): HistoryEntry[] {
@@ -45,13 +44,12 @@ export function buildHistory({ rfp, reviews, decisions, answers, people }: Histo
       id: `review-${r.id}`,
       at: r.completed_at ?? r.created_at,
       title: rescored.has(r.id) ? 'Re-scored after answers' : 'Fit review run',
-      detail: r.total_score != null ? `${r.total_score} / ${MAX_TOTAL} ${cleanBandLabel(r.decision_band)}`.trimEnd() : undefined,
       who: nameOf(r.created_by),
     })
   }
 
   for (const d of decisions) {
-    entries.push({ id: `decision-${d.id}`, at: d.decided_at, title: decisionWhat(d), detail: decisionScore(d) || undefined, note: d.note, who: decisionWho(d) })
+    entries.push({ id: `decision-${d.id}`, at: d.decided_at, title: decisionWhat(d), note: d.note, who: decisionWho(d) })
   }
 
   for (const a of answers) {
@@ -69,13 +67,12 @@ export function buildHistory({ rfp, reviews, decisions, answers, people }: Histo
     // so those go just after the decision that started the questions step, or at the end of that day if there is none.
     const started = decisions.find((d) => d.kind === 'move_forward' && d.to_status === 'questions_drafting')
     const fallback = started ? new Date(new Date(started.decided_at).getTime() + 1000).toISOString() : `${rfp.questions_sent_on}T23:59:59Z`
-    const count = rfp.questions_sent_count != null ? plural(rfp.questions_sent_count, 'question') : null
     entries.push({
       id: 'sent',
       at: rfp.questions_sent_at ?? fallback,
       dateLabel: rfp.questions_sent_at ? undefined : day(rfp.questions_sent_on),
       title: 'Questions marked as sent',
-      detail: [count, `sent ${day(rfp.questions_sent_on)}`].filter(Boolean).join(' · '),
+      detail: `Sent ${day(rfp.questions_sent_on)}`,
       who: null,
     })
   }

@@ -17,7 +17,7 @@ test('a new RFP has one entry: who added it', () => {
   assert.deepEqual(h.map((e) => [e.title, e.who]), [['RFP added', 'Jane P']])
 })
 
-test('everything is listed newest first, with who, score and notes', () => {
+test('everything is listed newest first, with who and notes, and no scores', () => {
   const input = base()
   input.reviews = [{ id: 'r1', status: 'complete', created_at: '2026-11-10T15:01:00Z', completed_at: '2026-11-10T15:02:00Z', created_by: 'u1', total_score: 7, decision_band: '7 – 9 · Conditional Go' }]
   input.decisions = [
@@ -29,7 +29,7 @@ test('everything is listed newest first, with who, score and notes', () => {
   assert.equal(h[0].note, 'Too small')
   assert.equal(h[0].who, 'Someone')
   assert.equal(h[1].who, 'sam@x.com')
-  assert.equal(h[2].detail, '7 / 12 Conditional Go')
+  assert.ok(h.every((e) => !e.detail))
 })
 
 test('a review made from answers is a re-score; running and failed reviews are left out', () => {
@@ -46,7 +46,7 @@ test('a review made from answers is a re-score; running and failed reviews are l
   assert.equal(h[1].detail, 'Received Nov 12, 2026')
 })
 
-test('marking sent sits where it was marked, with the day it was sent, and no person', () => {
+test('marking sent sits where it was marked, with the day it was sent, no count and no person', () => {
   const input = base()
   input.rfp.questions_sent_on = '2026-11-09'
   input.rfp.questions_sent_at = '2026-11-10T17:00:00Z'
@@ -57,7 +57,7 @@ test('marking sent sits where it was marked, with the day it was sent, and no pe
   const sent = h[1]
   assert.equal(sent.who, null)
   assert.equal(sent.dateLabel, undefined)
-  assert.equal(sent.detail, '1 question · sent Nov 9, 2026')
+  assert.equal(sent.detail, 'Sent Nov 9, 2026')
 })
 
 test('an RFP marked sent before the moment was recorded goes just after the decision that started the questions', () => {
