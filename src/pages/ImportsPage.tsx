@@ -6,8 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { previewProposalLinks, previewTrackerImport, runProposalLinks, runTrackerImport, type ImportPreview, type ImportResult, type LinkReport } from '@/lib/functions'
-import { ACTION_LABELS, describeActions, describeLinks, describeOutcomes, OUTCOME_LABELS, parseRowNumber, STAGE_LABELS } from '@/lib/import-view'
+import {
+  countAiTagging,
+  previewProposalLinks,
+  previewTrackerImport,
+  runAiTagging,
+  runProposalLinks,
+  runTrackerImport,
+  type ImportPreview,
+  type ImportResult,
+  type LinkReport,
+  type TagCount,
+  type TagRun,
+} from '@/lib/functions'
+import { ACTION_LABELS, describeActions, describeAdded, describeLinks, describeOutcomes, OUTCOME_LABELS, parseRowNumber, STAGE_LABELS } from '@/lib/import-view'
 import { LINK_STATUS_LABELS } from '@/lib/proposal-link'
 
 export default function ImportsPage() {
@@ -19,6 +31,9 @@ export default function ImportsPage() {
   const [preview, setPreview] = useState<ImportPreview | null>(null)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [links, setLinks] = useState<LinkReport | null>(null)
+  const [tagCount, setTagCount] = useState<TagCount | null>(null)
+  const [tagging, setTagging] = useState(false)
+  const [tagRun, setTagRun] = useState<TagRun | null>(null)
 
   const fromRow = parseRowNumber(from)
   const toRow = parseRowNumber(to)
@@ -31,6 +46,7 @@ export default function ImportsPage() {
     setPreview(null)
     setResult(null)
     setLinks(null)
+    setTagRun(null)
   }
 
   const runPreview = useMutation({
@@ -64,7 +80,24 @@ export default function ImportsPage() {
     },
   })
 
-  const busy = runPreview.isPending || runImport.isPending || checkLinks.isPending || saveLinks.isPending
+  const countTags = useMutation({
+    mutationFn: () => countAiTagging(range),
+    onSuccess: (data) => {
+      setTagCount(data)
+      setTagging(true)
+    },
+  })
+  const runTags = useMutation({
+    mutationFn: () => runAiTagging(range),
+    onSuccess: async (data) => {
+      setTagRun(data)
+      setTagging(false)
+      await queryClient.invalidateQueries({ queryKey: ['rfps'] })
+      await queryClient.invalidateQueries({ queryKey: ['tags'] })
+    },
+  })
+
+  const busy = runPreview.isPending || runImport.isPending || checkLinks.isPending || saveLinks.isPending || countTags.isPending || runTags.isPending
   const toDo = preview ? preview.summary.rows - (preview.summary.actions.skip_reviewed ?? 0) : 0
 
   return (
@@ -237,6 +270,73 @@ export default function ImportsPage() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>AI tagging</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <p className="text-muted-foreground">
+            Reads each imported RFP's proposal Doc and adds services, topics, audiences and requirements, plus a sector where the tracker has none. Everything it adds is
+            unconfirmed until someone reviews it. It never changes a tag from the tracker or one you set. It uses the rows above and the small AI model, a few Docs at a time.
+          </p>
+          <Button disabled={!rangeOk || busy} onClick={() => countTags.mutate()}>
+            {countTags.isPending ? 'Counting…' : 'Tag with AI'}
+          </Button>
+          {(countTags.error || (!tagging && runTags.error)) && <p className="text-destructive">{(countTags.error ?? runTags.error)?.message}</p>}
+          {tagRun && (
+            <div className="space-y-3">
+              <p>
+                <span className="font-medium">{tagRun.tagged} tagged</span>
+                {tagRun.failed > 0 && <span className="text-destructive"> · {tagRun.failed} failed</span>}
+                {tagRun.remaining > 0 ? ` · ${tagRun.remaining} still to do: run it again to continue` : ' · nothing left to tag in these rows'}
+              </p>
+              <ul className="divide-y rounded-md border">
+                {tagRun.results.map((r) => (
+                  <li key={r.row} className="space-y-0.5 px-3 py-2">
+                    <p className="flex flex-wrap items-baseline gap-x-3">
+                      <span className="w-8 text-muted-foreground">{r.row}</span>
+                      <span className="min-w-0 flex-1 font-medium break-words">{r.client}</span>
+                      {r.status === 'failed' && <span className="text-destructive">Failed</span>}
+                    </p>
+                    {r.status === 'tagged' && <p className="pl-11 text-muted-foreground">{describeAdded(r.added) || 'Nothing new to add.'}</p>}
+                    {r.suggested && r.suggested.length > 0 && <p className="pl-11 text-muted-foreground">Suggested for the Library: {r.suggested.join('; ')}</p>}
+                    {r.error && <p className="pl-11 text-destructive">{r.error}</p>}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={tagging} onOpenChange={(open) => !runTags.isPending && setTagging(open)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tag with AI?</DialogTitle>
+            <DialogDescription>
+              {tagCount && tagCount.eligible > 0
+                ? `This reads ${Math.min(tagCount.eligible, tagCount.perRun)} proposal ${Math.min(tagCount.eligible, tagCount.perRun) === 1 ? 'Doc' : 'Docs'} now${tagCount.eligible > tagCount.perRun ? ` (${tagCount.eligible} are waiting; it does ${tagCount.perRun} at a time, so run it again for the rest)` : ''} and uses a small amount of AI credit.`
+                : 'There is nothing to tag in these rows.'}
+              {tagCount && (tagCount.alreadyTagged > 0 || tagCount.reviewed > 0 || tagCount.noDoc > 0) && (
+                <>
+                  {' '}
+                  Skipped: {[tagCount.alreadyTagged ? `${tagCount.alreadyTagged} already tagged` : '', tagCount.reviewed ? `${tagCount.reviewed} reviewed` : '', tagCount.noDoc ? `${tagCount.noDoc} with no proposal linked` : ''].filter(Boolean).join(', ')}.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          {runTags.error && <p className="text-sm text-destructive">{runTags.error.message}</p>}
+          <DialogFooter>
+            <Button variant="outline" disabled={runTags.isPending} onClick={() => setTagging(false)}>
+              Cancel
+            </Button>
+            <Button disabled={runTags.isPending || !tagCount || tagCount.eligible === 0} onClick={() => runTags.mutate()}>
+              {runTags.isPending ? 'Reading the proposals…' : 'Tag with AI'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={confirming} onOpenChange={(open) => !runImport.isPending && setConfirming(open)}>
         <DialogContent>

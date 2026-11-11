@@ -79,3 +79,14 @@ export type LinkReport = {
 /** Checks each imported RFP's proposal link. `preview` writes nothing. */
 export const previewProposalLinks = (range: { from?: number; to?: number }) => callFunction<LinkReport>('link-proposals', { mode: 'preview', ...range })
 export const runProposalLinks = (range: { from?: number; to?: number }) => callFunction<LinkReport>('link-proposals', { mode: 'link', ...range })
+
+export type TagCount = { inRange: number; noDoc: number; reviewed: number; alreadyTagged: number; eligible: number; perRun: number }
+
+export type TagRunRow = { row: number; client: string; status: 'tagged' | 'failed'; added?: Record<string, string[]>; suggested?: string[]; error?: string }
+
+export type TagRun = Omit<TagCount, 'perRun' | 'eligible'> & { processed: number; tagged: number; failed: number; remaining: number; results: TagRunRow[] }
+
+/** How many proposal Docs an AI tagging run would read. Uses no AI. */
+export const countAiTagging = (range: { from?: number; to?: number }) => callFunction<TagCount>('tag-past-rfps', { mode: 'count', ...range })
+/** Reads the next few proposal Docs and adds unconfirmed tags. Uses AI credit. */
+export const runAiTagging = (range: { from?: number; to?: number }) => callFunction<TagRun>('tag-past-rfps', { mode: 'tag', ...range })
