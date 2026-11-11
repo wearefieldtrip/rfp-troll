@@ -4,7 +4,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import mammoth from "npm:mammoth@1.8.0";
 import { Buffer } from "node:buffer";
 import { buildReview, ReviewInvalid, type ReviewV2 } from "./fit-review.ts";
-import { downloadFile, tidyName, uploadFile } from "./google.ts";
+import { downloadFile, exportDocAsPdf, tidyName, uploadFile } from "./google.ts";
 import { checkRubric } from "./rubric-structure.ts";
 import { formatBudget, interpretBudget } from "./rfp-budget.ts";
 import { formatMoment, toMoment, type Moment } from "./rfp-dates.ts";
@@ -194,8 +194,8 @@ async function run(supabase: SupabaseClient, answers: Answers, rfp: Rfp) {
       return fileBlock(name, bytes).then((b) => blocks.push(b));
     };
     for (const doc of docsRes.data ?? []) await add(doc.file_name, await downloadFile(doc.drive_file_id!));
-    // The questions as they were sent, so unanswered ones can be told apart.
-    if (rfp.questions_sent_pdf_id) await add("Questions as sent.pdf", await downloadFile(rfp.questions_sent_pdf_id as string));
+    // The questions as they are in the doc, so unanswered ones can be told apart.
+    if (rfp.questions_doc_id) await add("Questions as sent.pdf", await exportDocAsPdf(rfp.questions_doc_id as string));
     blocks.push(answerBlock);
 
     const known = [

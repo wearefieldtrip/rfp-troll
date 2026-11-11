@@ -47,9 +47,3 @@ export async function addComment(fileId: string, content: string): Promise<void>
   const res = await fetch(`${DRIVE}/files/${fileId}/comments?fields=id`, { method: "POST", headers: await headers(), body: JSON.stringify({ content }) });
   if (!res.ok) throw await failure(res, "add a comment");
 }
-
-export async function exportPdf(fileId: string): Promise<ArrayBuffer> {
-  const res = await fetch(`${DRIVE}/files/${fileId}/export?mimeType=application%2Fpdf`, { headers: await headers() });
-  if (!res.ok) throw await failure(res, "save the questions doc as a PDF");
-  return await res.arrayBuffer();
-}

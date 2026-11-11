@@ -37,7 +37,7 @@ export function MarkSentDialog({ rfpId, open, onOpenChange }: Props) {
         <DialogHeader>
           <DialogTitle>Mark the questions as sent?</DialogTitle>
           <DialogDescription>
-            Accept or reject every suggestion in the doc first. A PDF of the doc as it stands is saved to the client's Drive folder.
+            Accept or reject every suggestion in the doc first, so what you send is final. The doc stays linked here.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2 text-sm">
@@ -50,7 +50,7 @@ export function MarkSentDialog({ rfpId, open, onOpenChange }: Props) {
             Cancel
           </Button>
           <Button disabled={!sentOn || send.isPending} onClick={() => send.mutate()}>
-            {send.isPending ? 'Saving the PDF…' : 'Mark as sent'}
+            {send.isPending ? 'Saving…' : 'Mark as sent'}
           </Button>
         </DialogFooter>
       </DialogContent>

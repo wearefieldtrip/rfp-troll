@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
 
   const { data: rfp, error } = await supabase
     .from("rfps")
-    .select("id, drive_folder_id, drive_status, updated_at, questions_doc_id, questions_sent_pdf_id")
+    .select("id, drive_folder_id, drive_status, updated_at, questions_doc_id")
     .eq("id", rfp_id)
     .single();
   if (error || !rfp) return json({ error: "RFP not found" }, 404);
@@ -68,7 +68,6 @@ Deno.serve(async (req) => {
     ...(docs ?? []).map((d) => d.drive_file_id),
     ...(answers ?? []).map((a) => a.drive_file_id),
     rfp.questions_doc_id,
-    rfp.questions_sent_pdf_id,
   ].filter((id): id is string => !!id);
   const toTrash: string[] = folderShared ? ownFiles : [rfp.drive_folder_id];
   const trashed: string[] = [];

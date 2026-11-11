@@ -87,6 +87,13 @@ export async function downloadFile(fileId: string): Promise<ArrayBuffer> {
   return await res.arrayBuffer();
 }
 
+/** A Google Doc as a PDF, made on the spot. Nothing is saved to Drive. */
+export async function exportDocAsPdf(fileId: string): Promise<ArrayBuffer> {
+  const res = await fetch(`${DRIVE}/files/${fileId}/export?mimeType=application%2Fpdf`, { headers: await authHeaders() });
+  if (!res.ok) throw await failure(res, "read the questions doc");
+  return await res.arrayBuffer();
+}
+
 /** Moves a file or folder to the Drive trash (recoverable), or restores it with trashed = false. */
 export async function trashFile(fileId: string, trashed = true): Promise<void> {
   const res = await fetch(`${DRIVE}/files/${fileId}?supportsAllDrives=true`, {

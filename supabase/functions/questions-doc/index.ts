@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
-import { addComment, batchUpdate, copyDoc, exportPdf, getDoc } from "./docs.ts";
-import { downloadFile, tidyName, trashFile, uploadFile } from "./google.ts";
+import { addComment, batchUpdate, copyDoc, getDoc } from "./docs.ts";
+import { downloadFile, tidyName, trashFile } from "./google.ts";
 import { countQuestions, cutRequests, fillRequests, parseTemplate, pendingSuggestions, questionStarts, suggestRequests } from "./questions-doc.ts";
 import { selectBankQuestions, type RfpFile } from "./select-bank.ts";
 
@@ -40,8 +40,6 @@ const COMMENT = (count: number) =>
   `RFP Troll added ${count} suggested question${count === 1 ? "" : "s"} from the fit review, shown as separate suggestions among the questions. Accept or reject each one, then send the doc. Delete this comment before sending.`;
 
 const longDate = (d: Date) => new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", dateStyle: "long" }).format(d);
-const shortDay = (day: string) =>
-  new Intl.DateTimeFormat("en-US", { timeZone: "UTC", dateStyle: "medium" }).format(new Date(`${day}T12:00:00Z`));
 
 const targetFolder = (rfp: Rfp) => rfp.drive_rfp_subfolder_id ?? rfp.drive_folder_id;
 
@@ -163,35 +161,21 @@ Deno.serve(async (req) => {
     if (rfp.status !== "questions_drafting") return json({ error: "This RFP is not in Questions · Drafting." }, 409);
     if (rfp.questions_doc_status !== "ready" || !rfp.questions_doc_id) return json({ error: "The questions doc isn't ready yet." }, 409);
     if (typeof sent_on !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(sent_on) || Number.isNaN(Date.parse(sent_on))) return json({ error: "Choose the date it was sent." }, 400);
-    const folder = targetFolder(rfp);
-    if (!folder) return json({ error: "This RFP has no Drive folder yet." }, 409);
-
     const doc = await getDoc(rfp.questions_doc_id).catch((err: Error) => err);
     if (doc instanceof Error) return json({ error: doc.message }, 502);
     const pending = pendingSuggestions(doc);
     if (pending > 0) {
-      return json({ error: `${pending} suggestion${pending === 1 ? " is" : "s are"} still waiting in the doc. Accept or reject each one first, so the PDF matches what you sent.` }, 409);
+      return json({ error: `${pending} suggestion${pending === 1 ? " is" : "s are"} still waiting in the doc. Accept or reject each one first, so what you send is final.` }, 409);
     }
-    const count = countQuestions(doc.body?.content ?? []);
 
-    let pdfId: string | null = null;
-    try {
-      const pdf = await exportPdf(rfp.questions_doc_id);
-      pdfId = await uploadFile(tidyName(`Questions sent – ${rfp.title} – ${shortDay(sent_on)}.pdf`), folder, "application/pdf", pdf);
-      const { data: updated, error: updateError } = await supabase
-        .from("rfps")
-        .update({ status: "questions_sent", questions_sent_on: sent_on, questions_sent_count: count, questions_sent_pdf_id: pdfId })
-        .eq("id", rfp_id)
-        .eq("status", "questions_drafting")
-        .select("id");
-      if (updateError || !updated?.length) throw new Error("Could not save that the questions were sent.");
-      return json({ status: "sent" });
-    } catch (err) {
-      console.error("mark sent failed", err);
-      // Don't leave a PDF behind for a send that didn't happen.
-      if (pdfId) await trashFile(pdfId).catch((e) => console.error("pdf not trashed", e));
-      return json({ error: err instanceof Error ? err.message : "Could not mark the questions as sent." }, 502);
-    }
+    const { data: updated, error: updateError } = await supabase
+      .from("rfps")
+      .update({ status: "questions_sent", questions_sent_on: sent_on, questions_sent_count: countQuestions(doc.body?.content ?? []) })
+      .eq("id", rfp_id)
+      .eq("status", "questions_drafting")
+      .select("id");
+    if (updateError || !updated?.length) return json({ error: "Could not save that the questions were sent." }, 502);
+    return json({ status: "sent" });
   }
 
   return json({ error: "Unknown action" }, 400);

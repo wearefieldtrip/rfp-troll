@@ -22,15 +22,15 @@ Starts when the user confirms **Move to Questions**. The confirmation is the per
 ## Mark as sent
 
 - Small confirmation modal asking for the date sent (defaults to today).
-- Refused while any suggestion in the doc is still pending, so the PDF matches what was sent.
-- Export the doc as it was sent to PDF in the client's Drive folder ("Questions sent – [RFP title] – [date].pdf"; client folders hold several RFPs). The number of questions is counted from the doc at that moment.
+- Refused while any suggestion in the doc is still pending, so what is sent is final.
+- No PDF is made. The Google Doc stays the record, linked from the card. The number of questions is counted from the doc at that moment. (The `questions_sent_pdf_id` column is unused.) When answers are read, the doc is turned into a PDF on the fly so the AI can see which questions were asked.
 - Status becomes **Questions · Sent**.
 
 ## Questions · Sent (waiting)
 
 - Card: "Waiting for answers", how many questions were sent and when. (Not built yet: when answers are expected and days left. The app doesn't read that date from the RFP.)
 - **Add answers** button, and a small **Decide without answers** link.
-- Links: Questions as sent (PDF), Questions doc.
+- Links: Questions doc.
 - Not built yet: flagging "Answers overdue" on the RFP list. It needs the expected-answers date above.
 
 ## Add answers
@@ -50,7 +50,7 @@ Starts when the user confirms **Move to Questions**. The confirmation is the per
 - Card: "Answers are in. Move to Proposal?", the new score with the old one struck through and which line moved, **Move to Proposal** and **Pass** (same confirmation modals as step 1).
 - "What the answers changed": up to 3 points, each citing the answer number.
 - "What other agencies asked": one or two sentences.
-- Links: Answers (PDF), Questions as sent (PDF), Questions doc.
+- Links: Answers, Questions doc.
 
 ## Decide without answers
 
@@ -66,4 +66,4 @@ Starts when the user confirms **Move to Questions**. The confirmation is the per
 - A changed proposal, questions or vendor-selection date, or a changed budget, replaces the old value (even one the team typed, because the issuer's answer is newer) and the card lists "updated from [old]".
 - The fit review's questions now carry the rubric line each would affect (`question_lines`). **Decide without answers** uses those, lowest-scoring line first, so it needs no AI call. Reviews made before this have no tags and show without them.
 - **Move to Proposal** from Questions is allowed in `decide_rfp` from Sent and Answers in, to Proposal only. Deciding without answers adds the note "Decided without answers from the issuer."
-- Deleting an RFP also trashes its questions doc, questions PDF and answers files when the client folder is shared.
+- Deleting an RFP also trashes its questions doc and answers files when the client folder is shared.

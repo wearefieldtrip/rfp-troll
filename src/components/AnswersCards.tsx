@@ -30,7 +30,6 @@ function Links({ rfp, answers }: { rfp: Rfp; answers: Answers[] }) {
           {files.length > 1 ? `Answers ${files.length - i} (${formatDay(a.received_on)})` : 'Answers'}
         </ExternalLink>
       ))}
-      {rfp.questions_sent_pdf_id && <ExternalLink href={fileUrl(rfp.questions_sent_pdf_id)}>Questions as sent (PDF)</ExternalLink>}
       {rfp.questions_doc_id && <ExternalLink href={docUrl(rfp.questions_doc_id)}>Questions doc</ExternalLink>}
     </p>
   )
