@@ -9,6 +9,7 @@ import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { KeyFacts } from '@/components/KeyFacts'
 import { ProgressStrip } from '@/components/ProgressStrip'
+import { QuestionsSection } from '@/components/QuestionsSection'
 import { ReopenDialog } from '@/components/ReopenDialog'
 import { ReplaceFileDialog } from '@/components/ReplaceFileDialog'
 import { ReviewSection } from '@/components/ReviewSection'
@@ -79,7 +80,6 @@ export default function RfpPage() {
   const latestDecision = decisions.data?.[0]
   const evaluateIsCurrent = step === 'evaluate'
   const evaluateExpanded = evaluateOpen ?? evaluateIsCurrent
-  const currentLater = step === 'questions' || step === 'proposal' || step === 'submitted' ? step : null
   // A file that is still being swapped in, or a folder still being set up, shouldn't be reviewed in the meantime.
   const canReview = (documents.data?.length ?? 0) > 0 && !syncing
 
@@ -165,8 +165,14 @@ export default function RfpPage() {
         <DecisionRecord rfpId={id} />
       </StepSection>
 
-      {currentLater && (
-        <StepSection number={STEP_NUMBERS[currentLater]} title={STEP_TITLES[currentLater]} open onToggle={() => undefined}>
+      {step === 'questions' && (
+        <StepSection number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} open onToggle={() => undefined}>
+          <QuestionsSection rfp={data} />
+        </StepSection>
+      )}
+
+      {(step === 'proposal' || step === 'submitted') && (
+        <StepSection number={STEP_NUMBERS[step]} title={STEP_TITLES[step]} open onToggle={() => undefined}>
           <Card>
             <CardContent>
               <p className="text-sm text-muted-foreground">

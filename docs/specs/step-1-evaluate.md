@@ -123,8 +123,7 @@ The confirmation modal ("Move to Questions?") lists what will happen:
 
 - Change the status to Questions · Drafting (or Proposal · Drafting)
 - Record the decision with the current score
-
-Creating the questions doc and adding the suggested questions come with Step 2, so the modal does not promise them yet.
+- For Move to Questions: create the questions doc from the template and add the fit review's questions to it as suggestions (see the step 2 spec). This is the confirmed start of that AI step.
 
 It also shows the questions deadline and days left. Buttons: Cancel, Move to Questions.
 

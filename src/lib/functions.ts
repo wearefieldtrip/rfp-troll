@@ -13,3 +13,7 @@ export async function invokeFunction(name: string, body: Record<string, unknown>
 /** `refresh` is for a replaced file: read the details again without touching the title or client. */
 export const syncRfpFolder = (rfpId: string, options: { refresh?: boolean } = {}) =>
   invokeFunction('sync-rfp-folder', { rfp_id: rfpId, ...options })
+
+/** The questions doc: build it, retry its suggestions, or mark it sent (`sentOn` is a YYYY-MM-DD day). */
+export const questionsDoc = (rfpId: string, action: 'build' | 'suggest' | 'send', options: { sentOn?: string } = {}) =>
+  invokeFunction('questions-doc', { rfp_id: rfpId, action, sent_on: options.sentOn })

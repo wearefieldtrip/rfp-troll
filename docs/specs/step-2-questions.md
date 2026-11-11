@@ -6,22 +6,24 @@ Step 1 stays at the top of the profile, collapsed. The 2 · Questions section si
 
 ## Questions · Drafting
 
-Starts when the user confirms **Move to Questions**.
+Starts when the user confirms **Move to Questions**. The confirmation is the person starting this AI step.
 
-- Build the questions doc in the client's Drive folder (service account):
-  1. Copy the questions template. Keep only the bank questions that fit this RFP (normal edits).
-  2. In a second Docs API `batchUpdate` with `writeControl.writeMode: SUGGEST`, insert the fit review's questions as **suggestions**, each starting with "AI suggested question:".
-  3. Check the response: document edits can save even if the suggestion part fails. If so, show "Suggestions not added · Retry".
-- To test first: whether the service account can create suggestions, and how they're attributed.
-- Open decision: keep the "AI suggested question:" label in the suggested text (and offer a Clean up action that strips it before sending), or put it in a comment on each suggestion.
-- Possible: suggest removals of unrelated bank questions too, instead of deleting them, so the team can restore any.
-- Card: "Review the questions doc and send it", what the doc contains (e.g. 23 bank questions plus 8 AI suggested), **Open questions doc**, **Mark as sent**, and "Send it to the client yourself, then click Mark as sent so we can track the reply."
-- While building (under a minute): spinner, "Creating the questions doc", buttons disabled.
+- The `questions-doc` function builds the doc in the client's Drive folder (service account), named "Questions – [RFP title]":
+  1. Copy the questions template (Google Doc "FT BD RFP IG Question Library Template", id in `QUESTIONS_TEMPLATE_DOC_ID`, default in the function). The template is a library: header lines, ~25 bullet questions (some with options or a table, kept with their question), then a "Guidelines:" section for the team.
+  2. A small model (Haiku) reads the RFP and picks which library questions to keep. It only chooses; it never writes or rewrites a question. It drops questions the RFP already answers, ones that don't fit the work, and ones that name another client.
+  3. Normal edits: cut the Guidelines and the dropped questions, fill the header (RFP title, today's date) and replace CLIENT with the client name. CONTACT is left for the team.
+  4. A second `batchUpdate` with `writeControl.writeMode: SUGGEST` inserts the fit review's questions as **suggestions** above the library questions, plus one doc-level comment saying so. (Tested 2026-11-11: the service account can create suggestions and comments; Google doesn't reliably anchor comments made through the API, so there is one comment, not one per suggestion. Suggestions show the service account as their author.)
+  5. Check the response for `createdSuggestionIds`: document edits can save even if the suggestion part fails. If so, show "Suggestions not added · Retry".
+- Decision: the suggested text carries no "AI suggested question:" prefix. The suggestion's author and the comment mark them as AI.
+- Card: "Review the questions doc and send it", what the doc contains (e.g. 11 template questions and 8 AI suggested questions), **Open questions doc**, **Mark as sent**, and "Send it to the client yourself, then click Mark as sent so we can track the reply."
+- While building (under a minute): spinner, "Creating the questions doc", buttons disabled. A failure shows the reason and **Retry**, which clears the half-built doc and starts over.
+- Stored on the RFP: doc id, doc status (building, ready, failed), suggestions status (added, failed), counts.
 
 ## Mark as sent
 
 - Small confirmation modal asking for the date sent (defaults to today).
-- Export the doc as it was sent to PDF in the client's Drive folder ("Questions sent – [date].pdf").
+- Refused while any suggestion in the doc is still pending, so the PDF matches what was sent.
+- Export the doc as it was sent to PDF in the client's Drive folder ("Questions sent – [RFP title] – [date].pdf"; client folders hold several RFPs). The number of questions is counted from the doc at that moment.
 - Status becomes **Questions · Sent**.
 
 ## Questions · Sent (waiting)

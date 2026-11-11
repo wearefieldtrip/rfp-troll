@@ -34,6 +34,15 @@ export type Database = {
           extract_error: string | null
           extract_status: string
           upload_note: string | null
+          questions_doc_error: string | null
+          questions_doc_id: string | null
+          questions_doc_status: string | null
+          questions_suggestions_status: string | null
+          questions_bank_count: number | null
+          questions_suggested_count: number | null
+          questions_sent_on: string | null
+          questions_sent_count: number | null
+          questions_sent_pdf_id: string | null
           key_dates: Json
           id: string
           outcome_notes: string | null
@@ -82,6 +91,15 @@ export type Database = {
           extract_error?: string | null
           extract_status?: string
           upload_note?: string | null
+          questions_doc_error?: string | null
+          questions_doc_id?: string | null
+          questions_doc_status?: string | null
+          questions_suggestions_status?: string | null
+          questions_bank_count?: number | null
+          questions_suggested_count?: number | null
+          questions_sent_on?: string | null
+          questions_sent_count?: number | null
+          questions_sent_pdf_id?: string | null
           key_dates?: Json
           id?: string
           outcome_notes?: string | null

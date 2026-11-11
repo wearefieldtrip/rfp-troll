@@ -21,8 +21,8 @@ export const rfpQuery = (id: string) =>
       if (error) throw error
       return data
     },
-    // Keep checking while the Drive folder is being set up in the background.
-    refetchInterval: (query) => (query.state.data?.drive_status === 'syncing' ? 2500 : false),
+    // Keep checking while the Drive folder or the questions doc is being set up in the background.
+    refetchInterval: (query) => (query.state.data?.drive_status === 'syncing' || query.state.data?.questions_doc_status === 'building' ? 2500 : false),
   })
 
 export const rfpDocumentsQuery = (rfpId: string) =>

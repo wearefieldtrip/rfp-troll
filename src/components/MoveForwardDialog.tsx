@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { destinationLabel, destinationStatus, moveForwardDestination } from '@/lib/decisions'
 import { dayCountLabel, daysUntilMoment } from '@/lib/key-dates'
+import { questionsDoc } from '@/lib/functions'
 import { momentFrom } from '@/lib/moment-columns'
 import { formatMoment } from '@/lib/rfp-dates'
 import { supabase } from '@/lib/supabase'
@@ -27,6 +28,8 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange }: { rfp:
       if (error) throw new Error(error.message)
     },
     onSuccess: async () => {
+      // The doc is built in the background. If it can't start, the Questions card offers a retry.
+      if (choice.destination === 'questions') void questionsDoc(rfp.id, 'build').catch(() => undefined)
       onOpenChange(false)
       await queryClient.invalidateQueries({ queryKey: ['rfps'] })
     },
@@ -43,6 +46,12 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange }: { rfp:
           <ul className="list-disc space-y-1.5 pl-5">
             <li>Change the status to {destinationStatus(choice.destination)}</li>
             <li>Record this decision{scoreText ? ` with the current score (${scoreText})` : ''}</li>
+            {choice.destination === 'questions' && (
+              <>
+                <li>Create a questions doc in the client's Drive folder from the template, keeping the template questions that fit this RFP</li>
+                <li>Add the fit review's questions to it as suggestions for you to accept or reject</li>
+              </>
+            )}
           </ul>
           {choice.destination === 'questions' && deadline && (
             <p className="rounded-lg bg-muted px-3 py-2">
