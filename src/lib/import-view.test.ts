@@ -26,7 +26,7 @@ test('links read as a short sentence and leave out zeros', () => {
 })
 
 test('what the AI added reads group by group, in a fixed order', () => {
-  assert.equal(describeAdded({ topics: ['recycling'], services: ['Translation', 'Accessibility'], sector: ['Transit'] }), 'Sector: Transit · Services: Translation, Accessibility · Topics: recycling')
+  assert.equal(describeAdded({ requirements: ['Bilingual', 'WCAG compliance'], sector: ['Transit'] }), 'Sector: Transit · Requirements: Bilingual, WCAG compliance')
   assert.equal(describeAdded({}), '')
   assert.equal(describeAdded(undefined), '')
 })

@@ -56,7 +56,7 @@ export function describeLinks(summary: { linked: number; no_access: number; not_
     .join(' · ')
 }
 
-const GROUP_LABELS: Record<string, string> = { sector: 'Sector', services: 'Services', topics: 'Topics', audiences: 'Audiences', requirements: 'Requirements' }
+const GROUP_LABELS: Record<string, string> = { sector: 'Sector', requirements: 'Requirements' }
 
 /** "Services: Translation, Accessibility · Topics: recycling", in a fixed order. Empty when nothing was added. */
 export function describeAdded(added: Record<string, string[]> | undefined): string {

@@ -3,14 +3,15 @@ import Anthropic from "npm:@anthropic-ai/sdk";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { docText } from "./doc-text.ts";
 import { capTags, planPastTags, type ExistingTag, type ValueRef } from "./past-tags.ts";
-import { buildTags, LIST_GROUPS, tagsPrompt, tagsSchema, type ListGroup, type TagLists } from "./review-tags.ts";
+import { buildTags, LIST_GROUPS, tagsSchema, type ListGroup, type TagLists } from "./review-tags.ts";
 
-const MODEL = Deno.env.get("ANTHROPIC_EXTRACT_MODEL") ?? "claude-haiku-5-5";
+// A stronger model than the one that reads names and dates: a small one tagged topics and audiences that were not there.
+const MODEL = Deno.env.get("ANTHROPIC_TAG_MODEL") ?? "claude-sonnet-5-5";
 // A run reads at most this many Docs, so it finishes in time. Run it again for the rest.
 const MAX_PER_RUN = 15;
 const AT_ONCE = 3;
 // Raise this when the instructions below get better: RFPs tagged by an older version become eligible again.
-const TAG_VERSION = 3;
+const TAG_VERSION = 4;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -35,13 +36,13 @@ const SYSTEM = (lists: TagLists) => `You tag past RFPs for Fieldtrip, a marketin
 
 Important: a proposal also describes Fieldtrip (About, Capabilities, Experience, case studies, bios, subcontractors, references, standard approach text). That describes us, not the RFP. Do not tag from it. Tag from what the client's scope, deliverables and requirements call for, as the proposal restates or answers them.
 
-Return every field. The app uses only sector, services, topics, audiences, requirements and suggested_new. Put the most important values first.
-- services: only the services the RFP's scope asks for. A campaign RFP does not become a website RFP because Fieldtrip also builds websites. At most 6.
-- topics: at most 3, and only a topic the work is clearly about. If none of the listed topics is the real subject, return an empty list and put the real subject in suggested_new instead. Never pick a nearby listed topic (for example recycling or ridership for a nutrition campaign).
-- audiences: at most 4, only the specific groups the scope says the work must reach. Skip generic ones such as residents unless the work is about reaching the general public.
-- requirements: only things the RFP requires of the bidder, such as a bilingual deliverable or accessibility compliance. Never what Fieldtrip happens to offer, and not subcontractors unless the RFP says they are allowed or required. At most 4.
-- sector: the client's field (one value), or an empty string.
-${tagsPrompt(lists)}
+The app uses only sector, requirements and suggested_new. Return empty values for client_type, services, topics, audiences, procurement and state.
+- sector: the client's field, one value from the list, or an empty string when none clearly fits. Never pick a nearby one: if none fits, return an empty string and put the real field in suggested_new.
+- requirements: only things the RFP requires of the bidder, such as a bilingual deliverable or accessibility compliance. Never what Fieldtrip happens to offer, and not subcontractors unless the RFP says they are allowed or required. Most RFPs have few or none: an empty list is normal. At most 4, most important first.
+- suggested_new: at most 3 short values, each with its group (sector, topics or requirements), for something important that has no match in a list. This is also where the real topics of the work go. Usually fine to leave empty.
+
+Tag lists:
+${LIST_GROUPS.map((g) => `${g}: ${lists[g].join("; ") || "(none yet)"}`).join("\n")}
 
 Rules:
 - Tag only what the proposal shows the RFP asking for. Never invent.
@@ -70,7 +71,7 @@ async function tagOne(supabase: SupabaseClient, rfp: Past, values: ValueRef[], l
       model: MODEL,
       max_tokens: 2000,
       system: SYSTEM(lists),
-      output_config: { effort: "low", format: { type: "json_schema", schema: tagsSchema(lists) } },
+      output_config: { effort: "medium", format: { type: "json_schema", schema: tagsSchema(lists) } },
       messages: [{ role: "user", content: [{ type: "text", text: `${known}\n\n<proposal>\n${text}\n</proposal>\n\nTag the RFP this proposal answers.` }] }],
     });
   } catch (err) {

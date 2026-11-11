@@ -11,32 +11,39 @@ const tags = (over: Partial<ReviewTags> = {}): ReviewTags => ({
   client_type: null, sector: null, services: [], topics: [], audiences: [], requirements: [], procurement: [], state: null, suggested_new: [], ...over,
 })
 
-test('it adds what the tracker does not hold, beside what the tracker set', () => {
+test('it adds requirements, and leaves services, topics and audiences to the tracker', () => {
   const existing = [tag('r1', 'services', 'Website', 'import', true)]
-  const plan = planPastTags(existing, tags({ services: ['Website', 'Translation'], topics: ['recycling'], audiences: ['Youth'] }), values)
-  assert.deepEqual(plan.addValueIds, ['services:Translation', 'topics:recycling', 'audiences:Youth'])
+  const plan = planPastTags(existing, tags({ services: ['Website', 'Translation'], topics: ['recycling'], audiences: ['Youth'], requirements: ['Bilingual'] }), values)
+  assert.deepEqual(plan.addValueIds, ['requirements:Bilingual'])
   assert.deepEqual(plan.deleteIds, [])
-  assert.deepEqual(plan.added, { services: ['Translation'], topics: ['recycling'], audiences: ['Youth'] })
+  assert.deepEqual(plan.added, { requirements: ['Bilingual'] })
 })
 
-test('a re-run replaces only the AI\'s own earlier unconfirmed tags', () => {
+test('the unconfirmed services, topics and audiences an earlier version wrote are cleared, never a confirmed one', () => {
   const existing = [
-    tag('old-ai', 'topics', 'recycling', 'ai', false),
-    tag('tracker', 'services', 'Website', 'import', true),
-    tag('ai-confirmed', 'audiences', 'Youth', 'ai', true),
+    tag('ai-service', 'services', 'Website', 'ai', false),
+    tag('ai-topic', 'topics', 'recycling', 'ai', false),
+    tag('ai-audience', 'audiences', 'Youth', 'ai', false),
+    tag('tracker-service', 'services', 'Campaign', 'import', true),
+    tag('confirmed-audience', 'audiences', 'Donors', 'ai', true),
+    tag('mine', 'topics', 'fundraising', 'person', true),
   ]
-  const plan = planPastTags(existing, tags({ topics: ['recycling'], audiences: ['Youth'] }), values)
-  assert.deepEqual(plan.deleteIds, ['old-ai'])
-  assert.deepEqual(plan.addValueIds, ['topics:recycling'])
-  // The confirmed Youth tag stays and is not added twice.
-  assert.equal(plan.addValueIds.includes('audiences:Youth'), false)
+  const plan = planPastTags(existing, tags(), values)
+  // The topics group has a tag a person set, so it is left exactly as it is, earlier AI guess and all.
+  assert.deepEqual(plan.deleteIds.sort(), ['ai-audience', 'ai-service'])
 })
 
-test('a group a person set by hand is left exactly as it is', () => {
-  const existing = [tag('mine', 'topics', 'recycling', 'person', true), tag('ai', 'services', 'Campaign', 'ai', false)]
-  const plan = planPastTags(existing, tags({ topics: ['recycling'], services: ['Website'] }), values)
-  assert.deepEqual(plan.addValueIds, ['services:Website'])
-  assert.deepEqual(plan.deleteIds, ['ai'])
+test('a re-run replaces only the AI\'s own earlier unconfirmed requirements', () => {
+  const existing = [tag('old-ai', 'requirements', 'Bilingual', 'ai', false), tag('kept', 'requirements', 'Insurance minimums', 'import', true)]
+  const plan = planPastTags(existing, tags({ requirements: ['Bilingual'] }), values)
+  assert.deepEqual(plan.deleteIds, ['old-ai'])
+  assert.deepEqual(plan.addValueIds, ['requirements:Bilingual'])
+})
+
+test('requirements a person set by hand are left exactly as they are', () => {
+  const existing = [tag('mine', 'requirements', 'Bilingual', 'person', true)]
+  const plan = planPastTags(existing, tags({ requirements: ['Bilingual'] }), values)
+  assert.deepEqual(plan, { deleteIds: [], addValueIds: [], added: {} })
 })
 
 test('a sector is added only when the RFP has none', () => {
@@ -48,25 +55,15 @@ test('a sector is added only when the RFP has none', () => {
   assert.deepEqual(plan.addValueIds, ['sector:Transit'])
 })
 
-test('values not in the lists are never added', () => {
-  const plan = planPastTags([], tags({ services: ['Drone shows'], topics: ['recycling'] }), values)
-  assert.deepEqual(plan.addValueIds, ['topics:recycling'])
+test('values not in the lists are never added, and the same value twice is added once', () => {
+  assert.deepEqual(planPastTags([], tags({ requirements: ['Magic', 'Bilingual', 'bilingual'] }), values).addValueIds, ['requirements:Bilingual'])
+  assert.deepEqual(planPastTags([], tags(), values), { deleteIds: [], addValueIds: [], added: {} })
 })
 
-test('the same value twice is added once, and nothing wanted changes nothing', () => {
-  assert.deepEqual(planPastTags([], tags({ services: ['Website', 'website'] }), values).addValueIds, ['services:Website'])
-  const plan = planPastTags([], tags(), values)
-  assert.deepEqual(plan, { deleteIds: [], addValueIds: [], added: {} })
-})
-
-test('each group is capped, keeping the first (most important) ones', () => {
-  const many = (n: number, p: string) => Array.from({ length: n }, (_, i) => `${p}${i}`)
-  const capped = capTags(tags({ services: many(9, 's'), topics: many(5, 't'), audiences: many(6, 'a'), requirements: many(7, 'r'), sector: 'Transit' }))
-  assert.equal(capped.services.length, TAG_CAPS.services)
-  assert.equal(capped.topics.length, TAG_CAPS.topics)
-  assert.equal(capped.audiences.length, TAG_CAPS.audiences)
+test('requirements are capped, keeping the first (most important) ones', () => {
+  const many = Array.from({ length: 7 }, (_, i) => `r${i}`)
+  const capped = capTags(tags({ requirements: many, sector: 'Transit', services: ['Website'] }))
   assert.equal(capped.requirements.length, TAG_CAPS.requirements)
-  assert.deepEqual(capped.services.slice(0, 2), ['s0', 's1'])
+  assert.deepEqual(capped.requirements.slice(0, 2), ['r0', 'r1'])
   assert.equal(capped.sector, 'Transit')
-  assert.deepEqual(capTags(tags({ services: ['Website'] })).services, ['Website'])
 })

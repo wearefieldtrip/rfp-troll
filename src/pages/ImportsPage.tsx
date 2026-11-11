@@ -277,8 +277,9 @@ export default function ImportsPage() {
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
           <p className="text-muted-foreground">
-            Reads each imported RFP's proposal Doc and adds services, topics, audiences and requirements, plus a sector where the tracker has none. Everything it adds is
-            unconfirmed until someone reviews it. It never changes a tag from the tracker or one you set. It uses the rows above and the small AI model, a few Docs at a time.
+            Reads each imported RFP's proposal Doc and adds the requirements it asked of bidders, plus a sector where the tracker has none. A topic it thinks is missing
+            is only suggested for the Library. Everything it adds is unconfirmed until someone reviews it, and it never changes a tag from the tracker or one you set. It uses
+            the rows above and a stronger AI model, a few Docs at a time.
           </p>
           <Button disabled={!rangeOk || busy} onClick={() => countTags.mutate()}>
             {countTags.isPending ? 'Counting…' : 'Tag with AI'}
