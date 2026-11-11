@@ -20,14 +20,17 @@ type Props = {
   onOpenChange: (open: boolean) => void
 }
 
+const newCode = () => String(Math.floor(1000 + Math.random() * 9000))
+
 export function DeleteRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
   const [typed, setTyped] = useState('')
+  const [code, setCode] = useState(newCode)
   const [trashFolder, setTrashFolder] = useState(false)
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   const hasFolder = !!rfp.drive_folder_id
-  const confirmed = typed === rfp.title
+  const confirmed = typed.trim() === code
 
   const remove = useMutation({
     mutationFn: () => invokeFunction('delete-rfp', { rfp_id: rfp.id, trash_drive_folder: hasFolder && trashFolder }),
@@ -43,6 +46,7 @@ export function DeleteRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
     setOpen(next)
     if (!next) {
       setTyped('')
+      setCode(newCode())
       setTrashFolder(false)
       remove.reset()
     }
@@ -72,11 +76,12 @@ export function DeleteRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="confirm-title" className="block break-words">
-              Type <strong>{rfp.title}</strong> to confirm
+            <Label htmlFor="confirm-code">
+              Type <strong className="font-mono">{code}</strong> to confirm
             </Label>
             <Input
-              id="confirm-title"
+              id="confirm-code"
+              inputMode="numeric"
               value={typed}
               autoComplete="off"
               onChange={(e) => setTyped(e.target.value)}
