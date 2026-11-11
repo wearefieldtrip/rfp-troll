@@ -9,9 +9,9 @@ import { planTagSave, toggleChoice, type CurrentTag } from '@/lib/tag-edit'
 import { TAG_GROUPS, valuesOf } from '@/lib/tag-groups'
 import { cn } from '@/lib/utils'
 
-type Props = { rfpId: string; open: boolean; onOpenChange: (open: boolean) => void }
+type Props = { rfpId: string; /** A past RFP from the tracker: editing its tags counts as reviewing it, so a re-run of the import leaves it alone. */ imported?: boolean; open: boolean; onOpenChange: (open: boolean) => void }
 
-function TagsForm({ rfpId, onDone }: { rfpId: string; onDone: () => void }) {
+function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolean; onDone: () => void }) {
   const queryClient = useQueryClient()
   const values = useQuery(tagValuesQuery)
   const tags = useQuery(rfpTagsQuery(rfpId))
@@ -40,6 +40,11 @@ function TagsForm({ rfpId, onDone }: { rfpId: string; onDone: () => void }) {
       if (plan.confirmIds.length > 0) {
         const { error } = await supabase.from('rfp_tags').update({ confirmed: true, updated_by: by, updated_at: new Date().toISOString() }).in('id', plan.confirmIds)
         if (error) throw error
+      }
+      if (imported && plan.changedGroups.length > 0) {
+        const { error } = await supabase.from('rfps').update({ import_reviewed: true }).eq('id', rfpId)
+        if (error) throw error
+        await queryClient.invalidateQueries({ queryKey: ['rfps'] })
       }
     },
     onSuccess: async () => {
@@ -99,7 +104,7 @@ function TagsForm({ rfpId, onDone }: { rfpId: string; onDone: () => void }) {
 }
 
 /** Tags are stored, not shown on the profile. This is where a person looks at them and fixes a wrong one. */
-export function EditTagsDialog({ rfpId, open, onOpenChange }: Props) {
+export function EditTagsDialog({ rfpId, imported = false, open, onOpenChange }: Props) {
   const values = useQuery(tagValuesQuery)
   const tags = useQuery(rfpTagsQuery(rfpId))
 
@@ -112,7 +117,7 @@ export function EditTagsDialog({ rfpId, open, onOpenChange }: Props) {
             These help find similar past RFPs. The AI sets them when it reviews. A group you change is kept as you set it, even if the review runs again.
           </DialogDescription>
         </DialogHeader>
-        {values.isPending || tags.isPending ? <Skeleton className="h-48 w-full" /> : <TagsForm rfpId={rfpId} onDone={() => onOpenChange(false)} />}
+        {values.isPending || tags.isPending ? <Skeleton className="h-48 w-full" /> : <TagsForm rfpId={rfpId} imported={imported} onDone={() => onOpenChange(false)} />}
       </DialogContent>
     </Dialog>
   )

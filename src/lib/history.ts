@@ -18,7 +18,7 @@ export type HistoryEntry = {
 type Person = { id: string; full_name: string | null; email: string }
 
 export type HistoryInput = {
-  rfp: { created_at: string; created_by: string | null; questions_sent_on: string | null; questions_sent_at: string | null; questions_sent_count: number | null }
+  rfp: { source?: string; created_at: string; created_by: string | null; questions_sent_on: string | null; questions_sent_at: string | null; questions_sent_count: number | null }
   reviews: { id: string; status: string; created_at: string; completed_at: string | null; created_by: string | null; total_score: number | null; decision_band: string | null }[]
   decisions: (DecisionRow & { id: string; note: string | null })[]
   answers: { id: string; created_at: string; created_by: string | null; received_on: string; status: string; review_id: string | null; file_name: string | null }[]
@@ -36,7 +36,9 @@ export function buildHistory({ rfp, reviews, decisions, answers, people }: Histo
   // A review made from a batch of answers is the re-score, not a fit review someone ran.
   const rescored = new Set(answers.map((a) => a.review_id).filter((id): id is string => !!id))
 
-  const entries: HistoryEntry[] = [{ id: 'added', at: rfp.created_at, title: 'RFP added', who: nameOf(rfp.created_by) }]
+  const entries: HistoryEntry[] = [
+    { id: 'added', at: rfp.created_at, title: rfp.source === 'tracker' ? 'Imported from the RFP tracker' : 'RFP added', who: nameOf(rfp.created_by) },
+  ]
 
   for (const r of reviews) {
     if (r.status !== 'complete') continue

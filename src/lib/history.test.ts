@@ -17,6 +17,12 @@ test('a new RFP has one entry: who added it', () => {
   assert.deepEqual(h.map((e) => [e.title, e.who]), [['RFP added', 'Jane P']])
 })
 
+test('an RFP imported from the tracker says so', () => {
+  const input = base()
+  input.rfp.source = 'tracker'
+  assert.equal(buildHistory(input)[0].title, 'Imported from the RFP tracker')
+})
+
 test('everything is listed newest first, with who and notes, and no scores', () => {
   const input = base()
   input.reviews = [{ id: 'r1', status: 'complete', created_at: '2026-11-10T15:01:00Z', completed_at: '2026-11-10T15:02:00Z', created_by: 'u1', total_score: 7, decision_band: '7 – 9 · Conditional Go' }]

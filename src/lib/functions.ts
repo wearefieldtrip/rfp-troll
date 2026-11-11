@@ -20,3 +20,48 @@ export const questionsDoc = (rfpId: string, action: 'build' | 'suggest' | 'send'
 
 /** Reads one batch of answers: matches them to the questions, re-scores, and picks up changed dates. */
 export const readAnswers = (answersId: string) => invokeFunction('read-answers', { answers_id: answersId })
+
+/** Like `invokeFunction`, for a function that answers with data. */
+async function callFunction<T>(name: string, body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke(name, { body })
+  if (error) {
+    const detail = error instanceof FunctionsHttpError ? await error.context.json().catch(() => null) : null
+    throw new Error(detail?.error ?? 'Something went wrong. Please try again.')
+  }
+  return data as T
+}
+
+export type ImportRowPlan = {
+  row: number
+  client: string
+  title: string
+  year: number | null
+  outcome: string
+  stage: string | null
+  action: 'create' | 'update' | 'skip_reviewed'
+  issues: { field: string; value: string; reason: string }[]
+}
+
+export type ImportPreview = {
+  summary: {
+    rows: number
+    actions: Record<string, number>
+    outcomes: Record<string, number>
+    rowsWithIssues: number
+    unmapped: { what: string; rows: number }[]
+  }
+  rows: ImportRowPlan[]
+}
+
+export type ImportResult = {
+  batchId: string
+  created: number
+  updated: number
+  skipped: number
+  failed: { row: number; error: string }[]
+  missingTagValues: string[]
+}
+
+/** The tracker import. `preview` writes nothing. Rows are the sheet's own row numbers (the header is row 1). */
+export const previewTrackerImport = (range: { from?: number; to?: number }) => callFunction<ImportPreview>('import-tracker', { mode: 'preview', ...range })
+export const runTrackerImport = (range: { from?: number; to?: number }) => callFunction<ImportResult>('import-tracker', { mode: 'import', ...range })

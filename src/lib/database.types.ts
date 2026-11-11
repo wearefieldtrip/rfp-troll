@@ -42,6 +42,15 @@ export type Database = {
           questions_suggested_count: number | null
           questions_sent_on: string | null
           questions_sent_at: string | null
+          source: string
+          outcome: string | null
+          furthest_stage: string | null
+          submission_year: number | null
+          import_key: string | null
+          import_batch_id: string | null
+          import_reviewed: boolean
+          import_issues: Json
+          import_data: Json | null
           questions_sent_count: number | null
           questions_sent_pdf_id: string | null
           key_dates: Json
@@ -100,6 +109,15 @@ export type Database = {
           questions_suggested_count?: number | null
           questions_sent_on?: string | null
           questions_sent_at?: string | null
+          source?: string
+          outcome?: string | null
+          furthest_stage?: string | null
+          submission_year?: number | null
+          import_key?: string | null
+          import_batch_id?: string | null
+          import_reviewed?: boolean
+          import_issues?: Json
+          import_data?: Json | null
           questions_sent_count?: number | null
           questions_sent_pdf_id?: string | null
           key_dates?: Json

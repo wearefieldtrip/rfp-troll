@@ -8,6 +8,7 @@ import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { EditTagsDialog } from '@/components/EditTagsDialog'
 import { HistoryPanel } from '@/components/HistoryPanel'
+import { ImportedCard } from '@/components/ImportedCard'
 import { KeyFacts } from '@/components/KeyFacts'
 import { ProgressStrip } from '@/components/ProgressStrip'
 import { QuestionsRecord, QuestionsSection } from '@/components/QuestionsSection'
@@ -92,6 +93,8 @@ export default function RfpPage() {
   const decisionControls = (enabled: boolean) =>
     status === 'evaluate_ready' ? <DecisionButtons rfp={data} scoreText={scoreText} enabled={enabled} /> : null
 
+  // A past RFP from the tracker: no steps to work through, just what the tracker held.
+  const imported = data.source !== 'app'
   const history = buildHistory({ rfp: data, reviews: reviews.data ?? [], decisions: decisions.data ?? [], answers: answers.data ?? [], people: team.data ?? [] })
 
   return (
@@ -110,7 +113,7 @@ export default function RfpPage() {
                 <MoreHorizontalIcon aria-hidden />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {closed ? (
+                {imported ? null : closed ? (
                   <DropdownMenuItem onClick={() => setDialog('reopen')}>Reopen</DropdownMenuItem>
                 ) : (
                   <>
@@ -122,9 +125,9 @@ export default function RfpPage() {
                     </DropdownMenuItem>
                   </>
                 )}
-                <DropdownMenuItem onClick={() => setDialog('edit')}>Edit details</DropdownMenuItem>
+                {!imported && <DropdownMenuItem onClick={() => setDialog('edit')}>Edit details</DropdownMenuItem>}
                 <DropdownMenuItem onClick={() => setDialog('tags')}>Edit tags</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setDialog('owner')}>Change owner</DropdownMenuItem>
+                {!imported && <DropdownMenuItem onClick={() => setDialog('owner')}>Change owner</DropdownMenuItem>}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={() => setDialog('delete')}>
                   Delete RFP
@@ -132,81 +135,87 @@ export default function RfpPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">Owner: {owner ? (owner.full_name ?? owner.email) : 'No one yet'}</p>
+          {!imported && <p className="mt-1 text-sm text-muted-foreground">Owner: {owner ? (owner.full_name ?? owner.email) : 'No one yet'}</p>}
         </div>
 
-        {status === 'evaluate_reading' && (
-          <ProgressStrip jobs={jobs} retrying={retryingJob} onRetry={(key) => (key === 'names' ? retryNames.mutate() : retrySync.mutate())} />
-        )}
+        {imported && <ImportedCard rfp={data} />}
 
-        <KeyFacts rfp={data} reading={reading} onRetryDrive={() => retrySync.mutate()} retryingDrive={retrySync.isPending} />
-        {(retrySync.error || retryNames.error) && <p className="text-sm text-destructive">{(retrySync.error ?? retryNames.error)?.message}</p>}
-
-        {reading && (
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
-            <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
-            Reading the RFP for its title, client and dates…
-          </p>
-        )}
-        {data.extract_status === 'failed' && (
-          <p className="text-sm text-muted-foreground">
-            Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit details in the ⋯ menu to add them.
-          </p>
-        )}
-        {data.upload_note && <p className="text-sm text-amber-700 dark:text-amber-400">{data.upload_note}</p>}
-
-        <StepSection
-          number={1}
-          title="Evaluate"
-          open={evaluateExpanded}
-          onToggle={() => setEvaluateOpen(!evaluateExpanded)}
-          summary={
-            <>
-              {scoreText ? `Fit review · ${scoreText}` : 'Fit review'}
-              {latestDecision && ` · ${decisionWhat(latestDecision)} by ${decisionWho(latestDecision)} on ${decisionWhen(latestDecision.decided_at)}`}
-            </>
-          }
-        >
-          {reading ? (
-            <Skeleton className="h-40 w-full" />
-          ) : (
-            <ReviewSection rfpId={id} hasDocuments={canReview} confirming={rerunning} onConfirmingChange={setRerunning} renderDecision={decisionControls} />
+        {!imported && (
+          <>
+          {status === 'evaluate_reading' && (
+            <ProgressStrip jobs={jobs} retrying={retryingJob} onRetry={(key) => (key === 'names' ? retryNames.mutate() : retrySync.mutate())} />
           )}
-        </StepSection>
 
-        {step !== 'questions' && step !== 'evaluate' && data.questions_doc_id && (
-        <StepSection
-          number={STEP_NUMBERS.questions}
-          title={STEP_TITLES.questions}
-          open={questionsOpen}
-          onToggle={() => setQuestionsOpen(!questionsOpen)}
-          summary={
-            <>
-              {data.questions_sent_on ? `${data.questions_sent_count ?? 0} questions sent ${formatDay(data.questions_sent_on)}` : 'Questions doc created'}
-              {(answers.data?.length ?? 0) > 0 && ' · answers added'}
-            </>
-          }
-        >
-          <QuestionsRecord rfp={data} />
-        </StepSection>
-      )}
+          <KeyFacts rfp={data} reading={reading} onRetryDrive={() => retrySync.mutate()} retryingDrive={retrySync.isPending} />
+          {(retrySync.error || retryNames.error) && <p className="text-sm text-destructive">{(retrySync.error ?? retryNames.error)?.message}</p>}
 
-      {step === 'questions' && (
-          <StepSection number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} open onToggle={() => undefined}>
-            <QuestionsSection rfp={data} scoreText={scoreText} />
+          {reading && (
+            <p className="flex items-center gap-2 text-sm text-muted-foreground">
+              <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
+              Reading the RFP for its title, client and dates…
+            </p>
+          )}
+          {data.extract_status === 'failed' && (
+            <p className="text-sm text-muted-foreground">
+              Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit details in the ⋯ menu to add them.
+            </p>
+          )}
+          {data.upload_note && <p className="text-sm text-amber-700 dark:text-amber-400">{data.upload_note}</p>}
+
+          <StepSection
+            number={1}
+            title="Evaluate"
+            open={evaluateExpanded}
+            onToggle={() => setEvaluateOpen(!evaluateExpanded)}
+            summary={
+              <>
+                {scoreText ? `Fit review · ${scoreText}` : 'Fit review'}
+                {latestDecision && ` · ${decisionWhat(latestDecision)} by ${decisionWho(latestDecision)} on ${decisionWhen(latestDecision.decided_at)}`}
+              </>
+            }
+          >
+            {reading ? (
+              <Skeleton className="h-40 w-full" />
+            ) : (
+              <ReviewSection rfpId={id} hasDocuments={canReview} confirming={rerunning} onConfirmingChange={setRerunning} renderDecision={decisionControls} />
+            )}
+          </StepSection>
+
+          {step !== 'questions' && step !== 'evaluate' && data.questions_doc_id && (
+          <StepSection
+            number={STEP_NUMBERS.questions}
+            title={STEP_TITLES.questions}
+            open={questionsOpen}
+            onToggle={() => setQuestionsOpen(!questionsOpen)}
+            summary={
+              <>
+                {data.questions_sent_on ? `${data.questions_sent_count ?? 0} questions sent ${formatDay(data.questions_sent_on)}` : 'Questions doc created'}
+                {(answers.data?.length ?? 0) > 0 && ' · answers added'}
+              </>
+            }
+          >
+            <QuestionsRecord rfp={data} />
           </StepSection>
         )}
 
-        {(step === 'proposal' || step === 'submitted') && (
-          <StepSection number={STEP_NUMBERS[step]} title={STEP_TITLES[step]} open onToggle={() => undefined}>
-            <Card>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  This step isn't built yet. The RFP's status moves with your decision, and its Drive folder is ready to work in.
-                </p>
-              </CardContent>
-            </Card>
-          </StepSection>
+        {step === 'questions' && (
+            <StepSection number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} open onToggle={() => undefined}>
+              <QuestionsSection rfp={data} scoreText={scoreText} />
+            </StepSection>
+          )}
+
+          {(step === 'proposal' || step === 'submitted') && (
+            <StepSection number={STEP_NUMBERS[step]} title={STEP_TITLES[step]} open onToggle={() => undefined}>
+              <Card>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    This step isn't built yet. The RFP's status moves with your decision, and its Drive folder is ready to work in.
+                  </p>
+                </CardContent>
+              </Card>
+            </StepSection>
+          )}
+          </>
         )}
 
         <ChangeOwnerDialog rfpId={id} ownerId={data.owner_id} open={dialog === 'owner'} onOpenChange={(open) => setDialog(open ? 'owner' : null)} />
@@ -225,7 +234,7 @@ export default function RfpPage() {
           open={dialog === 'edit'}
           onOpenChange={(open) => setDialog(open ? 'edit' : null)}
         />
-        <EditTagsDialog rfpId={id} open={dialog === 'tags'} onOpenChange={(open) => setDialog(open ? 'tags' : null)} />
+        <EditTagsDialog rfpId={id} imported={imported} open={dialog === 'tags'} onOpenChange={(open) => setDialog(open ? 'tags' : null)} />
         <DeleteRfpDialog
           rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
           open={dialog === 'delete'}

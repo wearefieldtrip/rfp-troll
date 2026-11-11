@@ -6,8 +6,8 @@ Tags for every RFP, new and past, are defined in `docs/specs/tagging.md`.
 
 ## Sources
 
-1. **RFP tracker** (Google Sheet, 2022–2026, 41 submissions). One row per submission: project, proposal title (Link), project type, client types, year, state, document type (RFP/RFI/RFQ), KY focus, a TRUE/FALSE column per proposal section, case studies used, won, response, prepared by.
-2. **Past proposals**: Google Docs on the shared drive, with PDF exports. Titles match the tracker's Link column.
+1. **RFP tracker** (Google Sheet, tab "RFPs", submissions from 2022 to 2026; 50 rows when first read). One row per submission: project, proposal title (Link), project type, client types, year, state, document type (RFP/RFI/RFQ), KY focus, a TRUE/FALSE column per proposal section, case studies used, won, response, prepared by.
+2. **Past proposals**: Google Docs on the shared drive, with PDF exports. Each tracker row's Link cell links to its proposal Doc (a link or Drive smart chip), so rows are linked by that link, not by guessing from titles.
 3. **Clients' original RFPs**, where available.
 4. **RFPs and proposals not in the tracker.**
 
@@ -72,3 +72,13 @@ A proposal is linked and tagged automatically when its RFP is marked Submitted; 
 
 - No budget or price column in the tracker, so no budget bands for past RFPs yet. Backfill if possible, at least for wins.
 - Passed RFPs aren't in the tracker; the tool records them from now on.
+
+## Built: tracker import (piece 3, 2026-11-11)
+
+- **Library → Imports.** A person picks sheet rows (the sheet's own numbers; row 1 is the header), clicks **Preview** (writes nothing: new / update / left alone, outcomes, and the values that could not be mapped), then **Import** behind a confirmation. No AI is used. Start with a few rows.
+- **One function, `import-tracker`.** It reads the sheet as the service account. The sheet ID and tab are function secrets (`TRACKER_SHEET_ID`, optional `TRACKER_SHEET_TAB`, default `RFPs`), not code. The sheet must be shared with the service account as Viewer, and the Sheets API enabled.
+- **Each row becomes a closed RFP:** client = Project, title = the proposal title, status Closed · Won for a win and Closed · Lost for everything else, with `outcome` (won, lost, no response, qualified, unknown), `furthest_stage` (submitted, finalist, pitched), the reason (Local agency, No clarification) and a note ("Second place", "Won, but never took off", "The process took months"). The raw row (section TRUE/FALSE columns, case studies, who prepared it, the proposal link) is kept in `import_data` for Phase B. Nobody owns an imported RFP.
+- **Safe to run again.** Each row has an import key (project, proposal title, year; ignoring case and punctuation) with a unique index, so a second run finds the RFP it made. A re-run updates rows nobody has reviewed, replaces only the earlier import tags, and never touches a row marked reviewed or a tag group set by hand. Editing the tags of an imported RFP counts as reviewing it. Each run has a batch id.
+- **Tags from the tracker** are stored confirmed (source import). Client Type 1 → client type ("Noprofit" and "Philanthropy" → Nonprofit), Client Type 2 → sector, Project Type → services ("Brand - Survey" → Brand strategy + Research & discovery, "Campaign - Creative" → Campaign), Document Type → procurement, State and Louisville/KY focus → geography (a Kentucky RFP with no Louisville/KY focus gets only its state, not "Out of state"). Values with no match (blank sector, Childcare, Legal, IDD, Food, Support, MPO, Airport) import without that tag and are listed in `import_issues` for Review imports.
+- **The RFP page for an imported RFP** shows a "From the RFP tracker" card (outcome, stage, reason, case studies, proposal link, what needs review) and the history; it has no steps. Imported RFPs appear under Won, Lost and All.
+- **Not yet:** linking each row to its proposal Doc (the link is stored; piece 4 checks access and records the Doc and PDF), AI tagging from the Docs (piece 5), the Review imports screen (piece 6).
