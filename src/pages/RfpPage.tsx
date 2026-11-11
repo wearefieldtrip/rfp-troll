@@ -15,7 +15,7 @@ import { ReviewSection } from '@/components/ReviewSection'
 import { StepSection } from '@/components/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { decisionWhat, decisionWhen, decisionWho } from '@/lib/decision-text'
@@ -27,7 +27,7 @@ import { isClosed, statusLabel, statusVariant, stepOf } from '@/lib/rfp-status'
 import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
 import { supabase } from '@/lib/supabase'
 
-type Dialog = 'owner' | 'replace' | 'reopen' | 'delete' | null
+type Dialog = 'edit' | 'owner' | 'replace' | 'reopen' | 'delete' | null
 
 const STEP_TITLES = { questions: 'Questions', proposal: 'Proposal', submitted: 'Submitted' } as const
 const STEP_NUMBERS = { questions: 2, proposal: 3, submitted: 4 } as const
@@ -113,6 +113,7 @@ export default function RfpPage() {
                   </DropdownMenuItem>
                 </>
               )}
+              <DropdownMenuItem onClick={() => setDialog('edit')}>Edit details</DropdownMenuItem>
               <DropdownMenuItem onClick={() => setDialog('owner')}>Change owner</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onClick={() => setDialog('delete')}>
@@ -131,42 +132,18 @@ export default function RfpPage() {
       <KeyFacts rfp={data} reading={reading} onRetryDrive={() => retrySync.mutate()} retryingDrive={retrySync.isPending} />
       {(retrySync.error || retryNames.error) && <p className="text-sm text-destructive">{(retrySync.error ?? retryNames.error)?.message}</p>}
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Details</CardTitle>
-          <CardAction>
-            <EditRfpDialog
-              rfp={{
-                id,
-                title: data.title,
-                client_name: data.client_name,
-                proposal: momentFrom(data, 'proposal_due'),
-                budget_min_usd: data.budget_min_usd,
-                budget_max_usd: data.budget_max_usd,
-                budget_qualifier: data.budget_qualifier,
-              }}
-            />
-          </CardAction>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {reading && (
-            <p className="flex items-center gap-2 text-sm text-muted-foreground">
-              <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
-              Reading the RFP for its title, client and dates…
-            </p>
-          )}
-          {data.extract_status === 'failed' && (
-            <p className="text-sm text-muted-foreground">
-              Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit to add them.
-            </p>
-          )}
-          {data.upload_note && <p className="text-sm text-amber-700 dark:text-amber-400">{data.upload_note}</p>}
-          <dl className="grid grid-cols-[10rem_1fr] gap-y-2 text-sm">
-            <dt className="text-muted-foreground">Client</dt>
-            <dd>{data.client_name ?? '—'}</dd>
-          </dl>
-        </CardContent>
-      </Card>
+      {reading && (
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
+          Reading the RFP for its title, client and dates…
+        </p>
+      )}
+      {data.extract_status === 'failed' && (
+        <p className="text-sm text-muted-foreground">
+          Couldn't read the details from the RFP{data.extract_error ? ` (${data.extract_error})` : ''}. Use Edit details in the ⋯ menu to add them.
+        </p>
+      )}
+      {data.upload_note && <p className="text-sm text-amber-700 dark:text-amber-400">{data.upload_note}</p>}
 
       <StepSection
         number={1}
@@ -215,6 +192,19 @@ export default function RfpPage() {
       <ChangeOwnerDialog rfpId={id} ownerId={data.owner_id} open={dialog === 'owner'} onOpenChange={(open) => setDialog(open ? 'owner' : null)} />
       <ReplaceFileDialog rfpId={id} open={dialog === 'replace'} onOpenChange={(open) => setDialog(open ? 'replace' : null)} />
       <ReopenDialog rfpId={id} passed={status === 'closed_passed'} open={dialog === 'reopen'} onOpenChange={(open) => setDialog(open ? 'reopen' : null)} />
+      <EditRfpDialog
+        rfp={{
+          id,
+          title: data.title,
+          client_name: data.client_name,
+          proposal: momentFrom(data, 'proposal_due'),
+          budget_min_usd: data.budget_min_usd,
+          budget_max_usd: data.budget_max_usd,
+          budget_qualifier: data.budget_qualifier,
+        }}
+        open={dialog === 'edit'}
+        onOpenChange={(open) => setDialog(open ? 'edit' : null)}
+      />
       <DeleteRfpDialog
         rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
         open={dialog === 'delete'}

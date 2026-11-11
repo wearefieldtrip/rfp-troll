@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { manualDayColumns } from '@/lib/moment-columns'
@@ -19,12 +19,13 @@ type Props = {
     budget_max_usd: number | null
     budget_qualifier: string | null
   }
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 class BudgetTypo extends Error {}
 
-export function EditRfpDialog({ rfp }: Props) {
-  const [open, setOpen] = useState(false)
+export function EditRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
   const queryClient = useQueryClient()
   const [budgetError, setBudgetError] = useState(false)
 
@@ -77,7 +78,6 @@ export function EditRfpDialog({ rfp }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" />}>Edit</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit details</DialogTitle>

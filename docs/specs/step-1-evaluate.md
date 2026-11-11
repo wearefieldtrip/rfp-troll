@@ -68,7 +68,7 @@ The profile always stacks in step order: header, pills, then one section per ste
 
 Top to bottom:
 
-1. Back link, client name, RFP title, status pill, **⋯ menu** (Run review again, Replace RFP file, Change owner, Delete RFP; Reopen when closed).
+1. Back link, client name, RFP title, status pill, **⋯ menu** (Run review again, Replace RFP file, Edit details, Change owner, Delete RFP; Reopen when closed).
 2. Pills (below).
 3. **Check this** note, only when the review returns a flag.
 4. **Fit card**: total (e.g. 7 / 12), band badge, verdict sentence, **Move forward** and **Pass** buttons. Under it, the four rubric rows (name, score, reason); clicking a row shows its evidence quotes with page numbers. "AI review · [date] · Run again".
@@ -108,7 +108,7 @@ Exactly one of:
   - Show the tax year, the figures used, and the EIN matched so the team can catch a wrong match.
   - Organizations that don't file a full 990 (government and civic bodies, 990-N filers): **Budget** Not stated · no estimate available.
   - Dimension B can score at most 2 whenever the RFP states no budget (an estimate does not count as stated). The app enforces this: a 3 is lowered to 2 and the reason says so.
-- **How the stated budget is stored.** Whole US dollars: a single amount has min = max; a range has both; "up to" has only a max; "at least" has only a min. A short qualifier (at most a few words, such as "all-inclusive" or "plus media"; a longer sentence is left out) and a quote from the RFP are kept with it. A budget a person types in the Edit dialog is marked as entered by the team. The pill shows the amount short ("$95K–$125K"), and hovering shows the RFP's own wording.
+- **How the stated budget is stored.** Whole US dollars: a single amount has min = max; a range has both; "up to" has only a max; "at least" has only a min. A short qualifier (at most a few words, such as "all-inclusive" or "plus media"; a longer sentence is left out) and a quote from the RFP are kept with it. A budget a person types in the Edit details dialog (⋯ menu) is marked as entered by the team. The pill shows the amount short ("$95K–$125K"), and hovering shows the RFP's own wording.
 
 ## Decision buttons and confirmation
 
@@ -170,7 +170,7 @@ On confirm, record who decided, when, the reason, the note, and the score at tha
 Agreed while building. Keep unless changed.
 
 - **Owner.** Each RFP has an owner (starts as whoever added it; **Change owner** in the ⋯ menu). Shown under the title.
-- **⋯ menu.** Run review again (asks first, only once a review exists), Replace RFP file, Change owner, Delete RFP; **Reopen** replaces the first two on a closed RFP. The red Delete card at the bottom stays as well.
+- **⋯ menu.** Run review again (asks first, only once a review exists), Replace RFP file, Edit details, Change owner, Delete RFP; **Reopen** replaces the first two on a closed RFP. The red Delete card at the bottom stays as well.
 - **Replace RFP file.** The old file goes to the Drive trash after the new one is in Drive, and the row is removed. Title and client are kept; dates and budget are read again except ones the team typed. No new review starts by itself.
 - **Reopen** puts a passed RFP back at the step it was passed from, moves its folder out of `_DEAD Opportunities` (only if it was moved), and adds a "reopen" line to the decision record.
 - **Step sections.** Evaluate is a folded section once the RFP moves on, with a one-line summary: score, band and the latest decision. Later steps show a plain "not built yet" placeholder until they are.
