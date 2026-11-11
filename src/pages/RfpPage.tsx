@@ -9,7 +9,7 @@ import { EditRfpDialog } from '@/components/EditRfpDialog'
 import { HistoryPanel } from '@/components/HistoryPanel'
 import { KeyFacts } from '@/components/KeyFacts'
 import { ProgressStrip } from '@/components/ProgressStrip'
-import { QuestionsSection } from '@/components/QuestionsSection'
+import { QuestionsRecord, QuestionsSection } from '@/components/QuestionsSection'
 import { ReopenDialog } from '@/components/ReopenDialog'
 import { ReplaceFileDialog } from '@/components/ReplaceFileDialog'
 import { ReviewSection } from '@/components/ReviewSection'
@@ -24,6 +24,7 @@ import { syncRfpFolder } from '@/lib/functions'
 import { momentFrom } from '@/lib/moment-columns'
 import { jobStates, type ReviewState } from '@/lib/progress'
 import { buildHistory } from '@/lib/history'
+import { formatDay } from '@/lib/questions-view'
 import { rfpAnswersQuery, rfpDecisionsQuery, rfpDocumentsQuery, rfpQuery, rfpReviewsQuery, teamQuery } from '@/lib/queries'
 import { isClosed, statusLabel, statusVariant, stepOf } from '@/lib/rfp-status'
 import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
@@ -41,6 +42,8 @@ export default function RfpPage() {
   const [rerunning, setRerunning] = useState(false)
   // Whether the Evaluate step is folded. Unset means "follow the status": open until the RFP moves on.
   const [evaluateOpen, setEvaluateOpen] = useState<boolean | null>(null)
+  // The same for Questions once the RFP has moved past it.
+  const [questionsOpen, setQuestionsOpen] = useState(false)
 
   const rfp = useQuery(rfpQuery(id))
   const syncing = rfp.data?.drive_status === 'syncing'
@@ -169,7 +172,24 @@ export default function RfpPage() {
           )}
         </StepSection>
 
-        {step === 'questions' && (
+        {step !== 'questions' && step !== 'evaluate' && data.questions_doc_id && (
+        <StepSection
+          number={STEP_NUMBERS.questions}
+          title={STEP_TITLES.questions}
+          open={questionsOpen}
+          onToggle={() => setQuestionsOpen(!questionsOpen)}
+          summary={
+            <>
+              {data.questions_sent_on ? `${data.questions_sent_count ?? 0} questions sent ${formatDay(data.questions_sent_on)}` : 'Questions doc created'}
+              {(answers.data?.length ?? 0) > 0 && ' · answers added'}
+            </>
+          }
+        >
+          <QuestionsRecord rfp={data} />
+        </StepSection>
+      )}
+
+      {step === 'questions' && (
           <StepSection number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} open onToggle={() => undefined}>
             <QuestionsSection rfp={data} scoreText={scoreText} />
           </StepSection>

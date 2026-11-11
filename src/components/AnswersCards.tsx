@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { lineName, movedText, type AnswersResult, type OpenQuestion } from '@/lib/answers-view'
 import type { Database } from '@/lib/database.types'
-import { docUrl, fileUrl, formatDay } from '@/lib/questions-view'
+import { docUrl, fileUrl, formatDay, sentLine } from '@/lib/questions-view'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
 type Answers = Database['public']['Tables']['rfp_answers']['Row']
@@ -21,7 +21,7 @@ export function ExternalLink({ href, children }: { href: string; children: strin
 }
 
 /** Links to everything the step has produced so far. */
-function Links({ rfp, answers }: { rfp: Rfp; answers: Answers[] }) {
+export function Links({ rfp, answers }: { rfp: Rfp; answers: Answers[] }) {
   const files = answers.filter((a) => a.drive_file_id)
   return (
     <p className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground">
@@ -35,9 +35,6 @@ function Links({ rfp, answers }: { rfp: Rfp; answers: Answers[] }) {
   )
 }
 
-const sentLine = (rfp: Rfp) =>
-  `${rfp.questions_sent_count ?? 0} question${rfp.questions_sent_count === 1 ? '' : 's'} sent${rfp.questions_sent_on ? ` on ${formatDay(rfp.questions_sent_on)}` : ''}.`
-
 export function WaitingCard({ rfp, answers, onAdd, onDecideWithout }: { rfp: Rfp; answers: Answers[]; onAdd: () => void; onDecideWithout: () => void }) {
   return (
     <Card>
@@ -45,7 +42,7 @@ export function WaitingCard({ rfp, answers, onAdd, onDecideWithout }: { rfp: Rfp
         <CardTitle>Waiting for answers</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        <p>{sentLine(rfp)}</p>
+        <p>{sentLine(rfp.questions_sent_count, rfp.questions_sent_on)}</p>
         <div className="flex flex-wrap items-center gap-4">
           <Button size="sm" onClick={onAdd}>
             Add answers

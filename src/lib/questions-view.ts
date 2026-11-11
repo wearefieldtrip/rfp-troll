@@ -23,3 +23,7 @@ export function docContents(bank: number | null, suggested: number | null): stri
   if (suggested) parts.push(`${suggested} AI suggested ${suggested === 1 ? 'question' : 'questions'}`)
   return parts.join(' and ')
 }
+
+/** "6 questions sent on Nov 11, 2026." */
+export const sentLine = (count: number | null, on: string | null) =>
+  `${plural(count ?? 0, 'question')} sent${on ? ` on ${formatDay(on)}` : ''}.`

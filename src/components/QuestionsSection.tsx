@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ExternalLinkIcon, LoaderCircleIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { AddAnswersDialog } from '@/components/AddAnswersDialog'
-import { AnswersInCard, FailedReadingCard, NoAnswersCard, ReadingCard, WaitingCard } from '@/components/AnswersCards'
+import { AnswersInCard, FailedReadingCard, Links, NoAnswersCard, ReadingCard, WaitingCard } from '@/components/AnswersCards'
 import { MarkSentDialog } from '@/components/MarkSentDialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { answersState, stillUnanswered, toAnswersResult } from '@/lib/answers-view'
 import { questionsDoc, readAnswers } from '@/lib/functions'
 import { rfpAnswersQuery, rfpReviewsQuery } from '@/lib/queries'
-import { docContents, docUrl } from '@/lib/questions-view'
+import { docContents, docUrl, sentLine } from '@/lib/questions-view'
 import type { Database } from '@/lib/database.types'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
@@ -168,5 +168,35 @@ function AnswersStep({ rfp, scoreText }: { rfp: Rfp; scoreText: string | null })
       <WaitingCard rfp={rfp} answers={rows} onAdd={() => setAdding(true)} onDecideWithout={() => setWithoutAnswers(true)} />
       {addDialog}
     </>
+  )
+}
+
+/** Step 2 once the RFP has moved on: what happened, with the links, and nothing left to decide. */
+export function QuestionsRecord({ rfp }: { rfp: Rfp }) {
+  const answers = useQuery(rfpAnswersQuery(rfp.id))
+  const rows = answers.data ?? []
+  const latestDone = rows.find((r) => answersState(r) === 'done')
+  const result = latestDone ? toAnswersResult(latestDone.result) : null
+
+  return (
+    <Card>
+      <CardContent className="space-y-3 text-sm">
+        <p>{rfp.questions_sent_on ? sentLine(rfp.questions_sent_count, rfp.questions_sent_on) : 'The questions doc was created but never marked as sent.'}</p>
+        {rows.length > 0 && (
+          <p>
+            {rows.length === 1 ? 'One batch of answers' : `${rows.length} batches of answers`}
+            {result && result.previous_total !== result.total ? `, the fit moved from ${result.previous_total} to ${result.total} / 12` : ''}.
+          </p>
+        )}
+        {result && result.what_changed.length > 0 && (
+          <ul className="list-disc space-y-0.5 pl-5">
+            {result.what_changed.map((w, i) => (
+              <li key={i}>{w.text}</li>
+            ))}
+          </ul>
+        )}
+        <Links rfp={rfp} answers={rows} />
+      </CardContent>
+    </Card>
   )
 }

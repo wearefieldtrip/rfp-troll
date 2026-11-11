@@ -2,7 +2,7 @@
 
 Design reference: `docs/design/S1-Questions.dc.html`, `S2-Waiting.dc.html`, `S2-NoAnswers.dc.html`, `S2-Answers.dc.html`.
 
-Step 1 stays at the top of the profile, collapsed. The 2 · Questions section sits under it and changes with the status.
+Step 1 stays at the top of the profile, collapsed. The 2 · Questions section sits under it and changes with the status. Once the RFP has moved past Questions (or been passed after the questions doc was made), the section stays as a folded line ("6 questions sent Nov 11 · answers added") that opens to what was sent, the answers and their links, with nothing left to decide.
 
 ## Questions · Drafting
 
