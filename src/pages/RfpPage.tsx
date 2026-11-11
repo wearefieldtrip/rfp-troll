@@ -43,7 +43,7 @@ export default function RfpPage() {
   const rfp = useQuery(rfpQuery(id))
   const syncing = rfp.data?.drive_status === 'syncing'
   const documents = useQuery({ ...rfpDocumentsQuery(id), refetchInterval: syncing ? 2500 : false })
-  const reviews = useQuery(rfpReviewsQuery(id))
+  const reviews = useQuery(rfpReviewsQuery(id, rfp.data?.created_at))
   const decisions = useQuery(rfpDecisionsQuery(id))
   const team = useQuery(teamQuery)
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['rfps', id] })

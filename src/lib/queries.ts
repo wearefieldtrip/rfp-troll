@@ -65,7 +65,10 @@ export const rfpDecisionsQuery = (rfpId: string) =>
     },
   })
 
-export const rfpReviewsQuery = (rfpId: string) =>
+// A new RFP's first review starts on its own a few seconds after the upload, so keep checking for it for a while.
+const FIRST_REVIEW_WAIT_MS = 10 * 60 * 1000
+
+export const rfpReviewsQuery = (rfpId: string, rfpCreatedAt?: string) =>
   queryOptions({
     queryKey: ['rfps', rfpId, 'reviews'],
     queryFn: async () => {
@@ -78,7 +81,12 @@ export const rfpReviewsQuery = (rfpId: string) =>
       return data
     },
     // Keep checking while a review is running in the background.
-    refetchInterval: (query) => (query.state.data?.some((r) => r.status === 'running') ? 3000 : false),
+    refetchInterval: (query) => {
+      const reviews = query.state.data
+      if (reviews?.some((r) => r.status === 'running')) return 3000
+      const waitingForFirst = !!rfpCreatedAt && reviews?.length === 0 && Date.now() - new Date(rfpCreatedAt).getTime() < FIRST_REVIEW_WAIT_MS
+      return waitingForFirst ? 3000 : false
+    },
   })
 
 async function fetchRubric(id?: string) {
