@@ -1,4 +1,4 @@
-import { ClipboardListIcon, DownloadIcon, FileTextIcon, LogOutIcon, TagsIcon } from 'lucide-react'
+import { ClipboardCheckIcon, ClipboardListIcon, DownloadIcon, FileTextIcon, LogOutIcon, TagsIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -24,6 +24,7 @@ const NAV = [{ to: '/', label: 'RFPs', icon: FileTextIcon, end: true }]
 const LIBRARY = [
   { to: '/library/tags', label: 'Tags', icon: TagsIcon, end: false },
   { to: '/library/imports', label: 'Imports', icon: DownloadIcon, end: false },
+  { to: '/library/review', label: 'Review imports', icon: ClipboardCheckIcon, end: false },
   { to: '/rubric', label: 'Rubric', icon: ClipboardListIcon, end: false },
 ]
 

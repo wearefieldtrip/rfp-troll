@@ -5,6 +5,7 @@ import { RequireAuth } from '@/auth/RequireAuth'
 import { AppShell } from '@/components/AppShell'
 import HomePage from '@/pages/HomePage'
 import ImportsPage from '@/pages/ImportsPage'
+import ReviewImportsPage from '@/pages/ReviewImportsPage'
 import LoginPage from '@/pages/LoginPage'
 import RfpPage from '@/pages/RfpPage'
 import RubricPage from '@/pages/RubricPage'
@@ -26,6 +27,7 @@ export default function App() {
                 <Route path="rubric" element={<RubricPage />} />
                 <Route path="library/tags" element={<TagsPage />} />
                 <Route path="library/imports" element={<ImportsPage />} />
+                <Route path="library/review" element={<ReviewImportsPage />} />
               </Route>
             </Route>
           </Routes>

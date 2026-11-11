@@ -1,8 +1,14 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { ExternalLinkIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { EditOutcomeDialog } from '@/components/EditOutcomeDialog'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Database } from '@/lib/database.types'
 import { OUTCOME_LABELS, STAGE_LABELS } from '@/lib/import-view'
 import { LINK_STATUS_LABELS, type LinkStatus } from '@/lib/proposal-link'
+import { supabase } from '@/lib/supabase'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
 
@@ -33,6 +39,28 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
 
 /** What a past RFP imported from the tracker looks like: its outcome and the details the tracker holds. */
 export function ImportedCard({ rfp }: { rfp: Rfp }) {
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const [editing, setEditing] = useState(false)
+
+  // Reviewing confirms what the RFP holds now: the AI's tags become confirmed, and the import leaves it alone from here on.
+  const review = useMutation({
+    mutationFn: async (reviewed: boolean) => {
+      if (reviewed) {
+        const { error: tagError } = await supabase.from('rfp_tags').update({ confirmed: true, updated_at: new Date().toISOString() }).eq('rfp_id', rfp.id).eq('confirmed', false)
+        if (tagError) throw tagError
+      }
+      const { error } = await supabase.from('rfps').update({ import_reviewed: reviewed }).eq('id', rfp.id)
+      if (error) throw error
+      return reviewed
+    },
+    onSuccess: async (reviewed) => {
+      await queryClient.invalidateQueries({ queryKey: ['rfps'] })
+      // On to the next one.
+      if (reviewed) navigate('/library/review')
+    },
+  })
+
   const data = asRecord(rfp.import_data)
   const issues = asIssues(rfp.import_issues)
   const outcome = rfp.outcome ? (OUTCOME_LABELS[rfp.outcome] ?? rfp.outcome) : null
@@ -93,8 +121,27 @@ export function ImportedCard({ rfp }: { rfp: Rfp }) {
             </ul>
           </div>
         )}
-        <p className="text-xs text-muted-foreground">Imported from tracker row {data.tracker_row ?? '?'}{rfp.import_reviewed ? ' · reviewed' : ''}.</p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+            Edit outcome
+          </Button>
+          {rfp.import_reviewed ? (
+            <Button size="sm" variant="outline" disabled={review.isPending} onClick={() => review.mutate(false)}>
+              Review again
+            </Button>
+          ) : (
+            <Button size="sm" disabled={review.isPending} onClick={() => review.mutate(true)}>
+              {review.isPending ? 'Saving…' : 'Mark as reviewed'}
+            </Button>
+          )}
+        </div>
+        {review.error && <p className="text-destructive">Could not save. Please try again.</p>}
+        <p className="text-xs text-muted-foreground">
+          Imported from tracker row {data.tracker_row ?? '?'}
+          {rfp.import_reviewed ? ' · reviewed, so a new import leaves it alone' : ''}. Use Edit tags in the ⋯ menu to change its tags.
+        </p>
       </CardContent>
+      <EditOutcomeDialog rfp={rfp} open={editing} onOpenChange={setEditing} />
     </Card>
   )
 }
