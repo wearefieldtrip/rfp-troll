@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { describeActions, describeOutcomes, parseRowNumber } from './import-view.ts'
+import { describeActions, describeLinks, describeOutcomes, parseRowNumber } from './import-view.ts'
 
 test('actions read as a short sentence and leave out zeros', () => {
   assert.equal(describeActions({ create: 3 }), '3 new')
@@ -18,4 +18,9 @@ test('a row number is whole and at least 2, or blank', () => {
   assert.equal(parseRowNumber('1'), 'invalid')
   assert.equal(parseRowNumber('2.5'), 'invalid')
   assert.equal(parseRowNumber('abc'), 'invalid')
+})
+
+test('links read as a short sentence and leave out zeros', () => {
+  assert.equal(describeLinks({ linked: 37, no_access: 13, not_a_doc: 0, no_link: 0, withPdf: 31 }), "37 linked · 13 can't be opened · 31 with a PDF")
+  assert.equal(describeLinks({ linked: 0, no_access: 0, not_a_doc: 0, no_link: 0, withPdf: 0 }), '')
 })

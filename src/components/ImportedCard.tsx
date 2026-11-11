@@ -2,6 +2,7 @@ import { ExternalLinkIcon } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Database } from '@/lib/database.types'
 import { OUTCOME_LABELS, STAGE_LABELS } from '@/lib/import-view'
+import { LINK_STATUS_LABELS, type LinkStatus } from '@/lib/proposal-link'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
 
@@ -53,12 +54,30 @@ export function ImportedCard({ rfp }: { rfp: Rfp }) {
           {data.state && <Fact label="State">{data.state}</Fact>}
           {data.case_studies && data.case_studies.length > 0 && <Fact label="Case studies used">{data.case_studies.join(', ')}</Fact>}
           {data.prepared_by && <Fact label="Prepared by">{data.prepared_by}</Fact>}
-          {data.link_url && (
+          {(rfp.proposal_doc_id || data.link_url) && (
             <Fact label="Proposal">
-              <a href={data.link_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline underline-offset-4">
-                Open the proposal Doc
-                <ExternalLinkIcon className="size-3" aria-hidden />
-              </a>
+              <span className="flex flex-wrap gap-x-4 gap-y-1">
+                <a
+                  href={rfp.proposal_doc_id ? `https://docs.google.com/document/d/${rfp.proposal_doc_id}/edit` : data.link_url!}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 underline underline-offset-4"
+                >
+                  Open the proposal Doc
+                  <ExternalLinkIcon className="size-3" aria-hidden />
+                </a>
+                {rfp.proposal_pdf_id && (
+                  <a href={`https://drive.google.com/file/d/${rfp.proposal_pdf_id}/view`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 underline underline-offset-4">
+                    PDF
+                    <ExternalLinkIcon className="size-3" aria-hidden />
+                  </a>
+                )}
+              </span>
+              {rfp.proposal_link_status && rfp.proposal_link_status !== 'linked' && (
+                <span className="mt-1 block text-destructive">
+                  {LINK_STATUS_LABELS[rfp.proposal_link_status as LinkStatus] ?? rfp.proposal_link_status}. The app can't read this proposal until it is shared with the service account or moved into the shared drive.
+                </span>
+              )}
             </Fact>
           )}
         </dl>

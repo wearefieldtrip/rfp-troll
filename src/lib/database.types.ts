@@ -51,6 +51,12 @@ export type Database = {
           import_reviewed: boolean
           import_issues: Json
           import_data: Json | null
+          proposal_doc_id: string | null
+          proposal_pdf_id: string | null
+          proposal_doc_name: string | null
+          proposal_link_status: string | null
+          proposal_link_checked_at: string | null
+          proposal_link_source: string | null
           questions_sent_count: number | null
           questions_sent_pdf_id: string | null
           key_dates: Json
@@ -118,6 +124,12 @@ export type Database = {
           import_reviewed?: boolean
           import_issues?: Json
           import_data?: Json | null
+          proposal_doc_id?: string | null
+          proposal_pdf_id?: string | null
+          proposal_doc_name?: string | null
+          proposal_link_status?: string | null
+          proposal_link_checked_at?: string | null
+          proposal_link_source?: string | null
           questions_sent_count?: number | null
           questions_sent_pdf_id?: string | null
           key_dates?: Json

@@ -65,3 +65,17 @@ export type ImportResult = {
 /** The tracker import. `preview` writes nothing. Rows are the sheet's own row numbers (the header is row 1). */
 export const previewTrackerImport = (range: { from?: number; to?: number }) => callFunction<ImportPreview>('import-tracker', { mode: 'preview', ...range })
 export const runTrackerImport = (range: { from?: number; to?: number }) => callFunction<ImportResult>('import-tracker', { mode: 'import', ...range })
+
+export type LinkRow = { row: number; client: string; status: 'linked' | 'no_access' | 'not_a_doc' | 'no_link'; docName: string | null; hasPdf: boolean; byHand: boolean }
+
+export type LinkReport = {
+  summary: { rows: number; linked: number; no_access: number; not_a_doc: number; no_link: number; withPdf: number; leftAlone: number }
+  rows: LinkRow[]
+  /** Only after linking. */
+  written?: number
+  failed?: { row: number; error: string }[]
+}
+
+/** Checks each imported RFP's proposal link. `preview` writes nothing. */
+export const previewProposalLinks = (range: { from?: number; to?: number }) => callFunction<LinkReport>('link-proposals', { mode: 'preview', ...range })
+export const runProposalLinks = (range: { from?: number; to?: number }) => callFunction<LinkReport>('link-proposals', { mode: 'link', ...range })

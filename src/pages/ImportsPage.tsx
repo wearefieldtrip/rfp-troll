@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { previewTrackerImport, runTrackerImport, type ImportPreview, type ImportResult } from '@/lib/functions'
-import { ACTION_LABELS, describeActions, describeOutcomes, OUTCOME_LABELS, parseRowNumber, STAGE_LABELS } from '@/lib/import-view'
+import { previewProposalLinks, previewTrackerImport, runProposalLinks, runTrackerImport, type ImportPreview, type ImportResult, type LinkReport } from '@/lib/functions'
+import { ACTION_LABELS, describeActions, describeLinks, describeOutcomes, OUTCOME_LABELS, parseRowNumber, STAGE_LABELS } from '@/lib/import-view'
+import { LINK_STATUS_LABELS } from '@/lib/proposal-link'
 
 export default function ImportsPage() {
   const queryClient = useQueryClient()
@@ -17,6 +18,7 @@ export default function ImportsPage() {
   const [confirming, setConfirming] = useState(false)
   const [preview, setPreview] = useState<ImportPreview | null>(null)
   const [result, setResult] = useState<ImportResult | null>(null)
+  const [links, setLinks] = useState<LinkReport | null>(null)
 
   const fromRow = parseRowNumber(from)
   const toRow = parseRowNumber(to)
@@ -28,6 +30,7 @@ export default function ImportsPage() {
     // The preview belongs to the rows it was made for.
     setPreview(null)
     setResult(null)
+    setLinks(null)
   }
 
   const runPreview = useMutation({
@@ -49,7 +52,19 @@ export default function ImportsPage() {
     },
   })
 
-  const busy = runPreview.isPending || runImport.isPending
+  const checkLinks = useMutation({
+    mutationFn: () => previewProposalLinks(range),
+    onSuccess: setLinks,
+  })
+  const saveLinks = useMutation({
+    mutationFn: () => runProposalLinks(range),
+    onSuccess: async (data) => {
+      setLinks(data)
+      await queryClient.invalidateQueries({ queryKey: ['rfps'] })
+    },
+  })
+
+  const busy = runPreview.isPending || runImport.isPending || checkLinks.isPending || saveLinks.isPending
   const toDo = preview ? preview.summary.rows - (preview.summary.actions.skip_reviewed ?? 0) : 0
 
   return (
@@ -166,6 +181,62 @@ export default function ImportsPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Proposal links</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <p className="text-muted-foreground">
+            Each imported RFP's tracker row links to its proposal Doc. This checks that the Doc can be opened and finds its PDF export beside it. It uses the
+            rows above, and only RFPs already imported. A link you set by hand is never replaced.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button variant="outline" disabled={!rangeOk || busy} onClick={() => checkLinks.mutate()}>
+              {checkLinks.isPending ? 'Checking…' : 'Check links'}
+            </Button>
+            <Button disabled={!rangeOk || busy || !links || links.written !== undefined || links.summary.rows === 0} onClick={() => saveLinks.mutate()}>
+              {saveLinks.isPending ? 'Saving…' : 'Save links'}
+            </Button>
+          </div>
+          {(checkLinks.error || saveLinks.error) && <p className="text-destructive">{(checkLinks.error ?? saveLinks.error)?.message}</p>}
+          {links && (
+            <div className="space-y-3">
+              <p>
+                <span className="font-medium">{links.summary.rows} RFPs</span> · {describeLinks(links.summary)}
+                {links.written !== undefined && <span className="font-medium"> · saved {links.written}</span>}
+              </p>
+              {links.failed && links.failed.length > 0 && (
+                <ul className="list-disc space-y-0.5 pl-5 text-destructive">
+                  {links.failed.map((f) => (
+                    <li key={f.row}>
+                      Row {f.row}: {f.error}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {links.summary.no_access > 0 && (
+                <p className="text-muted-foreground">
+                  "Can't open it" means the service account can't see that Doc. Share it with the service account as Viewer, or move it into the shared drive, then check again.
+                </p>
+              )}
+              <ul className="divide-y rounded-md border">
+                {links.rows.map((r) => (
+                  <li key={r.row} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 px-3 py-2">
+                    <span className="w-8 text-muted-foreground">{r.row}</span>
+                    <span className="min-w-0 flex-1 font-medium break-words">{r.client}</span>
+                    <span className={r.status === 'linked' ? 'text-muted-foreground' : 'text-destructive'}>
+                      {LINK_STATUS_LABELS[r.status]}
+                      {r.status === 'linked' && (r.hasPdf ? ' · PDF found' : ' · no PDF')}
+                      {r.byHand && ' · set by hand'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Dialog open={confirming} onOpenChange={(open) => !runImport.isPending && setConfirming(open)}>
         <DialogContent>

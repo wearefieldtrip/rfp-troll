@@ -42,3 +42,16 @@ export function parseRowNumber(text: string): number | undefined | 'invalid' {
   const n = Number(t)
   return Number.isInteger(n) && n >= 2 ? n : 'invalid'
 }
+
+/** "37 linked · 13 can't be opened · 31 with a PDF", leaving out what is zero. */
+export function describeLinks(summary: { linked: number; no_access: number; not_a_doc: number; no_link: number; withPdf: number }): string {
+  return [
+    summary.linked ? `${summary.linked} linked` : '',
+    summary.no_access ? `${summary.no_access} can't be opened` : '',
+    summary.not_a_doc ? `${summary.not_a_doc} not a Google Doc` : '',
+    summary.no_link ? `${summary.no_link} with no link` : '',
+    summary.withPdf ? `${summary.withPdf} with a PDF` : '',
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
