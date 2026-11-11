@@ -217,8 +217,6 @@ export default function RfpPage() {
       <ReopenDialog rfpId={id} passed={status === 'closed_passed'} open={dialog === 'reopen'} onOpenChange={(open) => setDialog(open ? 'reopen' : null)} />
       <DeleteRfpDialog
         rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
-        documentCount={documents.data?.length ?? 0}
-        reviewCount={reviews.data?.length ?? 0}
         open={dialog === 'delete'}
         onOpenChange={(open) => setDialog(open ? 'delete' : null)}
       />

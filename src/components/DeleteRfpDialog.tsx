@@ -16,15 +16,11 @@ import { invokeFunction } from '@/lib/functions'
 
 type Props = {
   rfp: { id: string; title: string; drive_folder_id: string | null }
-  documentCount: number
-  reviewCount: number
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
-
-export function DeleteRfpDialog({ rfp, documentCount, reviewCount, open, onOpenChange: setOpen }: Props) {
+export function DeleteRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
   const [typed, setTyped] = useState('')
   const [trashFolder, setTrashFolder] = useState(false)
   const queryClient = useQueryClient()
@@ -57,49 +53,26 @@ export function DeleteRfpDialog({ rfp, documentCount, reviewCount, open, onOpenC
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete this RFP?</DialogTitle>
-          <DialogDescription>
-            This permanently deletes <strong>{rfp.title}</strong> from RFP Troll. This can't be undone.
+          <DialogDescription className="break-words">
+            <strong>{rfp.title}</strong>, its files and its fit reviews will be deleted from RFP Troll. This can't be undone.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 text-sm">
-          <div>
-            <p className="font-medium">This will delete:</p>
-            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-muted-foreground">
-              <li>The RFP and its details</li>
-              <li>{plural(documentCount, 'uploaded RFP file')} (the app's record of it)</li>
-              <li>{plural(reviewCount, 'fit review')} and their scores</li>
-            </ul>
-          </div>
-
+        <div className="min-w-0 space-y-4 text-sm">
           {hasFolder && (
-            <fieldset className="space-y-2">
-              <legend className="font-medium">What should happen to the Drive folder?</legend>
-              <label className="flex items-start gap-2">
-                <input type="radio" name="drive-folder" className="mt-1" checked={!trashFolder} onChange={() => setTrashFolder(false)} />
-                <span>
-                  <span className="font-medium">Keep the folder</span>
-                  <span className="block text-muted-foreground">
-                    The folder and everything in it stay in Drive. Nothing in the app will link to it anymore.
-                  </span>
+            <label className="flex items-start gap-2">
+              <input type="checkbox" className="mt-1" checked={trashFolder} onChange={(e) => setTrashFolder(e.target.checked)} />
+              <span>
+                Also move its Drive files to the trash
+                <span className="block text-muted-foreground">
+                  If it's the client's only RFP, the whole client folder goes. Restorable from the trash for about 30 days.
                 </span>
-              </label>
-              <label className="flex items-start gap-2">
-                <input type="radio" name="drive-folder" className="mt-1" checked={trashFolder} onChange={() => setTrashFolder(true)} />
-                <span>
-                  <span className="font-medium">Move to the Drive trash</span>
-                  <span className="block text-muted-foreground">
-                    If this is the client's only RFP, the whole folder goes to the trash, including your team's own work. If the
-                    client has other RFPs here, only this RFP's files do. Either can be restored from the shared drive's trash
-                    for about 30 days.
-                  </span>
-                </span>
-              </label>
-            </fieldset>
+              </span>
+            </label>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="confirm-title">
+            <Label htmlFor="confirm-title" className="block break-words">
               Type <strong>{rfp.title}</strong> to confirm
             </Label>
             <Input
