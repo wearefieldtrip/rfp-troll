@@ -9,6 +9,20 @@ export type ValueRef = { id: string; tag_group: string; value: string; status: s
 /** Groups the tracker doesn't hold well, which the AI adds to. Sector is added only when the RFP has none. */
 export const AI_GROUPS = ['services', 'topics', 'audiences', 'requirements'] as const
 
+/** The most tags one group may get from a proposal. A proposal describes Fieldtrip as well as the RFP, so more is noise. */
+export const TAG_CAPS = { services: 6, topics: 3, audiences: 4, requirements: 4 } as const
+
+/** Keeps the first few of each group, in the order the model gave them (most important first). */
+export function capTags(tags: ReviewTags): ReviewTags {
+  return {
+    ...tags,
+    services: tags.services.slice(0, TAG_CAPS.services),
+    topics: tags.topics.slice(0, TAG_CAPS.topics),
+    audiences: tags.audiences.slice(0, TAG_CAPS.audiences),
+    requirements: tags.requirements.slice(0, TAG_CAPS.requirements),
+  }
+}
+
 export type PastTagPlan = {
   /** Earlier unconfirmed AI tags to remove before adding the new ones. */
   deleteIds: string[]

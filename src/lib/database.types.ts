@@ -58,6 +58,7 @@ export type Database = {
           proposal_link_checked_at: string | null
           proposal_link_source: string | null
           ai_tagged_at: string | null
+          ai_tag_version: number | null
           questions_sent_count: number | null
           questions_sent_pdf_id: string | null
           key_dates: Json
@@ -132,6 +133,7 @@ export type Database = {
           proposal_link_checked_at?: string | null
           proposal_link_source?: string | null
           ai_tagged_at?: string | null
+          ai_tag_version?: number | null
           questions_sent_count?: number | null
           questions_sent_pdf_id?: string | null
           key_dates?: Json

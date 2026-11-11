@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { planPastTags, type ExistingTag, type ValueRef } from './past-tags.ts'
+import { capTags, planPastTags, TAG_CAPS, type ExistingTag, type ValueRef } from './past-tags.ts'
 import type { ReviewTags } from './review-tags.ts'
 
 const v = (tag_group: string, value: string): ValueRef => ({ id: `${tag_group}:${value}`, tag_group, value, status: 'approved' })
@@ -57,4 +57,16 @@ test('the same value twice is added once, and nothing wanted changes nothing', (
   assert.deepEqual(planPastTags([], tags({ services: ['Website', 'website'] }), values).addValueIds, ['services:Website'])
   const plan = planPastTags([], tags(), values)
   assert.deepEqual(plan, { deleteIds: [], addValueIds: [], added: {} })
+})
+
+test('each group is capped, keeping the first (most important) ones', () => {
+  const many = (n: number, p: string) => Array.from({ length: n }, (_, i) => `${p}${i}`)
+  const capped = capTags(tags({ services: many(9, 's'), topics: many(5, 't'), audiences: many(6, 'a'), requirements: many(7, 'r'), sector: 'Transit' }))
+  assert.equal(capped.services.length, TAG_CAPS.services)
+  assert.equal(capped.topics.length, TAG_CAPS.topics)
+  assert.equal(capped.audiences.length, TAG_CAPS.audiences)
+  assert.equal(capped.requirements.length, TAG_CAPS.requirements)
+  assert.deepEqual(capped.services.slice(0, 2), ['s0', 's1'])
+  assert.equal(capped.sector, 'Transit')
+  assert.deepEqual(capTags(tags({ services: ['Website'] })).services, ['Website'])
 })
