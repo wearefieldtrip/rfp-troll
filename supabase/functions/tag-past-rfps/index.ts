@@ -10,7 +10,7 @@ const MODEL = Deno.env.get("ANTHROPIC_EXTRACT_MODEL") ?? "claude-haiku-5-5";
 const MAX_PER_RUN = 15;
 const AT_ONCE = 3;
 // Raise this when the instructions below get better: RFPs tagged by an older version become eligible again.
-const TAG_VERSION = 2;
+const TAG_VERSION = 3;
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,7 +37,8 @@ Important: a proposal also describes Fieldtrip (About, Capabilities, Experience,
 
 Return every field. The app uses only sector, services, topics, audiences, requirements and suggested_new. Put the most important values first.
 - services: only the services the RFP's scope asks for. A campaign RFP does not become a website RFP because Fieldtrip also builds websites. At most 6.
-- topics: at most 3. audiences: at most 4.
+- topics: at most 3, and only a topic the work is clearly about. If none of the listed topics is the real subject, return an empty list and put the real subject in suggested_new instead. Never pick a nearby listed topic (for example recycling or ridership for a nutrition campaign).
+- audiences: at most 4, only the specific groups the scope says the work must reach. Skip generic ones such as residents unless the work is about reaching the general public.
 - requirements: only things the RFP requires of the bidder, such as a bilingual deliverable or accessibility compliance. Never what Fieldtrip happens to offer, and not subcontractors unless the RFP says they are allowed or required. At most 4.
 - sector: the client's field (one value), or an empty string.
 ${tagsPrompt(lists)}
