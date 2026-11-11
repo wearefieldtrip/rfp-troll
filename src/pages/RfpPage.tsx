@@ -16,7 +16,7 @@ import { ReviewSection } from '@/components/ReviewSection'
 import { StepSection } from '@/components/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
 import { decisionWhat, decisionWhen, decisionWho } from '@/lib/decision-text'
@@ -186,18 +186,6 @@ export default function RfpPage() {
             </Card>
           </StepSection>
         )}
-
-        <Card className="border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-950/40">
-          <CardHeader>
-            <CardTitle className="text-red-900 dark:text-red-200">Delete RFP</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center justify-between gap-4">
-            <p className="text-sm text-red-900/80 dark:text-red-200/80">Permanently remove this RFP from RFP Troll.</p>
-            <Button variant="destructive" size="sm" onClick={() => setDialog('delete')}>
-              Delete RFP
-            </Button>
-          </CardContent>
-        </Card>
 
         <ChangeOwnerDialog rfpId={id} ownerId={data.owner_id} open={dialog === 'owner'} onOpenChange={(open) => setDialog(open ? 'owner' : null)} />
         <ReplaceFileDialog rfpId={id} open={dialog === 'replace'} onOpenChange={(open) => setDialog(open ? 'replace' : null)} />
