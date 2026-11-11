@@ -6,6 +6,7 @@ import { ChangeOwnerDialog } from '@/components/ChangeOwnerDialog'
 import { DecisionButtons } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
+import { EditTagsDialog } from '@/components/EditTagsDialog'
 import { HistoryPanel } from '@/components/HistoryPanel'
 import { KeyFacts } from '@/components/KeyFacts'
 import { ProgressStrip } from '@/components/ProgressStrip'
@@ -30,7 +31,7 @@ import { isClosed, statusLabel, statusVariant, stepOf } from '@/lib/rfp-status'
 import { cleanBandLabel, MAX_TOTAL } from '@/lib/rubric-structure'
 import { supabase } from '@/lib/supabase'
 
-type Dialog = 'edit' | 'owner' | 'replace' | 'reopen' | 'delete' | null
+type Dialog = 'edit' | 'tags' | 'owner' | 'replace' | 'reopen' | 'delete' | null
 
 const STEP_TITLES = { questions: 'Questions', proposal: 'Proposal', submitted: 'Submitted' } as const
 const STEP_NUMBERS = { questions: 2, proposal: 3, submitted: 4 } as const
@@ -122,6 +123,7 @@ export default function RfpPage() {
                   </>
                 )}
                 <DropdownMenuItem onClick={() => setDialog('edit')}>Edit details</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setDialog('tags')}>Edit tags</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setDialog('owner')}>Change owner</DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={() => setDialog('delete')}>
@@ -223,6 +225,7 @@ export default function RfpPage() {
           open={dialog === 'edit'}
           onOpenChange={(open) => setDialog(open ? 'edit' : null)}
         />
+        <EditTagsDialog rfpId={id} open={dialog === 'tags'} onOpenChange={(open) => setDialog(open ? 'tags' : null)} />
         <DeleteRfpDialog
           rfp={{ id, title: data.title, drive_folder_id: data.drive_folder_id }}
           open={dialog === 'delete'}

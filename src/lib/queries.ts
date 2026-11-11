@@ -146,3 +146,14 @@ export const tagUsageQuery = queryOptions({
     return counts
   },
 })
+
+/** The tags one RFP carries, with the group and value of each. */
+export const rfpTagsQuery = (rfpId: string) =>
+  queryOptions({
+    queryKey: ['rfps', rfpId, 'tags'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('rfp_tags').select('id, tag_value_id, source, confirmed, tag_values(tag_group, value)').eq('rfp_id', rfpId)
+      if (error) throw error
+      return data
+    },
+  })
