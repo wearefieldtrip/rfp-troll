@@ -125,3 +125,24 @@ export const teamQuery = queryOptions({
     return data
   },
 })
+
+export const tagValuesQuery = queryOptions({
+  queryKey: ['tags', 'values'],
+  queryFn: async () => {
+    const { data, error } = await supabase.from('tag_values').select('*')
+    if (error) throw error
+    return data
+  },
+})
+
+/** Which tag values are used by how many RFPs, so a value that is in use is never removed. */
+export const tagUsageQuery = queryOptions({
+  queryKey: ['tags', 'usage'],
+  queryFn: async () => {
+    const { data, error } = await supabase.from('rfp_tags').select('tag_value_id')
+    if (error) throw error
+    const counts = new Map<string, number>()
+    for (const row of data) counts.set(row.tag_value_id, (counts.get(row.tag_value_id) ?? 0) + 1)
+    return counts
+  },
+})

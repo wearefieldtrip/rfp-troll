@@ -1,4 +1,4 @@
-import { ClipboardListIcon, FileTextIcon, LogOutIcon } from 'lucide-react'
+import { ClipboardListIcon, FileTextIcon, LogOutIcon, TagsIcon } from 'lucide-react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -8,6 +8,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
@@ -17,8 +18,11 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar'
 
-const NAV = [
-  { to: '/', label: 'RFPs', icon: FileTextIcon, end: true },
+const NAV = [{ to: '/', label: 'RFPs', icon: FileTextIcon, end: true }]
+
+// What the team keeps up to date: the lists and the rubric every review draws on.
+const LIBRARY = [
+  { to: '/library/tags', label: 'Tags', icon: TagsIcon, end: false },
   { to: '/rubric', label: 'Rubric', icon: ClipboardListIcon, end: false },
 ]
 
@@ -35,6 +39,23 @@ export function AppShell() {
           <SidebarGroup>
             <SidebarMenu>
               {NAV.map(({ to, label, icon: Icon, end }) => (
+                <SidebarMenuItem key={to}>
+                  <NavLink to={to} end={end}>
+                    {({ isActive }) => (
+                      <SidebarMenuButton isActive={isActive} render={<span />}>
+                        <Icon />
+                        <span>{label}</span>
+                      </SidebarMenuButton>
+                    )}
+                  </NavLink>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+          <SidebarGroup>
+            <SidebarGroupLabel>Library</SidebarGroupLabel>
+            <SidebarMenu>
+              {LIBRARY.map(({ to, label, icon: Icon, end }) => (
                 <SidebarMenuItem key={to}>
                   <NavLink to={to} end={end}>
                     {({ isActive }) => (

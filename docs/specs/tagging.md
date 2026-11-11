@@ -77,3 +77,12 @@ Score each past RFP against the current one. Starting weights, tunable later:
 | Recency | Multiply by 1.0 this year, 0.85 last year, 0.7 two years back, 0.5 older |
 
 Use: top matches for the fit review's track record line, and the ranked list of base proposals in step 3 (only past RFPs with a linked proposal Doc).
+
+## Library → Tags (built)
+
+- The sidebar has a **Library** section with **Tags** and **Rubric**.
+- Tags lists each group with its values as chips, how many RFPs use each, and an Add field. A value in use can't be removed; an unused value shows an × to remove it. Duplicates are refused however they are capitalized. Budget bands are a fixed range list and have no Add field.
+- **Suggested by the AI** sits above the groups when there are any, with **Approve** and **Reject** (reject deletes the suggestion).
+- Geography starts with two values, **Louisville/KY** and **Out of state**. State codes are added as they appear (they are filled in from the RFP or tracker, not picked), so the list is system-managed rather than fixed.
+- Procurement starts with: RFP, RFI, RFQ, Public, Private, Multi-year, Agency of record, Pitch round, DBE/WBE preference. Topic starts with the six examples above.
+- Tracker-derived tags are stored as confirmed (the team's own data); AI-added tags are unconfirmed until reviewed.

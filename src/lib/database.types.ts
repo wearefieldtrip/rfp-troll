@@ -252,6 +252,24 @@ export type Database = {
           { foreignKeyName: 'rfp_reviews_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
         ]
       }
+      tag_values: {
+        Row: { created_at: string; created_by: string | null; id: string; status: string; tag_group: string; value: string }
+        Insert: { created_at?: string; created_by?: string | null; id?: string; status?: string; tag_group: string; value: string }
+        Update: Partial<Database['public']['Tables']['tag_values']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'tag_values_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
+      }
+      rfp_tags: {
+        Row: { confirmed: boolean; id: string; rfp_id: string; source: string; tag_value_id: string; updated_at: string; updated_by: string | null }
+        Insert: { confirmed?: boolean; id?: string; rfp_id: string; source: string; tag_value_id: string; updated_at?: string; updated_by?: string | null }
+        Update: Partial<Database['public']['Tables']['rfp_tags']['Insert']>
+        Relationships: [
+          { foreignKeyName: 'rfp_tags_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_tags_tag_value_id_fkey'; columns: ['tag_value_id']; isOneToOne: false; referencedRelation: 'tag_values'; referencedColumns: ['id'] },
+          { foreignKeyName: 'rfp_tags_updated_by_fkey'; columns: ['updated_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
+        ]
+      }
       rubrics: {
         Row: { content: string; created_at: string; created_by: string | null; id: string; is_active: boolean; version: number }
         Insert: { content: string; created_at?: string; created_by?: string | null; id?: string; is_active?: boolean; version: number }
