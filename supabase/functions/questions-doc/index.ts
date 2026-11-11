@@ -2,7 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { addComment, batchUpdate, copyDoc, exportPdf, getDoc } from "./docs.ts";
 import { downloadFile, tidyName, trashFile, uploadFile } from "./google.ts";
-import { countQuestions, cutRequests, fillRequests, firstQuestionStart, parseTemplate, pendingSuggestions, suggestRequest } from "./questions-doc.ts";
+import { countQuestions, cutRequests, fillRequests, parseTemplate, pendingSuggestions, questionStarts, suggestRequests } from "./questions-doc.ts";
 import { selectBankQuestions, type RfpFile } from "./select-bank.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -37,7 +37,7 @@ const COLUMNS =
   "id, title, client_name, status, drive_folder_id, drive_rfp_subfolder_id, questions_doc_id, questions_doc_status, questions_suggestions_status, updated_at";
 
 const COMMENT = (count: number) =>
-  `RFP Troll added ${count} suggested question${count === 1 ? "" : "s"} from the fit review, shown as suggestions at the top of the list. Accept or reject each one, then send the doc. Delete this comment before sending.`;
+  `RFP Troll added ${count} suggested question${count === 1 ? "" : "s"} from the fit review, shown as separate suggestions among the questions. Accept or reject each one, then send the doc. Delete this comment before sending.`;
 
 const longDate = (d: Date) => new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", dateStyle: "long" }).format(d);
 const shortDay = (day: string) =>
@@ -58,7 +58,7 @@ async function reviewQuestions(supabase: SupabaseClient, rfpId: string): Promise
   return Array.isArray(questions) ? questions.filter((q): q is string => typeof q === "string" && q.trim().length > 0) : [];
 }
 
-/** Adds the fit review's questions as suggestions above the first library question, and says so in a comment. */
+/** Adds the fit review's questions as separate suggestions, each above a different library question, and says so in a comment. */
 async function addSuggestions(supabase: SupabaseClient, rfp: Rfp, docId: string) {
   const questions = await reviewQuestions(supabase, rfp.id);
   const setSuggestions = (patch: Record<string, unknown>) => supabase.from("rfps").update(patch).eq("id", rfp.id);
@@ -70,12 +70,11 @@ async function addSuggestions(supabase: SupabaseClient, rfp: Rfp, docId: string)
   try {
     const doc = await getDoc(docId);
     const content = doc.body?.content ?? [];
-    // With no library question left, the suggestions go after the intro, at the end of the doc.
-    const at = firstQuestionStart(content) ?? Math.max(1, (content[content.length - 1]?.endIndex ?? 2) - 1);
-    const request = suggestRequest(at, questions);
-    if (!request) throw new Error("There were no questions to suggest.");
+    // Questions beyond the library questions go to the end of the doc.
+    const requests = suggestRequests(questionStarts(content), Math.max(1, (content[content.length - 1]?.endIndex ?? 2) - 1), questions);
+    if (requests.length === 0) throw new Error("There were no questions to suggest.");
 
-    const result = await batchUpdate(docId, [request], true);
+    const result = await batchUpdate(docId, requests, true);
     // Edits can save even when the suggestion part didn't, so look at what Google says it created.
     if (!result.suggestionResponses?.some((r) => r.createdSuggestionIds?.length)) throw new Error("Google did not create the suggestions.");
     await addComment(docId, COMMENT(questions.length)).catch((err) => console.error("suggestion comment failed", err));

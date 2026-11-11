@@ -6,10 +6,10 @@ import {
   countQuestions,
   cutRequests,
   fillRequests,
-  firstQuestionStart,
+  questionStarts,
   parseTemplate,
   pendingSuggestions,
-  suggestRequest,
+  suggestRequests,
   type DocElement,
 } from './questions-doc.ts'
 
@@ -95,11 +95,23 @@ test('the client name is only filled in when there is one', () => {
   assert.equal(fillRequests({ title: 'T', clientName: 'Riverbend', date: 'D' }).length, 3)
 })
 
-test('suggestions go above the first remaining question, one list item each', () => {
+test('each suggestion goes above a different library question, highest position first', () => {
   const content = template()
-  assert.equal(firstQuestionStart(content), content[3].startIndex)
-  assert.deepEqual(suggestRequest(10, ['  One?  ', 'Two\nlines?', ' ']), { insertText: { location: { index: 10 }, text: 'One?\nTwo lines?\n' } })
-  assert.equal(suggestRequest(10, []), null)
+  const starts = questionStarts(content)
+  assert.deepEqual(starts, [content[3].startIndex, content[4].startIndex, content[5].startIndex, content[8].startIndex])
+  const requests = suggestRequests(starts, 999, ['  One?  ', 'Two\nlines?', ' ', 'Three?']) as { insertText: { location: { index: number }; text: string } }[]
+  assert.deepEqual(
+    requests.map((r) => [r.insertText.location.index, r.insertText.text]),
+    [[starts[2], 'Three?\n'], [starts[1], 'Two lines?\n'], [starts[0], 'One?\n']],
+  )
+})
+
+test('questions beyond the library questions go to the end, and nothing gives an empty list', () => {
+  const requests = suggestRequests([10, 20], 99, ['a?', 'b?', 'c?', 'd?']) as { insertText: { location: { index: number }; text: string } }[]
+  assert.deepEqual(requests.map((r) => r.insertText.location.index), [99, 20, 10])
+  assert.equal(requests[0].insertText.text, 'c?\nd?\n')
+  assert.deepEqual(suggestRequests([10], 99, []), [])
+  assert.equal((suggestRequests([], 99, ['a?']) as unknown[]).length, 1)
 })
 
 test('counts only top-level questions', () => {

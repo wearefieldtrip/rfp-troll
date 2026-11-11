@@ -112,22 +112,36 @@ export function fillRequests(fields: { title: string; clientName: string | null;
   return requests
 }
 
-/** Where the suggested questions go: just above the first library question that is left. */
-export function firstQuestionStart(content: DocElement[]): number | null {
+/** Where each library question that is left begins. */
+export function questionStarts(content: DocElement[]): number[] {
+  const starts: number[] = []
   for (const el of content) {
+    // The guidelines, if still there, are not questions.
+    if (el.paragraph && !el.paragraph.bullet && /^guidelines\b/i.test(paragraphText(el).trim())) break
     if (el.paragraph?.bullet && (el.paragraph.bullet.nestingLevel ?? 0) === 0 && paragraphText(el).trim() && el.startIndex !== undefined) {
-      return el.startIndex
+      starts.push(el.startIndex)
     }
   }
-  return null
+  return starts
 }
 
 const oneLine = (q: string) => q.replace(/\s+/g, ' ').trim()
 
-/** Suggested questions inserted as new list items above the library questions. */
-export function suggestRequest(at: number, questions: string[]) {
-  const text = questions.map(oneLine).filter(Boolean).map((q) => `${q}\n`).join('')
-  return text ? { insertText: { location: { index: at }, text } } : null
+/**
+ * The suggested questions as insertions, each above a different library question so none touch. Google merges
+ * suggestions that sit next to each other into one, and then they can only be accepted or rejected together.
+ * Question 1 goes above library question 1, question 2 above library question 2, and so on; any left over go at `endAt`.
+ * Highest position first, so the positions of the ones still to come stay valid.
+ */
+export function suggestRequests(starts: number[], endAt: number, questions: string[]) {
+  const byPosition = new Map<number, string[]>()
+  questions.map(oneLine).filter(Boolean).forEach((question, i) => {
+    const at = i < starts.length ? starts[i] : endAt
+    byPosition.set(at, [...(byPosition.get(at) ?? []), question])
+  })
+  return [...byPosition.entries()]
+    .sort((a, b) => b[0] - a[0])
+    .map(([at, group]) => ({ insertText: { location: { index: at }, text: group.map((q) => `${q}\n`).join('') } }))
 }
 
 /** How many questions the team is about to send. */
