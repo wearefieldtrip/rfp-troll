@@ -184,4 +184,4 @@ Agreed while building. Keep unless changed.
 ## History sidebar
 
 - The separate Decisions card is gone. A **History** column sits to the right of the steps on wide screens (under them on narrow ones), newest first: RFP added, fit reviews, re-scores after answers, decisions (with their score and note), answers added, and questions marked as sent. Each shows when (with time zone) and who.
-- It is built from rows that already record who and when. Marking the questions as sent shows only the day, with no person. Owner changes, file replacements and the questions doc being created are not recorded yet; an activity log table would add them.
+- It is built from rows that already record who and when. Marking the questions as sent sits where it was clicked (`questions_sent_at`) and notes the day the team said it was sent, with no person; RFPs marked sent before that was recorded sit just after the decision that started the questions step and show only the day. Owner changes, file replacements and the questions doc being created are not recorded yet; an activity log table would add them.

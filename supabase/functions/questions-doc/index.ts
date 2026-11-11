@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
 
     const { data: updated, error: updateError } = await supabase
       .from("rfps")
-      .update({ status: "questions_sent", questions_sent_on: sent_on, questions_sent_count: countQuestions(doc.body?.content ?? []) })
+      .update({ status: "questions_sent", questions_sent_on: sent_on, questions_sent_at: new Date().toISOString(), questions_sent_count: countQuestions(doc.body?.content ?? []) })
       .eq("id", rfp_id)
       .eq("status", "questions_drafting")
       .select("id");

@@ -5,7 +5,7 @@ import { buildHistory, type HistoryInput } from './history.ts'
 const people = [{ id: 'u1', full_name: 'Jane P', email: 'jane@x.com' }, { id: 'u2', full_name: null, email: 'sam@x.com' }]
 
 const base = (): HistoryInput => ({
-  rfp: { created_at: '2026-11-10T15:00:00Z', created_by: 'u1', questions_sent_on: null, questions_sent_count: null },
+  rfp: { created_at: '2026-11-10T15:00:00Z', created_by: 'u1', questions_sent_on: null, questions_sent_at: null, questions_sent_count: null },
   reviews: [],
   decisions: [],
   answers: [],
@@ -46,14 +46,38 @@ test('a review made from answers is a re-score; running and failed reviews are l
   assert.equal(h[1].detail, 'Received Nov 12, 2026')
 })
 
-test('marking sent shows the day and the count, with no person', () => {
+test('marking sent sits where it was marked, with the day it was sent, and no person', () => {
   const input = base()
-  input.rfp.questions_sent_on = '2026-11-11'
+  input.rfp.questions_sent_on = '2026-11-09'
+  input.rfp.questions_sent_at = '2026-11-10T17:00:00Z'
   input.rfp.questions_sent_count = 1
+  input.decisions = [{ id: 'd1', kind: 'move_forward', reason: null, to_status: 'proposal_drafting', decided_at: '2026-11-10T18:00:00Z', score_total: 7, score_band: 'Conditional Go', profiles: null, note: null }]
+  const h = buildHistory(input)
+  assert.deepEqual(h.map((e) => e.id), ['decision-d1', 'sent', 'added'])
+  const sent = h[1]
+  assert.equal(sent.who, null)
+  assert.equal(sent.dateLabel, undefined)
+  assert.equal(sent.detail, '1 question · sent Nov 9, 2026')
+})
+
+test('an RFP marked sent before the moment was recorded goes just after the decision that started the questions', () => {
+  const input = base()
+  input.rfp.questions_sent_on = '2026-11-10'
+  input.decisions = [
+    { id: 'd1', kind: 'move_forward', reason: null, to_status: 'questions_drafting', decided_at: '2026-11-10T16:00:00Z', score_total: 7, score_band: 'Conditional Go', profiles: null, note: null },
+    { id: 'd2', kind: 'move_forward', reason: null, to_status: 'proposal_drafting', decided_at: '2026-11-10T20:00:00Z', score_total: 9, score_band: 'Conditional Go', profiles: null, note: null },
+  ]
+  const h = buildHistory(input)
+  assert.deepEqual(h.map((e) => e.id), ['decision-d2', 'sent', 'decision-d1', 'added'])
+  assert.equal(h[1].dateLabel, 'Nov 10, 2026')
+})
+
+test('with no decision to anchor it, an old sent entry goes at the end of its day, day only', () => {
+  const input = base()
+  input.rfp.questions_sent_on = '2026-11-10'
   const sent = buildHistory(input).find((e) => e.id === 'sent')
-  assert.equal(sent?.who, null)
-  assert.equal(sent?.dateOnly, true)
-  assert.equal(sent?.detail, '1 question')
+  assert.equal(sent?.dateLabel, 'Nov 10, 2026')
+  assert.equal(sent?.at, '2026-11-10T23:59:59Z')
 })
 
 test('a failed batch of answers says so', () => {

@@ -5,9 +5,10 @@ import { cleanBandLabel, MAX_TOTAL } from './rubric-structure.ts'
 
 export type HistoryEntry = {
   id: string
-  /** ISO time. For a day-only entry it is noon UTC of that day. */
+  /** ISO time, used for ordering and, unless there is a `dateLabel`, for showing. */
   at: string
-  dateOnly?: boolean
+  /** Shown instead of the time when only a day is known. */
+  dateLabel?: string
   title: string
   detail?: string
   note?: string | null
@@ -17,7 +18,7 @@ export type HistoryEntry = {
 type Person = { id: string; full_name: string | null; email: string }
 
 export type HistoryInput = {
-  rfp: { created_at: string; created_by: string | null; questions_sent_on: string | null; questions_sent_count: number | null }
+  rfp: { created_at: string; created_by: string | null; questions_sent_on: string | null; questions_sent_at: string | null; questions_sent_count: number | null }
   reviews: { id: string; status: string; created_at: string; completed_at: string | null; created_by: string | null; total_score: number | null; decision_band: string | null }[]
   decisions: (DecisionRow & { id: string; note: string | null })[]
   answers: { id: string; created_at: string; created_by: string | null; received_on: string; status: string; review_id: string | null; file_name: string | null }[]
@@ -64,12 +65,17 @@ export function buildHistory({ rfp, reviews, decisions, answers, people }: Histo
   }
 
   if (rfp.questions_sent_on) {
+    // Where it sits in the list is when it was marked, not the day the team says it was sent. Older RFPs have only the day,
+    // so those go just after the decision that started the questions step, or at the end of that day if there is none.
+    const started = decisions.find((d) => d.kind === 'move_forward' && d.to_status === 'questions_drafting')
+    const fallback = started ? new Date(new Date(started.decided_at).getTime() + 1000).toISOString() : `${rfp.questions_sent_on}T23:59:59Z`
+    const count = rfp.questions_sent_count != null ? plural(rfp.questions_sent_count, 'question') : null
     entries.push({
       id: 'sent',
-      at: `${rfp.questions_sent_on}T12:00:00Z`,
-      dateOnly: true,
+      at: rfp.questions_sent_at ?? fallback,
+      dateLabel: rfp.questions_sent_at ? undefined : day(rfp.questions_sent_on),
       title: 'Questions marked as sent',
-      detail: rfp.questions_sent_count != null ? plural(rfp.questions_sent_count, 'question') : undefined,
+      detail: [count, `sent ${day(rfp.questions_sent_on)}`].filter(Boolean).join(' · '),
       who: null,
     })
   }

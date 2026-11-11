@@ -41,6 +41,7 @@ export type Database = {
           questions_bank_count: number | null
           questions_suggested_count: number | null
           questions_sent_on: string | null
+          questions_sent_at: string | null
           questions_sent_count: number | null
           questions_sent_pdf_id: string | null
           key_dates: Json
@@ -98,6 +99,7 @@ export type Database = {
           questions_bank_count?: number | null
           questions_suggested_count?: number | null
           questions_sent_on?: string | null
+          questions_sent_at?: string | null
           questions_sent_count?: number | null
           questions_sent_pdf_id?: string | null
           key_dates?: Json
