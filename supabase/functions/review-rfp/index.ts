@@ -8,6 +8,7 @@ import { downloadFile } from "./google.ts";
 import { checkRubric } from "./rubric-structure.ts";
 import { RUBRIC } from "./rubric-text.ts";
 import { rubricFor } from "./rubric-version.ts";
+import { newRfpMessage } from "./slack-message.ts";
 import { budgetBand, buildTags, geographyValues, LIST_GROUPS, tagsPrompt, tagsSchema, type ListGroup, type ReviewTags, type TagLists } from "./review-tags.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -33,9 +34,10 @@ const strList = { type: "array", items: str };
 const reviewSchema = (lists: TagLists) => ({
   type: "object",
   additionalProperties: false,
-  required: ["verdict", "dimensions", "risks", "questions", "flags", "auto_no_go", "tags"],
+  required: ["verdict", "summary", "dimensions", "risks", "questions", "flags", "auto_no_go", "tags"],
   properties: {
     verdict: str,
+    summary: str,
     dimensions: {
       type: "array",
       items: {
@@ -78,6 +80,7 @@ const buildSystemPrompt = (rubric: string, lists: TagLists) => `You help Fieldtr
 
 Score the RFP against the rubric below, which has four dimensions headed A, B, C and D. Follow it exactly. Return:
 - verdict: one sentence on the overall fit.
+- summary: one plain sentence (at most 30 words) saying what the issuer is asking for, for example "A regional food bank wants a new brand and website." Describe the work only, with no opinion on fit and no mention of Fieldtrip.
 - dimensions: exactly four, with key A, B, C and D. For each, score is a whole number from 0 to 3 as the rubric's levels define it; reason is one sentence; evidence is up to 2 short verbatim quotes from the RFP, each with the page number of the document it appears on (use 0 if you cannot tell), or an empty list if the RFP says nothing relevant.
 - risks: at most 3 concrete concerns for Fieldtrip, most serious first, one sentence each.
 - questions: at most 8 clarifying questions Fieldtrip could send the issuer. No duplicates. Each must close a gap that affects a score or a risk, and be specific to this RFP. Each has question (the text) and line (A, B, C or D: the dimension whose score it would most affect, or an empty string if none). If the RFP says questions are not accepted, return an empty list.
@@ -205,6 +208,29 @@ async function saveTags(supabase: SupabaseClient, rfpId: string, tags: ReviewTag
   }
 }
 
+/** Posts to the team's Slack channel when a new RFP's first review finishes. Never fails or delays the review. */
+async function notifySlack(supabase: SupabaseClient, reviewId: string, rfp: Record<string, string | number | null>, services: string[], summary: string) {
+  try {
+    const url = Deno.env.get("SLACK_WEBHOOK_URL");
+    if (!url) return;
+    // Only the first finished review of an RFP is announced.
+    const { count } = await supabase.from("rfp_reviews").select("id", { count: "exact", head: true }).eq("rfp_id", rfp.id as string).eq("status", "complete").neq("id", reviewId);
+    if ((count ?? 0) > 0) return;
+    const text = newRfpMessage({
+      title: String(rfp.title ?? ""),
+      clientName: (rfp.client_name as string | null) ?? null,
+      services,
+      description: summary || null,
+      appUrl: Deno.env.get("APP_URL") ?? null,
+      rfpId: rfp.id as string,
+    });
+    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(8000) });
+    if (!res.ok) console.error("slack post failed", res.status);
+  } catch (err) {
+    console.error("slack post failed", err instanceof Error ? err.message : "unknown");
+  }
+}
+
 async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record<string, string | number | null>, docs: Doc[], rubricContent: string, lists: TagLists) {
   const fail = (error: string) =>
     supabase.from("rfp_reviews").update({ status: "failed", error, completed_at: new Date().toISOString() }).eq("id", reviewId);
@@ -278,7 +304,12 @@ async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record
       })
       .eq("id", reviewId);
 
-    await saveTags(supabase, rfp.id as string, buildTags((JSON.parse(text.text) as { tags?: unknown }).tags, lists), rfp);
+    const parsed = JSON.parse(text.text) as { tags?: unknown; summary?: unknown };
+    const tags = buildTags(parsed.tags, lists);
+    await saveTags(supabase, rfp.id as string, tags, rfp);
+    const summary = typeof parsed.summary === "string" ? parsed.summary.replace(/\s+/g, " ").trim().slice(0, 300) : "";
+    if (summary) await supabase.from("rfps").update({ summary }).eq("id", rfp.id as string);
+    await notifySlack(supabase, reviewId, rfp, tags.services, summary);
   } catch (err) {
     console.error("review failed", err);
     let message = err instanceof Error && !(err instanceof Anthropic.APIError) ? err.message : "The review failed. Please try again.";
