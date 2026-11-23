@@ -342,6 +342,10 @@ export type Database = {
     Views: { [_ in never]: never }
     Functions: {
       save_rubric_version: { Args: { p_content: string }; Returns: string }
+      advance_rfp: {
+        Args: { p_rfp_id: string; p_action: string; p_expected_status?: string; p_note?: string }
+        Returns: string
+      }
       decide_rfp: {
         Args: { p_rfp_id: string; p_decision: string; p_destination?: string; p_reason?: string; p_note?: string; p_expected_status?: string }
         Returns: string

@@ -126,3 +126,12 @@ Needs Phase B of the historical data work (past proposals split into labeled sec
 - **A "section" is a heading at the top heading level used in the base Doc**; sub-headings stay with their section. A base Doc with no headings is kept as is, with a comment.
 - **Move to Proposal modal** shows the proposal deadline and "Based on … · Change" (top 5 by similarity, only past RFPs that have a linked Doc). The Proposal section offers the same picker when no doc exists or the build failed.
 - Not built yet: the estimate sheet (deferred), Ready for review (needs the step 4 spec), fresh content from recent proposals (needs Phase B).
+
+## After the proposal (built 2026-11-22)
+
+The status moves by hand, each move behind a confirmation modal with an optional note and recorded in the History (`advance_rfp`, kinds `ready_for_review`, `back_to_drafting`, `submitted`, `shortlisted`, `won`, `lost`):
+
+- **Proposal · Drafting:** **Ready for review** (to Proposal · In review) or **Mark as submitted** (skips review).
+- **Proposal · In review:** **Mark as submitted** or **Back to drafting**. (The step 4 AI check against the requirements list is not built; for now review is a status the team uses.)
+- **Submitted · Waiting:** **Shortlisted**, **Won** or **Lost**. **Submitted · Shortlisted:** **Won** or **Lost**. Won and Lost close the RFP (Closed · Won / Lost), set its outcome, and record how far it got (submitted, or finalist if it was shortlisted). Reopen from the ⋯ menu still returns a closed RFP to Submitted · Waiting.
+- Not built: moving the Drive folder when an RFP closes as won or lost, and a submitted date.

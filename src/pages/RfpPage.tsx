@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon, MoreHorizontalIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { AdvanceCard } from '@/components/AdvanceCard'
 import { ChangeOwnerDialog } from '@/components/ChangeOwnerDialog'
 import { DecisionButtons } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
@@ -225,18 +226,13 @@ export default function RfpPage() {
               summary={data.proposal_draft_status === 'ready' ? 'Proposal doc ready' : data.proposal_draft_status === 'failed' ? "Proposal doc couldn't be created" : 'Proposal doc being created'}
             >
               <ProposalSection rfp={data} />
+              <AdvanceCard rfpId={id} status={status} />
             </StepSection>
           )}
 
           {step === 'submitted' && (
             <StepSection number={STEP_NUMBERS.submitted} title={STEP_TITLES.submitted} open={!hidden.submitted} onToggle={() => toggleHidden('submitted')}>
-              <Card>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    This step isn't built yet. The RFP's status moves with your decision, and its Drive folder is ready to work in.
-                  </p>
-                </CardContent>
-              </Card>
+              <AdvanceCard rfpId={id} status={status} />
             </StepSection>
           )}
           </>

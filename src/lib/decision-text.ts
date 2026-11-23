@@ -11,8 +11,18 @@ export type DecisionRow = {
   profiles: { full_name: string | null; email: string } | null
 }
 
+const HAND_OFFS: Record<string, string> = {
+  ready_for_review: 'Marked ready for review',
+  back_to_drafting: 'Sent back to drafting',
+  submitted: 'Marked as submitted',
+  shortlisted: 'Shortlisted',
+  won: 'Marked as won',
+  lost: 'Marked as lost',
+}
+
 export const decisionWhat = (d: Pick<DecisionRow, 'kind' | 'reason' | 'to_status'>) =>
-  d.kind === 'pass' ? `Passed (${d.reason})` : d.kind === 'reopen' ? `Reopened to ${statusLabel(d.to_status)}` : `Moved forward to ${statusLabel(d.to_status)}`
+  HAND_OFFS[d.kind] ??
+  (d.kind === 'pass' ? `Passed (${d.reason})` : d.kind === 'reopen' ? `Reopened to ${statusLabel(d.to_status)}` : `Moved forward to ${statusLabel(d.to_status)}`)
 
 export const decisionWho = (d: Pick<DecisionRow, 'profiles'>) => d.profiles?.full_name ?? d.profiles?.email ?? 'Someone'
 

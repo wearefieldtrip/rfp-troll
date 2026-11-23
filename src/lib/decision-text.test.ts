@@ -18,3 +18,9 @@ test('who falls back to email, then to someone', () => {
 test('score is empty when there was none', () => {
   assert.equal(decisionScore({ score_total: null, score_band: null }), '')
 })
+
+test('hand-offs after the proposal read plainly in the history', async () => {
+  const { decisionWhat } = await import('./decision-text.ts')
+  assert.equal(decisionWhat({ kind: 'submitted', reason: null, to_status: 'submitted_waiting' }), 'Marked as submitted')
+  assert.equal(decisionWhat({ kind: 'won', reason: null, to_status: 'closed_won' }), 'Marked as won')
+})
