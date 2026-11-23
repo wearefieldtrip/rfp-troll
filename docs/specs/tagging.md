@@ -87,12 +87,9 @@ Use: top matches for the fit review's track record line, and the ranked list of 
 - Procurement starts with: RFP, RFI, RFQ, Public, Private, Multi-year, Agency of record, Pitch round, DBE/WBE preference. Topic starts with the six examples above.
 - Tracker-derived tags are stored as confirmed (the team's own data); AI-added tags are unconfirmed until reviewed.
 
-## Picked by hand (built 2026-11-22)
+## Picked by hand (built, then removed 2026-11-22)
 
-- The Similar past RFPs card has **Add a past RFP**: a search over every past RFP by client or title. A picked RFP shows first, marked "Picked by [name]", with an × to remove it. Only past (closed) RFPs can be picked.
-- Picks are stored in `rfp_similar` (this RFP, the past RFP, who, when). Tagging and re-reviews never touch them.
-- Picked RFPs count in the track-record line ("Among the 5 most similar…") and are first in the base-proposal list in Move to Proposal, so one with a linked proposal Doc is the default base. The team can still change it.
-- A pick has no effect on the score itself, and there is no "not similar" button.
+A search to pick past RFPs as similar by hand was built and then taken out; the list is by tags only. The `rfp_similar` table is no longer used (`docs/cleanup/drop-rfp-similar.sql` drops it).
 
 - (Decision 2026-11-22.) The similarity score is no longer shown next to each past RFP; the list is still ordered by it, and the "why it matched" line stays.
 - (Decision 2026-11-22.) The "Among the 5 most similar: …" track-record line is no longer shown at the top of the card.

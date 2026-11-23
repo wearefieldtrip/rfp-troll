@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { budgetClose, overlap, profileFromTags, rankSimilar, recency, scoreSimilarity, trackRecord, WEIGHTS, whyMatched, type SimilarityProfile, rankWithPins } from './similarity.ts'
+import { budgetClose, overlap, profileFromTags, rankSimilar, recency, scoreSimilarity, trackRecord, WEIGHTS, whyMatched, type SimilarityProfile } from './similarity.ts'
 
 const NOW = new Date('2026-11-11T12:00:00Z')
 const profile = (over: Partial<SimilarityProfile> = {}): SimilarityProfile => ({
@@ -111,16 +111,4 @@ test('the track record counts wins, finalists and the rest', () => {
     'Among the 5 most similar: 1 won, 2 finalist or pitched, 2 lost or no response.',
   )
   assert.equal(trackRecord([]), null)
-})
-
-test('picked RFPs come first whatever their score, and are not repeated', () => {
-  const now = new Date('2026-06-01')
-  const mk = (id: string, services: string[]) => ({ item: { id }, year: 2026, profile: { services, topics: [], sector: null, clientType: null, budgetBand: null, year: 2026 } })
-  const current = { services: ['A'], topics: [], sector: null, clientType: null, budgetBand: null, year: 2026 }
-  const candidates = [mk('best', ['A']), mk('unrelated', ['Z']), mk('ok', ['A', 'B'])]
-  const list = rankWithPins(current, candidates, ['unrelated'], 2, now)
-  assert.deepEqual(list.map((m) => [m.item.id, m.pinned]), [['unrelated', true], ['best', false]])
-  assert.equal(list[0].score, 0)
-  // A pick that isn't a candidate is ignored; no picks behaves like the plain ranking.
-  assert.deepEqual(rankWithPins(current, candidates, ['gone'], 5, now).map((m) => m.item.id), ['best', 'ok'])
 })

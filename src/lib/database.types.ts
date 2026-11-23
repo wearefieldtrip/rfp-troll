@@ -186,16 +186,6 @@ export type Database = {
         Update: Partial<Database['public']['Tables']['rfps']['Insert']>
         Relationships: []
       }
-      rfp_similar: {
-        Row: { created_at: string; created_by: string | null; id: string; rfp_id: string; similar_rfp_id: string }
-        Insert: { created_at?: string; created_by?: string | null; id?: string; rfp_id: string; similar_rfp_id: string }
-        Update: Partial<Database['public']['Tables']['rfp_similar']['Insert']>
-        Relationships: [
-          { foreignKeyName: 'rfp_similar_created_by_fkey'; columns: ['created_by']; isOneToOne: false; referencedRelation: 'profiles'; referencedColumns: ['id'] },
-          { foreignKeyName: 'rfp_similar_rfp_id_fkey'; columns: ['rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
-          { foreignKeyName: 'rfp_similar_similar_rfp_id_fkey'; columns: ['similar_rfp_id']; isOneToOne: false; referencedRelation: 'rfps'; referencedColumns: ['id'] },
-        ]
-      }
       rfp_decisions: {
         Row: {
           decided_at: string

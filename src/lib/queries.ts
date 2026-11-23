@@ -134,21 +134,6 @@ export const rfpTagsQuery = (rfpId: string) =>
     },
   })
 
-/** The past RFPs a person picked as similar to this one, oldest pick first. */
-export const rfpSimilarQuery = (rfpId: string) =>
-  queryOptions({
-    queryKey: ['rfps', rfpId, 'similar'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('rfp_similar')
-        .select('id, similar_rfp_id, created_at, profiles(full_name, email)')
-        .eq('rfp_id', rfpId)
-        .order('created_at', { ascending: true })
-      if (error) throw error
-      return data
-    },
-  })
-
 /** Every RFP that has finished (won or lost), with its tags, for finding the ones most like another. */
 export const pastRfpsQuery = queryOptions({
   queryKey: ['rfps', 'past'],
