@@ -18,7 +18,7 @@ import { ReopenDialog } from '@/components/ReopenDialog'
 import { ReplaceFileDialog } from '@/components/ReplaceFileDialog'
 import { ReviewSection } from '@/components/ReviewSection'
 import { SimilarRfps } from '@/components/SimilarRfps'
-import { StepSection } from '@/components/StepSection'
+import { StepSection, UpcomingStep } from '@/components/StepSection'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -234,6 +234,11 @@ export default function RfpPage() {
               <AdvanceCard rfpId={id} status={status} />
             </StepSection>
           )}
+
+          {/* The steps still ahead, so the whole path is visible. */}
+          {step === 'evaluate' && <UpcomingStep number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} note="Starts when you move forward from Evaluate" />}
+          {(step === 'evaluate' || step === 'questions') && <UpcomingStep number={STEP_NUMBERS.proposal} title={STEP_TITLES.proposal} note="Starts when you move forward" />}
+          {(step === 'evaluate' || step === 'questions' || step === 'proposal') && <UpcomingStep number={STEP_NUMBERS.submitted} title={STEP_TITLES.submitted} note="After the proposal is sent" />}
           </>
         )}
 

@@ -42,3 +42,16 @@ export function StepSection({ number, title, summary, open, onToggle, children }
     </section>
   )
 }
+
+/** A step the RFP hasn't reached yet, shown so the whole path is visible. */
+export function UpcomingStep({ number, title, note }: { number: number; title: string; note: string }) {
+  return (
+    <section aria-label={`${number} · ${title}`} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b pb-4 text-muted-foreground">
+      <span className="flex size-8 shrink-0 items-center justify-center rounded-full border border-dashed text-sm font-semibold" aria-hidden>
+        {number}
+      </span>
+      <span className="text-base font-semibold tracking-tight">{title}</span>
+      <span className="min-w-0 flex-1 text-sm">{note}</span>
+    </section>
+  )
+}
