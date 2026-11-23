@@ -95,7 +95,7 @@ Read the RFP, every addendum, and the client's answers (all labeled, in one requ
 - What the build did, e.g. "Kept 5 sections, added 2, removed 4, 3 sections to check for old client details"
 - Buttons: **Open proposal**, **Open estimate** (later, with the estimate sheet)
 - An expandable **Requirements** list: each section with what it must address, page limit and points; then attachments and submission rules.
-- **Ready for review** button. It opens a confirmation modal and moves the RFP to step 4 (status Proposal · In review). Spec for step 4 to follow.
+- ~~**Ready for review** button~~ (removed 2026-11-23, with the review step paused; see `docs/specs/step-4-review.md`).
 
 ## Fresh content from recent proposals
 
@@ -131,7 +131,7 @@ Needs Phase B of the historical data work (past proposals split into labeled sec
 
 The status moves by hand, each move behind a confirmation modal with an optional note and recorded in the History (`advance_rfp`, kinds `ready_for_review`, `back_to_drafting`, `submitted`, `shortlisted`, `won`, `lost`):
 
-- **Proposal · Drafting:** **Ready for review** (to Proposal · In review) or **Mark as submitted** (skips review).
-- **Proposal · In review:** **Mark as submitted** or **Back to drafting**. (The step 4 AI check against the requirements list is not built; for now review is a status the team uses.)
+- **Proposal · Drafting:** **Mark as submitted**. (Changed 2026-11-23: **Ready for review** is no longer offered, since the app isn't checking proposals for now.)
+- **Proposal · In review:** **Mark as submitted** or **Back to drafting**. Nothing sends an RFP here any more; the status stays so one already in it can move on.
 - **Submitted · Waiting:** **Shortlisted**, **Won** or **Lost**. **Submitted · Shortlisted:** **Won** or **Lost**. Won and Lost close the RFP (Closed · Won / Lost), set its outcome, and record how far it got (submitted, or finalist if it was shortlisted). Reopen from the ⋯ menu still returns a closed RFP to Submitted · Waiting.
 - Not built: moving the Drive folder when an RFP closes as won or lost, and a submitted date.

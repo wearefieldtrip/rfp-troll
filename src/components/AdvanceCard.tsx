@@ -66,7 +66,7 @@ function ConfirmDialog({ rfpId, status, action, onClose }: { rfpId: string; stat
   )
 }
 
-/** The hand-offs open from the RFP's status: ready for review, submitted, shortlisted, won, lost. Each asks first. */
+/** The hand-offs open from the RFP's status: submitted, shortlisted, won, lost. Each asks first. */
 export function AdvanceCard({ rfpId, status }: { rfpId: string; status: string }) {
   const [action, setAction] = useState<AdvanceAction | null>(null)
   const copy = advanceCopy(status)

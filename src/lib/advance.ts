@@ -1,4 +1,5 @@
-// The hand-offs after the proposal is built (docs/specs/step-3-proposal.md, "After the proposal"). Each moves the RFP's
+// The hand-offs after the proposal is built. (2026-11-23: Ready for review is no longer offered, since the app isn't checking proposals for now. The action and the Proposal · In review status stay so an RFP already there can still move on.)
+// (docs/specs/step-3-proposal.md, "After the proposal"). Each moves the RFP's
 // status and is recorded in the decision history. The database function `advance_rfp` enforces the same moves.
 
 export type AdvanceAction = 'ready_for_review' | 'back_to_drafting' | 'submitted' | 'shortlisted' | 'won' | 'lost'
@@ -24,7 +25,7 @@ export const ADVANCE: Record<AdvanceAction, AdvanceInfo> = {
 export function actionsFor(status: string): AdvanceAction[] {
   switch (status) {
     case 'proposal_drafting':
-      return ['ready_for_review', 'submitted']
+      return ['submitted']
     case 'proposal_in_review':
       return ['submitted', 'back_to_drafting']
     case 'submitted_waiting':
@@ -40,9 +41,9 @@ export function actionsFor(status: string): AdvanceAction[] {
 export function advanceCopy(status: string): { title: string; text: string } | null {
   switch (status) {
     case 'proposal_drafting':
-      return { title: 'When the proposal is ready', text: 'Hand it to review. If it has already gone out, mark it as submitted.' }
+      return { title: 'When the proposal goes out', text: 'Mark it as submitted once it has been sent to the issuer.' }
     case 'proposal_in_review':
-      return { title: 'In review', text: 'Review the proposal against the requirements list, then mark it as submitted, or send it back to drafting.' }
+      return { title: 'In review', text: 'Mark it as submitted once it has been sent to the issuer, or send it back to drafting.' }
     case 'submitted_waiting':
       return { title: 'Waiting to hear back', text: 'Update the RFP when the issuer replies.' }
     case 'submitted_shortlisted':

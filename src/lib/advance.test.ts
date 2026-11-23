@@ -4,7 +4,7 @@ import { actionsFor, advanceCopy, ADVANCE } from './advance.ts'
 import { STATUSES } from './rfp-status.ts'
 
 test('each status offers the right hand-offs, main one first', () => {
-  assert.deepEqual(actionsFor('proposal_drafting'), ['ready_for_review', 'submitted'])
+  assert.deepEqual(actionsFor('proposal_drafting'), ['submitted'])
   assert.deepEqual(actionsFor('proposal_in_review'), ['submitted', 'back_to_drafting'])
   assert.deepEqual(actionsFor('submitted_waiting'), ['shortlisted', 'won', 'lost'])
   assert.deepEqual(actionsFor('submitted_shortlisted'), ['won', 'lost'])
