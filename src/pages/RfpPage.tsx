@@ -7,6 +7,7 @@ import { ChangeOwnerDialog } from '@/components/ChangeOwnerDialog'
 import { DecisionButtons } from '@/components/DecisionCard'
 import { DeleteRfpDialog } from '@/components/DeleteRfpDialog'
 import { EditRfpDialog } from '@/components/EditRfpDialog'
+import { TagsPanel } from '@/components/TagsPanel'
 import { EditTagsDialog } from '@/components/EditTagsDialog'
 import { HistoryPanel } from '@/components/HistoryPanel'
 import { ImportedCard } from '@/components/ImportedCard'
@@ -270,8 +271,9 @@ export default function RfpPage() {
         />
       </div>
 
-      <aside className="mt-10 lg:sticky lg:top-6 lg:mt-0">
+      <aside className="mt-10 space-y-10 lg:mt-0">
         <HistoryPanel entries={history} />
+        <TagsPanel rfpId={id} onEdit={() => setDialog('tags')} />
       </aside>
     </div>
   )
