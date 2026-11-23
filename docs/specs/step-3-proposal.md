@@ -4,6 +4,12 @@ Status: draft. Items marked **OPEN** need an answer from Fieldtrip before they'r
 
 Fieldtrip has no single proposal template; each proposal starts from a recent one. So the app builds the new proposal from a **base proposal**: a recent, similar past proposal Doc. This needs Phase A of the historical data work (tracker imported, proposals linked, tags) — see `docs/specs/historical-data.md` and `docs/specs/tagging.md`.
 
+**Principle: the proposal the app builds is a first draft.** It is a starting point for the Fieldtrip team to take over and make their own, not a finished or send-ready proposal, and the app never writes new copy. It assembles three things:
+
+1. **The prospective client's structure.** The sections the RFP asks for, in its order and with its names, plus what each must address, its page limit and its points (the requirements list).
+2. **A similar past proposal** (the base proposal) for the content: Fieldtrip's own words from the proposal most like this one, kept word for word.
+3. **Recent proposals, for what is new.** Fieldtrip keeps improving its proposals (new bios, case studies, statements, results). Where a more recent proposal has a newer version of a section the base proposal also has, the app points to it so the team can pull in the new material instead of the old. See "Fresh content from recent proposals" below.
+
 Starts when the user confirms **Move to Proposal**, either from step 2, or from step 1 when questions aren't allowed or their deadline has passed.
 
 Steps 1 and 2 stay at the top of the profile, collapsed. The 3 · Proposal section sits under them.
@@ -91,6 +97,14 @@ Read the RFP, every addendum, and the client's answers (all labeled, in one requ
 - Buttons: **Open proposal**, **Open estimate**
 - An expandable **Requirements** list: each section with what it must address, page limit and points; then attachments and submission rules.
 - **Ready for review** button. It opens a confirmation modal and moves the RFP to step 4 (status Proposal · In review). Spec for step 4 to follow.
+
+## Fresh content from recent proposals
+
+Needs Phase B of the historical data work (past proposals split into labeled sections). Until then the base proposal is all the app has to place.
+
+- For each kept section whose label (About Fieldtrip, Capabilities, Short Bios, Case Studies, statements and so on) also appears in a **more recent** proposal than the base, add a comment: "A newer version is in [client] ([month year])", with a link to that proposal's heading. Case studies get a pointer to the ones used in the most recent proposals.
+- Where the newer section differs materially, offer it **word for word as a Google Docs suggestion** beside the kept text, with a source comment (client, year, outcome, any flags such as another client's name or figures), so the team can accept, reject or merge. Never replace the base text silently, and never write a merged version.
+- **OPEN:** what counts as recent (for example the last 12 months, or the latest N proposals).
 
 ## Later pieces (need Phase B of the historical data work)
 

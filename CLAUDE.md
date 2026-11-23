@@ -32,6 +32,7 @@ The specs are the source of truth. If a build decision changes a spec, update th
 
 - **The AI never acts on its own.** Every AI step is started by a person, and every decision (move forward, pass) goes through a confirmation modal.
 - **No AI-written creative work**, written or visual. The app places structure, requirements and Fieldtrip's own past content; the team writes.
+- **Everything the app drafts is a first draft.** A proposal Doc, a questions doc, an estimate sheet: each is a starting point for the Fieldtrip team to edit, rewrite and own, never something presented as finished or ready to send. The app saves the team the assembly work (structure, requirements, past content in the right places, flags on what to check) so they can spend their time on what they do best.
 - **Show AI output as a draft**, with its sources (page or answer numbers, source proposal and year).
 - **Keep AI output short.** The fit review returns a fixed shape with limits (see step 1 spec); the page never shows walls of text.
 - **"Not stated" is never the same as "No."** Keep them distinct in data and UI.
