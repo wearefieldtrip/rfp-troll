@@ -99,6 +99,8 @@ Exactly one of:
 
 ## Budget pill (always shown)
 
+- (Decision 2026-11-22.) The pill shows only the amount (**Budget $95K–$125K**) or **Not stated**, with no second piece of text: the qualifier, the "est. … from 990" figure and "no estimate available" are no longer in the pill. Hovering still shows the RFP's own wording or the reason there's no estimate, and the estimate's basis line stays under the pills. The Edit details dialog no longer has a Budget field, so a budget can't be typed in; it comes from the RFP or from the issuer's answers.
+
 - **Stated:** **Budget** $95K–$125K · all-inclusive (the amount or range from the RFP, plus a short qualifier such as "all-inclusive" or "plus media").
 - **Not stated:** **Budget** Not stated · est. $40K–$70K from 990.
   - The estimate is only run when the RFP has no budget.

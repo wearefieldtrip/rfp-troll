@@ -1,12 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
+import type { FormEvent } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { manualDayColumns } from '@/lib/moment-columns'
 import { calendarDate, type Moment } from '@/lib/rfp-dates'
-import { formatBudget, parseBudgetInput } from '@/lib/rfp-budget'
 import { supabase } from '@/lib/supabase'
 
 type Props = {
@@ -15,33 +14,19 @@ type Props = {
     title: string
     client_name: string | null
     proposal: Moment | null
-    budget_min_usd: number | null
-    budget_max_usd: number | null
-    budget_qualifier: string | null
   }
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
-class BudgetTypo extends Error {}
-
 export function EditRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
   const queryClient = useQueryClient()
-  const [budgetError, setBudgetError] = useState(false)
 
   const save = useMutation({
     mutationFn: async (form: FormData) => {
       const text = (key: string) => ((form.get(key) as string) ?? '').trim() || null
       const dueDate = text('due_date')
       const currentDay = rfp.proposal ? calendarDate(rfp.proposal) : null
-
-      // A budget someone typed is confirmed, not read from the RFP. Only touch it if they changed it.
-      const typedBudget = parseBudgetInput((form.get('budget') as string) ?? '')
-      if (!typedBudget.ok) throw new BudgetTypo()
-      const qualifier = text('budget_qualifier')
-      const budgetChanged =
-        typedBudget.min !== rfp.budget_min_usd || typedBudget.max !== rfp.budget_max_usd || qualifier !== (rfp.budget_qualifier || null)
-      const hasBudget = typedBudget.min !== null || typedBudget.max !== null
 
       const { error } = await supabase
         .from('rfps')
@@ -50,23 +35,12 @@ export function EditRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
           client_name: text('client_name'),
           // A date someone typed is confirmed, not inferred.
           ...(dueDate !== currentDay ? { due_date_source: dueDate ? 'manual' : null, ...manualDayColumns('proposal_due', dueDate) } : {}),
-          ...(budgetChanged
-            ? {
-                budget_min_usd: typedBudget.min,
-                budget_max_usd: typedBudget.max,
-                budget_qualifier: hasBudget ? qualifier : null,
-                budget_wording: null,
-                budget_source: hasBudget ? 'manual' : null,
-              }
-            : {}),
         })
         .eq('id', rfp.id)
       if (error) throw error
     },
-    onError: (err) => setBudgetError(err instanceof BudgetTypo),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['rfps'] })
-      setBudgetError(false)
       setOpen(false)
     },
   })
@@ -96,20 +70,7 @@ export function EditRfpDialog({ rfp, open, onOpenChange: setOpen }: Props) {
             <Label htmlFor="edit-due">Proposal due date</Label>
             <Input id="edit-due" name="due_date" type="date" defaultValue={rfp.proposal ? calendarDate(rfp.proposal) : ''} />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="edit-budget">Budget</Label>
-            <Input
-              id="edit-budget"
-              name="budget"
-              placeholder="$95K–$125K, up to 100k, 50k+, or a single amount"
-              defaultValue={formatBudget(rfp.budget_min_usd, rfp.budget_max_usd)}
-              aria-invalid={budgetError}
-            />
-            <Input name="budget_qualifier" placeholder="Note, such as all-inclusive or plus media" defaultValue={rfp.budget_qualifier ?? ''} />
-            <p className="text-xs text-muted-foreground">Leave the budget blank if the RFP doesn't state one.</p>
-          </div>
-          {budgetError && <p className="text-sm text-destructive">That budget isn't an amount I understand. Try $95K, $95K–$125K or up to 100k.</p>}
-          {save.error && !budgetError && <p className="text-sm text-destructive">Could not save. Please try again.</p>}
+          {save.error && <p className="text-sm text-destructive">Could not save. Please try again.</p>}
           <DialogFooter>
             <Button type="submit" disabled={save.isPending}>
               {save.isPending ? 'Saving…' : 'Save'}

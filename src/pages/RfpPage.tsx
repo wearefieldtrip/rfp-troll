@@ -236,9 +236,6 @@ export default function RfpPage() {
             title: data.title,
             client_name: data.client_name,
             proposal: momentFrom(data, 'proposal_due'),
-            budget_min_usd: data.budget_min_usd,
-            budget_max_usd: data.budget_max_usd,
-            budget_qualifier: data.budget_qualifier,
           }}
           open={dialog === 'edit'}
           onOpenChange={(open) => setDialog(open ? 'edit' : null)}

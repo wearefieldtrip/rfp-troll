@@ -140,16 +140,9 @@ export function KeyFacts({
           }
         >
           {hasBudget ? (
-            <>
-              <span>{formatBudget(rfp.budget_min_usd, rfp.budget_max_usd)}</span>
-              {rfp.budget_qualifier && <span className="opacity-70">· {rfp.budget_qualifier}</span>}
-            </>
+            <span>{formatBudget(rfp.budget_min_usd, rfp.budget_max_usd)}</span>
           ) : (
-            <>
-              <NotStated />
-              {estimate?.status === 'estimated' && <span className="opacity-70">· est. {formatBudget(estimate.low, estimate.high)} from 990</span>}
-              {estimate?.status === 'unavailable' && <span className="opacity-70">· no estimate available</span>}
-            </>
+            <NotStated />
           )}
         </Chip>
 
