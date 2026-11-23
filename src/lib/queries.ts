@@ -21,8 +21,12 @@ export const rfpQuery = (id: string) =>
       if (error) throw error
       return data
     },
-    // Keep checking while the Drive folder or the questions doc is being set up in the background.
-    refetchInterval: (query) => (query.state.data?.drive_status === 'syncing' || query.state.data?.questions_doc_status === 'building' ? 2500 : false),
+    // Keep checking while the Drive folder, the questions doc, the requirements or the proposal doc are being set up in the background.
+    refetchInterval: (query) => {
+      const d = query.state.data
+      const busy = d?.drive_status === 'syncing' || d?.questions_doc_status === 'building' || d?.proposal_draft_status === 'building' || d?.requirements_status === 'building'
+      return busy ? 2500 : false
+    },
   })
 
 export const rfpDocumentsQuery = (rfpId: string) =>

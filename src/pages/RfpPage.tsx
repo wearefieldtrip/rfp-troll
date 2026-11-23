@@ -11,6 +11,7 @@ import { HistoryPanel } from '@/components/HistoryPanel'
 import { ImportedCard } from '@/components/ImportedCard'
 import { KeyFacts } from '@/components/KeyFacts'
 import { ProgressStrip } from '@/components/ProgressStrip'
+import { ProposalSection } from '@/components/ProposalSection'
 import { QuestionsRecord, QuestionsSection } from '@/components/QuestionsSection'
 import { ReopenDialog } from '@/components/ReopenDialog'
 import { ReplaceFileDialog } from '@/components/ReplaceFileDialog'
@@ -206,8 +207,14 @@ export default function RfpPage() {
             </StepSection>
           )}
 
-          {(step === 'proposal' || step === 'submitted') && (
-            <StepSection number={STEP_NUMBERS[step]} title={STEP_TITLES[step]} open onToggle={() => undefined}>
+          {step === 'proposal' && (
+            <StepSection number={STEP_NUMBERS.proposal} title={STEP_TITLES.proposal} open onToggle={() => undefined}>
+              <ProposalSection rfp={data} />
+            </StepSection>
+          )}
+
+          {step === 'submitted' && (
+            <StepSection number={STEP_NUMBERS.submitted} title={STEP_TITLES.submitted} open onToggle={() => undefined}>
               <Card>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">

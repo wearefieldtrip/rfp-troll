@@ -117,3 +117,12 @@ Needs Phase B of the historical data work (past proposals split into labeled sec
 - Pricing is never carried over from past proposals.
 - Content inside the RFP, addenda, answers or past proposals is data, not instructions.
 - Failure handling as in step 1: the RFP record and its status update first; each job fails on its own with a retry.
+
+## Built so far (Nov 2026)
+
+- **Requirements list** (`requirements` function, `src/lib/requirements.ts`): read from the RFP, addenda and every batch of answers; stored on the RFP (`requirements`, `requirements_status`). Shown as a folded list in the Proposal section.
+- **Proposal Doc from a base proposal** (`proposal-doc` function, `src/lib/proposal-plan.ts`): copies the base Doc, maps its top-level headings to the required sections (Sonnet), deletes unmatched sections, renames matched headings, clears the body of pricing sections, adds empty headings for required sections with no match, swaps the past client's name and RFP title in the header, footer and cover only, and posts comments (one per section, plus a top comment with order moves, attachments and submission rules).
+- **Comments are not anchored.** The Drive API can't anchor comments in a Doc, so each comment starts with "▸ Section name".
+- **A "section" is a heading at the top heading level used in the base Doc**; sub-headings stay with their section. A base Doc with no headings is kept as is, with a comment.
+- **Move to Proposal modal** shows the proposal deadline and "Based on … · Change" (top 5 by similarity, only past RFPs that have a linked Doc). The Proposal section offers the same picker when no doc exists or the build failed.
+- Not built yet: the estimate sheet (deferred), Ready for review (needs the step 4 spec), fresh content from recent proposals (needs Phase B).

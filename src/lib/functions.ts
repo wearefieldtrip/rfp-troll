@@ -93,3 +93,6 @@ export const runAiTagging = (range: { from?: number; to?: number }) => callFunct
 
 /** Reads what the RFP asks the proposal to contain, including addenda and the issuer's answers. */
 export const buildRequirements = (rfpId: string) => invokeFunction('requirements', { rfp_id: rfpId })
+
+/** Builds the proposal Doc as a copy of a past proposal, matched to what the RFP asks for. Waits for the requirements itself. */
+export const proposalDoc = (rfpId: string, baseRfpId: string) => invokeFunction('proposal-doc', { rfp_id: rfpId, base_rfp_id: baseRfpId })

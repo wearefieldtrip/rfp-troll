@@ -1,9 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { BaseProposalPicker } from '@/components/BaseProposalPicker'
+import { chosenBaseId, useBaseCandidates } from '@/lib/base-candidates'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { destinationLabel, destinationStatus, moveForwardDestination } from '@/lib/decisions'
 import { dayCountLabel, daysUntilMoment } from '@/lib/key-dates'
-import { questionsDoc } from '@/lib/functions'
+import { buildRequirements, proposalDoc, questionsDoc } from '@/lib/functions'
 import { momentFrom } from '@/lib/moment-columns'
 import { formatMoment } from '@/lib/rfp-dates'
 import { supabase } from '@/lib/supabase'
@@ -27,6 +30,13 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
   const deadline = rfp.questions_policy === 'due' ? momentFrom(rfp, 'questions_due') : null
   const choice = proposalOnly ? { destination: 'proposal' as const, why: '' } : moveForwardDestination({ policy: rfp.questions_policy, deadline })
   const label = destinationLabel(choice.destination)
+  const proposalDue = momentFrom(rfp, 'proposal_due')
+
+  // Only a move to Proposal builds from a past proposal. The best match is chosen unless another is picked.
+  const [pickedBase, setPickedBase] = useState<string | null>(null)
+  const candidates = useBaseCandidates(rfp.id, new Date(rfp.created_at).getFullYear())
+  const baseId = choice.destination === 'proposal' ? chosenBaseId(candidates.ranked, pickedBase) : null
+  const base = candidates.ranked.find((m) => m.item.id === baseId)
 
   const move = useMutation({
     mutationFn: async () => {
@@ -34,7 +44,7 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
         p_rfp_id: rfp.id,
         p_decision: 'move_forward',
         p_destination: choice.destination,
-        p_note: withoutAnswers ? 'Decided without answers from the issuer.' : undefined,
+        p_note: [withoutAnswers && 'Decided without answers from the issuer.', base && `Proposal based on ${base.item.client_name ?? base.item.title} (${base.year}).`].filter(Boolean).join(' ') || undefined,
         p_expected_status: rfp.status,
       })
       if (error) throw new Error(error.message)
@@ -42,6 +52,11 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
     onSuccess: async () => {
       // The doc is built in the background. If it can't start, the Questions card offers a retry.
       if (choice.destination === 'questions') void questionsDoc(rfp.id, 'build').catch(() => undefined)
+      // The proposal doc waits for the requirements itself. Without a base, the Proposal section offers to pick one.
+      if (choice.destination === 'proposal') {
+        void buildRequirements(rfp.id).catch(() => undefined)
+        if (baseId) void proposalDoc(rfp.id, baseId).catch(() => undefined)
+      }
       onOpenChange(false)
       await queryClient.invalidateQueries({ queryKey: ['rfps'] })
     },
@@ -59,6 +74,13 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
             <li>Change the status to {destinationStatus(choice.destination)}</li>
             <li>Record this decision{scoreText ? ` with the current score (${scoreText})` : ''}</li>
             {withoutAnswers && <li>Note on the record that this was decided without answers</li>}
+            {choice.destination === 'proposal' && (
+              <>
+                <li>Read what the RFP asks the proposal to contain, including any addenda and answers</li>
+                <li>Create a proposal Doc in the client's Drive folder as a copy of a past proposal, matched to those sections</li>
+                <li>Comment on each section with where it came from and what to check. It's a first draft: the team writes the rest</li>
+              </>
+            )}
             {choice.destination === 'questions' && (
               <>
                 <li>Create a questions doc in the client's Drive folder from the template, keeping the template questions that fit this RFP</li>
@@ -69,6 +91,14 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
           {!proposalOnly && choice.destination === 'questions' && deadline && (
             <p className="rounded-lg bg-muted px-3 py-2">
               Questions are due <b className="font-semibold">{formatMoment(deadline)}</b> ({dayCountLabel(daysUntilMoment(deadline))}).
+            </p>
+          )}
+          {choice.destination === 'proposal' && (
+            <BaseProposalPicker rfpId={rfp.id} year={new Date(rfp.created_at).getFullYear()} value={pickedBase} onChange={setPickedBase} />
+          )}
+          {choice.destination === 'proposal' && proposalDue && (
+            <p className="rounded-lg bg-muted px-3 py-2">
+              The proposal is due <b className="font-semibold">{formatMoment(proposalDue)}</b> ({dayCountLabel(daysUntilMoment(proposalDue))}).
             </p>
           )}
           {choice.why && <p className="rounded-lg bg-muted px-3 py-2">{choice.why}</p>}
