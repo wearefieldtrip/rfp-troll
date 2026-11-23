@@ -89,3 +89,14 @@ test('the schema and prompt carry the lists, and an empty list still gives a val
   assert.match(tagsPrompt(lists), /services: Brand strategy; Website; Campaign/)
   assert.match(tagsPrompt({ ...lists, topics: [] }), /topics: \(none yet\)/)
 })
+
+test('an RFP gets at most four services, keeping the first (most important) ones', () => {
+  const many = { ...lists, services: ['Website', 'Campaign', 'Brand strategy', 'Training', 'Translation', 'Accessibility'] }
+  const t = buildTags({ services: many.services }, many)
+  assert.deepEqual(t.services, ['Website', 'Campaign', 'Brand strategy', 'Training'])
+})
+
+test('the prompt asks for core work only, not add-ons or requirements', () => {
+  assert.match(tagsPrompt(lists), /only the core work/)
+  assert.match(tagsPrompt(lists), /never more than 4/)
+})

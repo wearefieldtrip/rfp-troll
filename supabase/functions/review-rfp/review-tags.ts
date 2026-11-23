@@ -12,6 +12,9 @@ export type TagLists = Record<ListGroup, string[]>
 export const SUGGESTABLE = ['sector', 'services', 'topics', 'audiences', 'requirements'] as const
 const MAX_SUGGESTED = 3
 
+/** The most services one RFP gets. The model lists them most important first; the rest are dropped. */
+export const MAX_SERVICES = 4
+
 export type SuggestedValue = { group: string; value: string }
 
 export type ReviewTags = {
@@ -64,7 +67,8 @@ export function tagsPrompt(lists: TagLists): string {
   const list = (g: ListGroup) => `${g}: ${lists[g].join('; ') || '(none yet)'}`
   return `- tags: choose only from the lists below, never invent a value that is in a list.
   - client_type and sector: one value each, or an empty string when none fits. sector describes the client; topics describe the work.
-  - services, topics, audiences, requirements: every value the RFP clearly asks for or points to, or an empty list.
+  - services: only the core work this RFP asks a vendor to deliver, most important first, usually one to three and never more than ${MAX_SERVICES}. Take them from the title and the scope of work. Leave out anything that is only an add-on, optional, a possible later phase, background about the client, or a requirement on how the work is done (accessibility, translation, training and ongoing support count only when they are a main deliverable). A website RFP is just Website unless the scope asks for the others as work to be delivered. Do not add Brand strategy, Visual identity or Campaign because a website will reflect a brand or support a campaign.
+  - topics, audiences, requirements: every value the RFP clearly asks for or points to, or an empty list.
   - procurement: the kind of process. Include the document type (RFP, RFI or RFQ) and public or private when clear. Include multi-year, agency of record, pitch round or DBE/WBE preference only when the RFP says so.
   - state: the two-letter US state where the issuer is based, or an empty string.
   - suggested_new: at most ${MAX_SUGGESTED} short values worth adding when something important has no match in a list, each with its group (${SUGGESTABLE.join(', ')}). Usually an empty list.
@@ -109,7 +113,7 @@ export function buildTags(raw: unknown, lists: TagLists): ReviewTags {
   return {
     client_type: one('client_type'),
     sector: one('sector'),
-    services: many('services'),
+    services: many('services').slice(0, MAX_SERVICES),
     topics: many('topics'),
     audiences: many('audiences'),
     requirements: many('requirements'),
