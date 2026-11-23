@@ -50,12 +50,13 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
       if (error) throw new Error(error.message)
     },
     onSuccess: async () => {
-      // The doc is built in the background. If it can't start, the Questions card offers a retry.
-      if (choice.destination === 'questions') void questionsDoc(rfp.id, 'build').catch(() => undefined)
+      // Starting the build returns at once and the work carries on in the background. Wait for that start signal before
+      // reloading the RFP, so the page already shows "creating" instead of a button to create it. If it can't start,
+      // the section offers a retry.
+      if (choice.destination === 'questions') await questionsDoc(rfp.id, 'build').catch(() => undefined)
       // The proposal doc waits for the requirements itself. Without a base, the Proposal section offers to pick one.
       if (choice.destination === 'proposal') {
-        void buildRequirements(rfp.id).catch(() => undefined)
-        if (baseId) void proposalDoc(rfp.id, baseId).catch(() => undefined)
+        await Promise.allSettled([buildRequirements(rfp.id), ...(baseId ? [proposalDoc(rfp.id, baseId)] : [])])
       }
       onOpenChange(false)
       await queryClient.invalidateQueries({ queryKey: ['rfps'] })
