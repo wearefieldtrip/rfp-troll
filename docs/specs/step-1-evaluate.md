@@ -134,9 +134,9 @@ On confirm, record who decided, when, and the score at that moment. The status c
 **Pass.** The confirmation modal ("Pass on this RFP?"):
 
 - Says it moves to Closed · Passed and can be reopened later.
-- Requires a reason: Budget, Timeline, Not a fit, Capacity, Scope, Other.
+- Requires at least one reason; more than one can be checked: Budget, Timeline, Not a fit, Capacity, Scope, Other. (Changed 2026-11-23: was a single choice.) They are stored together in the reason text, in this order, separated by ", " (e.g. "Budget, Timeline"), and show that way in the history.
 - Has an optional note.
-- The Pass button stays disabled until a reason is chosen.
+- The Pass button stays disabled until at least one reason is checked.
 
 On confirm, record who decided, when, the reason, the note, and the score at that moment. The Drive folder moves first; if saving the decision fails, the folder is moved back.
 

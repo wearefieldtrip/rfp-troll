@@ -62,11 +62,16 @@ Deno.serve(async (req) => {
   const { data: userData, error: userError } = await supabase.auth.getUser(authHeader.replace("Bearer ", ""));
   if (userError || !userData.user) return json({ error: "Not signed in" }, 401);
 
-  const { rfp_id, reason, note, action } = await req.json().catch(() => ({}));
+  const { rfp_id, reasons, note, action } = await req.json().catch(() => ({}));
   if (typeof rfp_id !== "string") return json({ error: "rfp_id is required" }, 400);
   if (action === "reopen") return await reopen(supabase, rfp_id);
   // Checked before anything moves, so a bad request never leaves a folder in the wrong place.
-  if (typeof reason !== "string" || !REASONS.includes(reason)) return json({ error: "Choose a reason for passing." }, 400);
+  // One or more reasons from the list. They are stored together, in the list's order, separated by ", ".
+  const chosen = Array.isArray(reasons) ? REASONS.filter((r) => reasons.includes(r)) : [];
+  if (chosen.length === 0 || (reasons as unknown[]).some((r) => typeof r !== "string" || !REASONS.includes(r))) {
+    return json({ error: "Choose at least one reason for passing." }, 400);
+  }
+  const reason = chosen.join(", ");
   const cleanNote = typeof note === "string" && note.trim() ? note.trim().slice(0, 2000) : null;
 
   const { data: rfp, error } = await supabase

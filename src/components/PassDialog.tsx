@@ -10,11 +10,11 @@ import { cn } from '@/lib/utils'
 
 export function PassDialog({ rfpId, open, onOpenChange }: { rfpId: string; open: boolean; onOpenChange: (open: boolean) => void }) {
   const queryClient = useQueryClient()
-  const [reason, setReason] = useState<PassReason | null>(null)
+  const [reasons, setReasons] = useState<PassReason[]>([])
   const [note, setNote] = useState('')
 
   const pass = useMutation({
-    mutationFn: () => invokeFunction('pass-rfp', { rfp_id: rfpId, reason, note: note.trim() }),
+    mutationFn: () => invokeFunction('pass-rfp', { rfp_id: rfpId, reasons, note: note.trim() }),
     onSuccess: async () => {
       onOpenChange(false)
       await queryClient.invalidateQueries({ queryKey: ['rfps'] })
@@ -25,7 +25,7 @@ export function PassDialog({ rfpId, open, onOpenChange }: { rfpId: string; open:
     if (pass.isPending) return
     onOpenChange(next)
     if (!next) {
-      setReason(null)
+      setReasons([])
       setNote('')
       pass.reset()
     }
@@ -40,14 +40,21 @@ export function PassDialog({ rfpId, open, onOpenChange }: { rfpId: string; open:
         </DialogHeader>
 
         <fieldset className="space-y-2">
-          <legend className="pb-2 text-sm font-semibold">Reason</legend>
+          <legend className="pb-2 text-sm font-semibold">
+            Reasons <span className="font-normal text-muted-foreground">(choose all that apply)</span>
+          </legend>
           <div className="grid grid-cols-2 gap-2">
             {PASS_REASONS.map((r) => (
               <label
                 key={r}
-                className={cn('flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-sm', reason === r && 'border-foreground bg-muted')}
+                className={cn('flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-sm', reasons.includes(r) && 'border-foreground bg-muted')}
               >
-                <input type="radio" name="reason" className="size-4 accent-foreground" checked={reason === r} onChange={() => setReason(r)} />
+                <input
+                  type="checkbox"
+                  className="size-4 accent-foreground"
+                  checked={reasons.includes(r)}
+                  onChange={(e) => setReasons((cur) => (e.target.checked ? [...cur, r] : cur.filter((x) => x !== r)))}
+                />
                 {r}
               </label>
             ))}
@@ -67,7 +74,7 @@ export function PassDialog({ rfpId, open, onOpenChange }: { rfpId: string; open:
           <Button variant="outline" disabled={pass.isPending} onClick={() => close(false)}>
             Cancel
           </Button>
-          <Button disabled={reason === null || pass.isPending} onClick={() => pass.mutate()}>
+          <Button disabled={reasons.length === 0 || pass.isPending} onClick={() => pass.mutate()}>
             {pass.isPending ? 'Passing…' : 'Pass'}
           </Button>
         </DialogFooter>
