@@ -92,7 +92,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
 
   const current = profileFromTags(flat(list.tagRows), year)
   const hasTags = current.services.length > 0 || current.sector !== null || current.clientType !== null
-  const unconfirmed = list.tagRows.some((t) => !t.confirmed)
   const ranked = list.ranked
   const shown = more ? ranked : ranked.slice(0, SHOWN)
   const record = trackRecord(ranked.slice(0, SHOWN).map((m) => ({ outcome: m.item.outcome, stage: m.item.furthest_stage })))
@@ -181,11 +180,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
           </Button>
         )}
         {(add.error || remove.error) && <p className="text-destructive">That change didn't save. Please try again.</p>}
-
-        <p className="text-xs text-muted-foreground">
-          Picked RFPs come first. The rest are matched on tags: services, sector, client type, topics and budget, with newer RFPs counting more.
-          {unconfirmed && " This RFP's tags are AI-set; fix them with Edit tags if they look wrong."}
-        </p>
       </CardContent>
     </Card>
   )
