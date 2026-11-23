@@ -111,7 +111,7 @@ export default function RfpPage() {
   const history = buildHistory({ rfp: data, reviews: reviews.data ?? [], decisions: decisions.data ?? [], answers: answers.data ?? [], people: team.data ?? [] })
 
   return (
-    <div className="max-w-6xl lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(0,19rem)] lg:items-start lg:gap-x-20">
+    <div className="max-w-6xl lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(0,19rem)] lg:items-start lg:gap-x-16">
       <div className="min-w-0 space-y-10">
         <div>
           <Link to="/" className="text-sm text-muted-foreground hover:underline">
@@ -271,9 +271,11 @@ export default function RfpPage() {
         />
       </div>
 
-      <aside className="mt-14 space-y-14 border-t pt-10 lg:mt-0 lg:self-stretch lg:border-t-0 lg:border-l lg:pt-0 lg:pl-12">
-        <HistoryPanel entries={history} />
-        <div className="border-t pt-10">
+      <aside className="mt-10 space-y-6 lg:mt-0">
+        <div className="rounded-xl border p-5">
+          <HistoryPanel entries={history} />
+        </div>
+        <div className="rounded-xl border p-5">
           <TagsPanel rfpId={id} onEdit={() => setDialog('tags')} />
         </div>
       </aside>
