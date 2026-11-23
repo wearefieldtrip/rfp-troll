@@ -48,7 +48,7 @@ export function ProposalSection({ rfp }: { rfp: Rfp }) {
         <CardHeader>
           <CardTitle>Creating the proposal</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
             <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
             Reading what the RFP asks for, copying the past proposal and matching its sections. This takes a minute or two.
@@ -69,7 +69,7 @@ export function ProposalSection({ rfp }: { rfp: Rfp }) {
           <p className="text-xs font-medium text-muted-foreground">3 · Proposal · Next step</p>
           <CardTitle>Write the proposal</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        <CardContent className="space-y-4 text-sm">
           <p className="text-muted-foreground">
             A first draft to take from here. It's {summary?.base.client ?? 'a past'} proposal's own words, matched to what the RFP asks for.
           </p>
@@ -86,7 +86,7 @@ export function ProposalSection({ rfp }: { rfp: Rfp }) {
           )}
           {line && <p className="text-muted-foreground">{line}</p>}
           {summary && summary.moves.length > 0 && (
-            <div className="rounded-lg bg-muted px-3 py-2">
+            <div className="rounded-lg bg-muted/60 px-4 py-3">
               <p className="font-medium">Sections to move (Google Docs can't be reordered by the app)</p>
               <ul className="list-disc pl-5">
                 {summary.moves.map((m) => (
@@ -118,7 +118,7 @@ export function ProposalSection({ rfp }: { rfp: Rfp }) {
       <CardHeader>
         <CardTitle>{draft === 'failed' ? "The proposal couldn't be created" : 'The proposal has not been created'}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-4 text-sm">
         {draft === 'failed' && rfp.proposal_draft_error && <p className="text-destructive">{rfp.proposal_draft_error}</p>}
         <BaseProposalPicker rfpId={rfp.id} year={year} value={picked} onChange={setPicked} />
         <div className="flex flex-wrap gap-2">
@@ -136,7 +136,7 @@ export function ProposalSection({ rfp }: { rfp: Rfp }) {
 
 function RequirementsFailed({ rfp, onRetry, pending }: { rfp: Rfp; onRetry: () => void; pending: boolean }) {
   return (
-    <div className="space-y-2 rounded-lg bg-muted px-3 py-2">
+    <div className="space-y-2 rounded-lg bg-muted/60 px-4 py-3">
       <p>The requirements couldn't be read{rfp.requirements_error ? `: ${rfp.requirements_error}` : '.'}</p>
       <Button size="sm" variant="outline" disabled={pending} onClick={onRetry}>
         {pending ? 'Starting…' : 'Read the requirements again'}

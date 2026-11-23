@@ -34,7 +34,7 @@ export function QuestionsSection({ rfp, scoreText }: { rfp: Rfp; scoreText: stri
         <CardHeader>
           <CardTitle>Creating the questions doc</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-4">
           <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
             <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
             Choosing the template questions that fit and adding the fit review's questions. This takes under a minute.
@@ -58,7 +58,7 @@ export function QuestionsSection({ rfp, scoreText }: { rfp: Rfp; scoreText: stri
         <CardHeader>
           <CardTitle>{status === 'failed' ? "The questions doc couldn't be created" : 'The questions doc has not been created'}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        <CardContent className="space-y-4 text-sm">
           {rfp.questions_doc_error && <p className="text-destructive">{rfp.questions_doc_error}</p>}
           {build.error && <p className="text-destructive">{build.error.message}</p>}
           <p className="text-muted-foreground">Creating it uses a small amount of AI credit to choose which template questions fit this RFP.</p>
@@ -76,7 +76,7 @@ export function QuestionsSection({ rfp, scoreText }: { rfp: Rfp; scoreText: stri
         <CardHeader>
           <CardTitle>Review the questions doc and send it</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        <CardContent className="space-y-4 text-sm">
           <p>
             The doc has {docContents(rfp.questions_bank_count, rfp.questions_suggestions_status === 'added' ? rfp.questions_suggested_count : null)}.
             {rfp.questions_suggested_count ? ' The AI suggested ones are Google Docs suggestions: accept or reject each one.' : ''}
@@ -180,7 +180,7 @@ export function QuestionsRecord({ rfp }: { rfp: Rfp }) {
 
   return (
     <Card>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-4 text-sm">
         <p>{rfp.questions_sent_on ? sentLine(rfp.questions_sent_count, rfp.questions_sent_on) : 'The questions doc was created but never marked as sent.'}</p>
         {rows.length > 0 && (
           <p>

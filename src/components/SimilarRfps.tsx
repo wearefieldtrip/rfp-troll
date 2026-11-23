@@ -43,7 +43,7 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
       <CardHeader>
         <CardTitle>Similar past RFPs</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-4 text-sm">
         {!hasTags ? (
           <p className="text-muted-foreground">Nothing to compare yet. Once this RFP is tagged by the fit review, or you add tags with Edit tags in the ⋯ menu, the closest past RFPs show here.</p>
         ) : ranked.length === 0 ? (
@@ -56,7 +56,7 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
                 const why = whyMatched(m)
                 const outcome = m.item.outcome ? (OUTCOME_LABELS[m.item.outcome] ?? m.item.outcome) : null
                 return (
-                  <li key={m.item.id} className="space-y-1 px-3 py-2.5">
+                  <li key={m.item.id} className="space-y-1 px-4 py-3.5">
                     <p className="flex flex-wrap items-baseline gap-x-3">
                       <Link to={`/rfps/${m.item.id}`} className="min-w-0 flex-1 font-medium break-words underline-offset-4 hover:underline">
                         {m.item.client_name ?? m.item.title}

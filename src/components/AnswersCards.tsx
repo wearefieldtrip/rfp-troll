@@ -41,7 +41,7 @@ export function WaitingCard({ rfp, answers, onAdd, onDecideWithout }: { rfp: Rfp
       <CardHeader>
         <CardTitle>Waiting for answers</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-4 text-sm">
         <p>{sentLine(rfp.questions_sent_count, rfp.questions_sent_on)}</p>
         <div className="flex flex-wrap items-center gap-4">
           <Button size="sm" onClick={onAdd}>
@@ -63,7 +63,7 @@ export function ReadingCard() {
       <CardHeader>
         <CardTitle>Reading the answers</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
           <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
           Matching them to your questions, checking for changed facts and re-scoring the fit. This usually takes a minute or two.
@@ -81,7 +81,7 @@ export function FailedReadingCard({ error, retrying, onRetry }: { error: string 
       <CardHeader>
         <CardTitle>The answers couldn't be read</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+      <CardContent className="space-y-4 text-sm">
         <p className="text-destructive">{error ?? 'Reading them took too long.'}</p>
         <p className="text-muted-foreground">The answers are saved. Retrying uses AI credit again.</p>
         <Button size="sm" disabled={retrying} onClick={onRetry}>

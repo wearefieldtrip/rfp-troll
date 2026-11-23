@@ -15,12 +15,12 @@ type Props = {
 /** One step of the process. The current step is open; finished steps fold up to a line you can open again. */
 export function StepSection({ number, title, summary, open, onToggle, children }: Props) {
   return (
-    <section className="space-y-4" aria-label={`${number} · ${title}`}>
+    <section className="space-y-6" aria-label={`${number} · ${title}`}>
       <button
         type="button"
         aria-expanded={open}
         onClick={onToggle}
-        className="flex w-full flex-wrap items-baseline gap-x-3 gap-y-1 border-b pb-2 text-left"
+        className="flex w-full flex-wrap items-baseline gap-x-3 gap-y-1 border-b pb-3 text-left"
       >
         <span className="text-sm font-semibold">
           {number} · {title}
@@ -31,7 +31,7 @@ export function StepSection({ number, title, summary, open, onToggle, children }
           <ChevronDownIcon className={cn('size-3.5 transition-transform', open && 'rotate-180')} aria-hidden />
         </span>
       </button>
-      {open && <div className="space-y-6">{children}</div>}
+      {open && <div className="space-y-8">{children}</div>}
     </section>
   )
 }

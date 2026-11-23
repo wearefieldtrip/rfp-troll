@@ -16,7 +16,7 @@ function Chip({ label, tone, title, children }: { label: string; tone?: Urgency;
   return (
     <span
       title={title}
-      className={cn('inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm', tone ? TONE_CLASSES[tone].badge : 'bg-muted/50')}
+      className={cn('inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm', tone ? TONE_CLASSES[tone].badge : 'bg-muted/50')}
     >
       <b className="font-semibold">{label}</b>
       {children}
@@ -109,8 +109,8 @@ export function KeyFacts({
   const estimate = hasBudget ? null : (rfp.budget_estimate as BudgetEstimate | null)
 
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2.5">
         <DateChip label="Proposal due" moment={momentFrom(rfp, 'proposal_due')} deadline title={proposalTitle} />
 
         {rfp.questions_policy === 'not_allowed' ? (

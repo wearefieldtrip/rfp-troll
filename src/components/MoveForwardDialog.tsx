@@ -89,7 +89,7 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
             )}
           </ul>
           {!proposalOnly && choice.destination === 'questions' && deadline && (
-            <p className="rounded-lg bg-muted px-3 py-2">
+            <p className="rounded-lg bg-muted/60 px-4 py-3">
               Questions are due <b className="font-semibold">{formatMoment(deadline)}</b> ({dayCountLabel(daysUntilMoment(deadline))}).
             </p>
           )}
@@ -97,11 +97,11 @@ export function MoveForwardDialog({ rfp, scoreText, open, onOpenChange, proposal
             <BaseProposalPicker rfpId={rfp.id} year={new Date(rfp.created_at).getFullYear()} value={pickedBase} onChange={setPickedBase} />
           )}
           {choice.destination === 'proposal' && proposalDue && (
-            <p className="rounded-lg bg-muted px-3 py-2">
+            <p className="rounded-lg bg-muted/60 px-4 py-3">
               The proposal is due <b className="font-semibold">{formatMoment(proposalDue)}</b> ({dayCountLabel(daysUntilMoment(proposalDue))}).
             </p>
           )}
-          {choice.why && <p className="rounded-lg bg-muted px-3 py-2">{choice.why}</p>}
+          {choice.why && <p className="rounded-lg bg-muted/60 px-4 py-3">{choice.why}</p>}
           {move.error && <p className="text-destructive">{move.error.message}</p>}
         </div>
         <DialogFooter>

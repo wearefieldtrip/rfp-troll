@@ -113,7 +113,7 @@ export function ReviewSection({ rfpId, hasDocuments, confirming, onConfirmingCha
           </Button>
         </CardAction>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         {start.error && <p className="text-sm text-destructive">{start.error.message}</p>}
         {renderDecision?.(false)}
         {!hasDocuments && <p className="text-sm text-muted-foreground">Add the RFP document to run a review.</p>}

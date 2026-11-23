@@ -100,8 +100,8 @@ export default function RfpPage() {
   const history = buildHistory({ rfp: data, reviews: reviews.data ?? [], decisions: decisions.data ?? [], answers: answers.data ?? [], people: team.data ?? [] })
 
   return (
-    <div className="max-w-6xl lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(0,18rem)] lg:items-start lg:gap-10">
-      <div className="min-w-0 space-y-6">
+    <div className="max-w-6xl lg:grid lg:grid-cols-[minmax(0,48rem)_minmax(0,18rem)] lg:items-start lg:gap-16">
+      <div className="min-w-0 space-y-10">
         <div>
           <Link to="/" className="text-sm text-muted-foreground hover:underline">
             ← All RFPs

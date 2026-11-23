@@ -39,7 +39,7 @@ export default function HomePage() {
   const visible = rfps?.filter((r) => inView(r.status, view.statuses)) ?? []
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">RFPs</h1>
         <NewRfpDialog />

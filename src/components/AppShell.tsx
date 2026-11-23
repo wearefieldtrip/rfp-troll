@@ -11,7 +11,7 @@ export function AppShell() {
 
   return (
     <div className="min-h-svh">
-      <header className="flex h-12 items-center gap-3 border-b px-6">
+      <header className="flex h-14 items-center gap-3 border-b px-8">
         <Link to="/" className="text-base font-semibold">
           RFP Troll
         </Link>
@@ -26,7 +26,7 @@ export function AppShell() {
           </Button>
         </div>
       </header>
-      <main className="p-6">
+      <main className="px-8 py-10">
         <Outlet />
       </main>
     </div>

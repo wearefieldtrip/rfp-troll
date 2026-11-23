@@ -154,7 +154,7 @@ export function QuestionsCard({ questions }: { questions: string[] }) {
       <CardHeader>
         <CardTitle>Questions to consider</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         <ol className="list-decimal space-y-2 pl-5">
           {shown.map((q) => (
             <li key={q}>{q}</li>
