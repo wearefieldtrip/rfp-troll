@@ -26,7 +26,7 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
 
   const usage = useQuery(tagUsageQuery)
   const [managing, setManaging] = useState(false)
-  const [openGroup, setOpenGroup] = useState<string | null>(null)
+  const [adding, setAdding] = useState<string | null>(null)
   const [showMore, setShowMore] = useState(false)
   const [newText, setNewText] = useState<Record<string, string>>({})
   const [problem, setProblem] = useState<string | null>(null)
@@ -41,6 +41,7 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
     },
     onSuccess: async ({ group, id }) => {
       setNewText((t) => ({ ...t, [group]: '' }))
+      setAdding(null)
       const many = TAG_GROUPS.find((g) => g.key === group)?.many ?? false
       setSelected((sel) => new Map(sel).set(group, toggleChoice(sel.get(group) ?? new Set(), id, many)))
       await refreshValues()
@@ -120,36 +121,16 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
   const row = (group: (typeof TAG_GROUPS)[number]) => {
     const chosen = selected.get(group.key) ?? new Set<string>()
     const all = chips(group)
-    const picked = all.filter((v) => chosen.has(v.id))
     const fromAi = current.some((c) => c.tag_group === group.key && !c.confirmed)
-    const open = openGroup === group.key
 
     return (
-      <div key={group.key} className="space-y-3 py-4">
-        <div className="flex items-start gap-4">
-          <div className="w-28 shrink-0 pt-0.5">
-            <p className="text-sm font-medium">{group.label}</p>
-            {fromAi && <p className="text-xs text-muted-foreground">AI suggested</p>}
-          </div>
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-            {picked.length === 0 ? (
-              <span className="text-sm text-muted-foreground">None</span>
-            ) : (
-              picked.map((v) => (
-                <span key={v.id} className="rounded-full bg-muted px-2.5 py-0.5 text-sm">
-                  {v.value}
-                </span>
-              ))
-            )}
-          </div>
-          <Button type="button" variant="ghost" size="sm" onClick={() => { setOpenGroup(open ? null : group.key); setManaging(false) }}>
-            {open ? 'Done' : 'Change'}
-          </Button>
+      <div key={group.key} className="flex items-start gap-4 py-4">
+        <div className="w-28 shrink-0 pt-0.5">
+          <p className="text-sm font-medium">{group.label}</p>
+          <p className="text-xs text-muted-foreground">{group.many ? 'Any number' : 'Choose one'}</p>
+          {fromAi && <p className="text-xs text-muted-foreground">AI suggested</p>}
         </div>
-
-        {open && (
-          <div className="ml-32 space-y-3 rounded-lg border p-3">
-            <p className="text-xs text-muted-foreground">{group.many ? 'Choose any number.' : 'Choose one.'}</p>
+        <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap gap-1.5">
               {all.map((v) => {
                 const on = chosen.has(v.id)
@@ -188,28 +169,31 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
                 )
               })}
             </div>
-            {!managing && group.key !== 'budget_band' && (
-              <form onSubmit={(e) => submitNew(e, group.key)} className="flex gap-2">
-                <Input
-                  value={newText[group.key] ?? ''}
-                  onChange={(e) => setNewText({ ...newText, [group.key]: e.target.value })}
-                  placeholder="New value"
-                  aria-label={`New ${group.label} value`}
-                  className="h-7 max-w-48 text-sm"
-                  disabled={addValue.isPending}
-                />
-                <Button type="submit" size="sm" variant="outline" disabled={!cleanValue(newText[group.key] ?? '') || addValue.isPending}>
-                  Add
+            {!managing && group.key !== 'budget_band' &&
+              (adding === group.key ? (
+                <form onSubmit={(e) => submitNew(e, group.key)} className="flex gap-2">
+                  <Input
+                    autoFocus
+                    value={newText[group.key] ?? ''}
+                    onChange={(e) => setNewText({ ...newText, [group.key]: e.target.value })}
+                    placeholder="New value"
+                    aria-label={`New ${group.label} value`}
+                    className="h-7 max-w-48 text-sm"
+                    disabled={addValue.isPending}
+                  />
+                  <Button type="submit" size="sm" variant="outline" disabled={!cleanValue(newText[group.key] ?? '') || addValue.isPending}>
+                    Add
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={() => setAdding(null)}>
+                    Cancel
+                  </Button>
+                </form>
+              ) : (
+                <Button type="button" variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={() => setAdding(group.key)}>
+                  + New value
                 </Button>
-              </form>
-            )}
-            {group.key !== 'budget_band' && (
-              <Button type="button" variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={() => setManaging(!managing)}>
-                {managing ? 'Done deleting' : 'Delete values'}
-              </Button>
-            )}
-          </div>
-        )}
+              ))}
+        </div>
       </div>
     )
   }
@@ -219,9 +203,14 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
       <div className="max-h-[60vh] divide-y overflow-y-auto pr-1">
         {primary.map(row)}
         <div className="py-2">
-          <Button type="button" variant="ghost" size="sm" onClick={() => setShowMore(!showMore)}>
-            {showMore ? 'Hide other tags' : 'Show other tags (budget, geography, procurement)'}
-          </Button>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setShowMore(!showMore)}>
+              {showMore ? 'Hide other tags' : 'Show other tags (budget, geography, procurement)'}
+            </Button>
+            <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setManaging(!managing)}>
+              {managing ? 'Done deleting' : 'Delete unused values'}
+            </Button>
+          </div>
           {showMore && <div className="divide-y">{automatic.map(row)}</div>}
         </div>
       </div>
