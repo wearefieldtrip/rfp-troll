@@ -27,7 +27,6 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
   const usage = useQuery(tagUsageQuery)
   const [managing, setManaging] = useState(false)
   const [adding, setAdding] = useState<string | null>(null)
-  const [showMore, setShowMore] = useState(false)
   const [newText, setNewText] = useState<Record<string, string>>({})
   const [problem, setProblem] = useState<string | null>(null)
   const refreshValues = () => queryClient.invalidateQueries({ queryKey: ['tags'] })
@@ -115,8 +114,6 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
   })
 
   const chips = (group: (typeof TAG_GROUPS)[number]) => [...valuesOf(values.data ?? [], group.key), ...valuesOf(values.data ?? [], group.key, 'suggested')]
-  const primary = TAG_GROUPS.filter((g) => !g.automatic)
-  const automatic = TAG_GROUPS.filter((g) => g.automatic)
 
   const row = (group: (typeof TAG_GROUPS)[number]) => {
     const chosen = selected.get(group.key) ?? new Set<string>()
@@ -201,17 +198,11 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
   return (
     <>
       <div className="max-h-[60vh] divide-y overflow-y-auto pr-1">
-        {primary.map(row)}
-        <div className="py-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <Button type="button" variant="ghost" size="sm" onClick={() => setShowMore(!showMore)}>
-              {showMore ? 'Hide other tags' : 'Show other tags (budget, geography, procurement)'}
-            </Button>
-            <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setManaging(!managing)}>
-              {managing ? 'Done deleting' : 'Delete unused values'}
-            </Button>
-          </div>
-          {showMore && <div className="divide-y">{automatic.map(row)}</div>}
+        {TAG_GROUPS.map(row)}
+        <div className="flex justify-end py-2">
+          <Button type="button" variant="ghost" size="sm" className="text-muted-foreground" onClick={() => setManaging(!managing)}>
+            {managing ? 'Done deleting' : 'Delete unused values'}
+          </Button>
         </div>
       </div>
       {problem && <p className="text-sm text-destructive">{problem}</p>}
