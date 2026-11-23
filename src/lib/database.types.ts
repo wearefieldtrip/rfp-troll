@@ -53,6 +53,14 @@ export type Database = {
           import_data: Json | null
           proposal_doc_id: string | null
           proposal_pdf_id: string | null
+          proposal_base_rfp_id: string | null
+          proposal_draft_doc_id: string | null
+          proposal_draft_error: string | null
+          proposal_draft_status: string | null
+          proposal_draft_summary: Json | null
+          requirements: Json | null
+          requirements_error: string | null
+          requirements_status: string | null
           proposal_doc_name: string | null
           proposal_link_status: string | null
           proposal_link_checked_at: string | null
@@ -128,6 +136,14 @@ export type Database = {
           import_data?: Json | null
           proposal_doc_id?: string | null
           proposal_pdf_id?: string | null
+          proposal_base_rfp_id?: string | null
+          proposal_draft_doc_id?: string | null
+          proposal_draft_error?: string | null
+          proposal_draft_status?: string | null
+          proposal_draft_summary?: Json | null
+          requirements?: Json | null
+          requirements_error?: string | null
+          requirements_status?: string | null
           proposal_doc_name?: string | null
           proposal_link_status?: string | null
           proposal_link_checked_at?: string | null
