@@ -88,12 +88,14 @@ type Rfp = {
 
 const COLUMNS = "id, status, requirements, requirements_status, proposal_draft_doc_id, proposal_base_rfp_id, proposal_review, proposal_review_status, updated_at";
 
-function requirementsPrompt(req: Requirements, pageCount: number | null) {
+function requirementsPrompt(req: Requirements, pageCount: number | null, pagesChecked: boolean) {
   const sections = req.sections.map((s, i) => `S${i + 1}. ${s.title}${s.mustAddress.length ? ` — must address: ${s.mustAddress.join("; ")}` : ""}${s.pageLimit ? ` — page limit: ${s.pageLimit}` : ""}`);
   const attachments = req.attachments.map((a, i) => `A${i + 1}. ${a.name}`);
   const rules = req.submission.formatRules.map((r, i) => `F${i + 1}. ${r}`);
   return [
-    `The proposal PDF is above${pageCount ? ` (${pageCount} pages)` : ""}.`,
+    pagesChecked
+      ? `The proposal PDF is above${pageCount ? ` (${pageCount} pages)` : ""}.`
+      : "The proposal is above as plain text, because it is too large to export as a PDF. You can't see its pages: return pages 0 for every section, and cannot_check for any rule about pages, fonts or layout.",
     `Required sections:\n${sections.join("\n") || "(the RFP sets none)"}`,
     `Required attachments:\n${attachments.join("\n") || "(none)"}`,
     `Submission rules:\n${rules.join("\n") || "(none)"}`,
@@ -107,10 +109,21 @@ async function run(supabase: SupabaseClient, rfp: Rfp, pastClient: string | null
     const docId = rfp.proposal_draft_doc_id!;
     const req = cleanRequirements(rfp.requirements);
 
-    const pdf = await exportDocAsPdf(docId);
-    if (pdf.byteLength > MAX_PDF_BYTES) throw new Error("The proposal is too large to check (24 MB limit).");
-    const pageCount = pdfPageCount(new Uint8Array(pdf));
     const body = docPlainText(await getDocBody(docId));
+
+    // Google refuses to export a very large Doc (often many images). Then the check reads the text, without page counts.
+    let pdf: ArrayBuffer | null = null;
+    try {
+      pdf = await exportDocAsPdf(docId);
+    } catch (err) {
+      if (!/too large to be exported/i.test(err instanceof Error ? err.message : "")) throw err;
+    }
+    if (pdf && pdf.byteLength > MAX_PDF_BYTES) pdf = null;
+    const pagesChecked = pdf !== null;
+    const pageCount = pdf ? pdfPageCount(new Uint8Array(pdf)) : null;
+    const proposalBlock: Anthropic.ContentBlockParam = pdf
+      ? { type: "document", title: "Proposal", source: { type: "base64", media_type: "application/pdf", data: Buffer.from(pdf).toString("base64") } }
+      : { type: "text", text: `<proposal>\n${body.slice(0, 400_000)}\n</proposal>` };
 
     const message = await new Anthropic().messages.create({
       model: MODEL,
@@ -121,8 +134,8 @@ async function run(supabase: SupabaseClient, rfp: Rfp, pastClient: string | null
         {
           role: "user",
           content: [
-            { type: "document", title: "Proposal", source: { type: "base64", media_type: "application/pdf", data: Buffer.from(pdf).toString("base64") } },
-            { type: "text", text: requirementsPrompt(req, pageCount) },
+            proposalBlock,
+            { type: "text", text: requirementsPrompt(req, pageCount, pagesChecked) },
           ],
         },
       ],
@@ -132,7 +145,7 @@ async function run(supabase: SupabaseClient, rfp: Rfp, pastClient: string | null
     const text = message.content.find((b) => b.type === "text");
     if (!text || text.type !== "text") throw new Error("Claude returned nothing.");
 
-    const review: ProposalReview = buildReview(JSON.parse(text.text), req, { pageCount, body, pastClient });
+    const review: ProposalReview = buildReview(JSON.parse(text.text), req, { pageCount, pagesChecked, body, pastClient });
 
     // The earlier check's comments go first, so they don't pile up. Comments from people are never touched.
     for (const id of rfp.proposal_review?.commentIds ?? []) await deleteComment(docId, id).catch((err) => console.error("old comment not removed", err));

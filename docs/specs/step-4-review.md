@@ -21,6 +21,10 @@ Against the stored requirements list (`requirements`), using the proposal Doc ex
 
 If the RFP gave no structure (empty requirements list), only attachments, submission rules and leftovers are checked, and the card says so.
 
+## Docs too large to export
+
+Google refuses to export a very large Doc as a PDF (about 10 MB, usually from many images). Then the check reads the Doc's text instead: sections, attachments, rules (except page ones) and leftovers are still checked, but page counts and page limits aren't, and the card and the top comment say so.
+
 ## Output
 
 - Stored on the RFP (`proposal_review`, `proposal_review_status`, `proposal_review_error`): a fixed shape, short strings, with `checked_at`, the Doc's page count and the ids of the comments it posted.

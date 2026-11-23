@@ -56,6 +56,7 @@ test('the answer is matched back to the requirements; gaps are never shown as fi
   assert.equal(rv.leftovers.pastClientMentions, 1)
   assert.deepEqual(rv.leftovers.placeholders, ['TBD', '[client name]'])
   assert.equal(rv.checkedAt, '2026-11-22T12:00:00.000Z')
+  assert.equal(rv.pagesChecked, true)
 })
 
 test('the summary, problems and comments say the same things', () => {
@@ -76,4 +77,10 @@ test('with no structure, sections are not judged', () => {
   const rv = buildReview({}, none, { pageCount: null, body: '', pastClient: null })
   assert.equal(rv.structureChecked, false)
   assert.equal(reviewSummary(rv), "The RFP sets no structure, so sections weren't checked")
+})
+
+test('a Doc too large to export is checked from its text, and the comment says pages were not checked', () => {
+  const rv = buildReview({ sections: [{ required: 1, status: 'complete', pages: 0 }] }, req, { pageCount: null, pagesChecked: false, body: '', pastClient: null })
+  assert.equal(rv.pagesChecked, false)
+  assert.match(reviewComments(rv, 'Nov 22').top, /page counts and page limits weren't checked/)
 })

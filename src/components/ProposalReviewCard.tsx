@@ -49,6 +49,7 @@ export function ProposalReviewCard({ rfp }: { rfp: Rfp }) {
         <CardContent className="space-y-4 text-sm">
           <p className="font-medium">{reviewSummary(review)}</p>
           {review.pageCount && <p className="text-muted-foreground">The Doc runs {review.pageCount} page{review.pageCount === 1 ? '' : 's'}.</p>}
+          {!review.pagesChecked && <p className="text-muted-foreground">The Doc is too large for Google to export as a PDF, so page counts and page limits weren't checked.</p>}
           {problems.length === 0 ? (
             <p className="text-muted-foreground">Nothing was flagged against the requirements.</p>
           ) : (

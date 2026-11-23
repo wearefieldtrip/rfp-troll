@@ -24,6 +24,8 @@ export type FormatCheck = { rule: string; status: 'ok' | 'problem' | 'cannot_che
 export type ProposalReview = {
   checkedAt: string
   pageCount: number | null
+  /** False when the Doc was too large to export as a PDF, so the check read its text and page counts and limits weren't checked. */
+  pagesChecked: boolean
   /** False when the RFP gave no structure, so only attachments, rules and leftovers were checked. */
   structureChecked: boolean
   sections: SectionCheck[]
@@ -83,7 +85,7 @@ export function findPlaceholders(body: string): string[] {
 type Raw = { sections?: unknown; attachments?: unknown; format?: unknown; other?: unknown }
 
 /** The model's answer matched back to the requirements. Anything the model didn't cover is shown as not covered, never as fine. */
-export function buildReview(raw: unknown, req: Requirements, facts: { pageCount: number | null; body: string; pastClient: string | null; now?: Date }): ProposalReview {
+export function buildReview(raw: unknown, req: Requirements, facts: { pageCount: number | null; pagesChecked?: boolean; body: string; pastClient: string | null; now?: Date }): ProposalReview {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Raw
   const items = (v: unknown): Record<string, unknown>[] => (Array.isArray(v) ? v.filter((x): x is Record<string, unknown> => !!x && typeof x === 'object') : [])
 
@@ -134,6 +136,7 @@ export function buildReview(raw: unknown, req: Requirements, facts: { pageCount:
   return {
     checkedAt: (facts.now ?? new Date()).toISOString(),
     pageCount: facts.pageCount,
+    pagesChecked: facts.pagesChecked ?? true,
     structureChecked: req.sections.length > 0,
     sections,
     attachments,
@@ -192,6 +195,13 @@ export function reviewComments(rv: ProposalReview, when: string): { top: string;
   if (left.length > 0) items.push(`▸ Review · Leftovers\n${left.join('\n')}`)
   if (rv.other.length > 0) items.push(`▸ Review · Other\n${rv.other.join('\n')}`)
 
-  const top = [`AI check · ${when}. A draft checklist against the RFP's requirements; it can miss things. It never edits this Doc.`, reviewSummary(rv) + '.', rv.pageCount ? `The Doc runs ${plural(rv.pageCount, 'page')}.` : ''].filter(Boolean).join('\n\n')
+  const top = [
+    `AI check · ${when}. A draft checklist against the RFP's requirements; it can miss things. It never edits this Doc.`,
+    reviewSummary(rv) + '.',
+    rv.pageCount ? `The Doc runs ${plural(rv.pageCount, 'page')}.` : '',
+    rv.pagesChecked ? '' : "The Doc is too large for Google to export as a PDF, so page counts and page limits weren't checked.",
+  ]
+    .filter(Boolean)
+    .join('\n\n')
   return { top, items }
 }
