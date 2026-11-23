@@ -1,6 +1,7 @@
-import { ExternalLinkIcon, LoaderCircleIcon } from 'lucide-react'
+import { ExternalLinkIcon, InfoIcon, LoaderCircleIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { TONE_CLASSES } from '@/lib/fit-tone'
 import { dayCountLabel, daysUntilMoment, urgencyFor } from '@/lib/key-dates'
 import { momentFrom } from '@/lib/moment-columns'
@@ -12,15 +13,27 @@ import { cn } from '@/lib/utils'
 
 type Rfp = Database['public']['Tables']['rfps']['Row']
 
-function Chip({ label, tone, title, children }: { label: string; tone?: Urgency; title?: string; children: ReactNode }) {
-  return (
-    <span
-      title={title}
-      className={cn('inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm', tone ? TONE_CLASSES[tone].badge : 'bg-muted/50')}
-    >
+function Chip({ label, tone, title, tip, children }: { label: string; tone?: Urgency; title?: string; tip?: ReactNode; children: ReactNode }) {
+  const className = cn('inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm', tone ? TONE_CLASSES[tone].badge : 'bg-muted/50', tip && 'cursor-help transition-colors hover:bg-muted data-[popup-open]:bg-muted')
+  const content = (
+    <>
       <b className="font-semibold">{label}</b>
       {children}
-    </span>
+      {tip && <InfoIcon className="size-3.5 text-muted-foreground" aria-hidden />}
+    </>
+  )
+  if (!tip) {
+    return (
+      <span title={title} className={className}>
+        {content}
+      </span>
+    )
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger render={<span tabIndex={0} className={className} />}>{content}</TooltipTrigger>
+      <TooltipContent>{tip}</TooltipContent>
+    </Tooltip>
   )
 }
 type Urgency = Exclude<ReturnType<typeof urgencyFor>, null>
@@ -62,22 +75,27 @@ const NO_ESTIMATE_WHY: Record<UnavailableReason, string> = {
 
 const formatEin = (ein: string) => `${ein.slice(0, 2)}-${ein.slice(2)}`
 
-/** What the budget estimate is based on, so a wrong match is easy to catch. Shown only when an estimate exists. */
-function EstimateBasis({ estimate }: { estimate: Extract<BudgetEstimate, { status: 'estimated' }> }) {
+/** What shows when the Budget pill is hovered and the RFP states none: the rough range and what it is based on, so a
+ * wrong match is easy to catch. */
+function EstimateTip({ estimate }: { estimate: BudgetEstimate }) {
+  if (estimate.status === 'unavailable') return <p className="text-sm">{NO_ESTIMATE_WHY[estimate.reason]}</p>
   return (
-    <p className="text-xs text-muted-foreground">
-      Budget estimate: sized from {estimate.org_name}
-      {estimate.state ? ` (${estimate.state})` : ''}, EIN {formatEin(estimate.ein)}, {estimate.tax_year} Form 990, total expenses{' '}
-      {formatUsd(estimate.total_expenses)}. Rule: {estimate.rule}. A rough guide, not the RFP's budget.{' '}
-      <a
-        href={`https://projects.propublica.org/nonprofits/organizations/${Number(estimate.ein)}`}
-        target="_blank"
-        rel="noreferrer"
-        className="underline underline-offset-4"
-      >
-        View on ProPublica Nonprofit Explorer
+    <div className="space-y-2">
+      <p className="text-sm">
+        <span className="text-muted-foreground">Estimated budget, not from the RFP: </span>
+        <b className="font-semibold">
+          {formatUsd(estimate.low)}–{formatUsd(estimate.high)}
+        </b>
+      </p>
+      <p className="text-xs text-muted-foreground">
+        Sized from {estimate.org_name}
+        {estimate.state ? ` (${estimate.state})` : ''}, EIN {formatEin(estimate.ein)}, {estimate.tax_year} Form 990, total expenses {formatUsd(estimate.total_expenses)}. Rule: {estimate.rule}. A rough guide to scale, not a
+        budget.
+      </p>
+      <a href={`https://projects.propublica.org/nonprofits/organizations/${Number(estimate.ein)}`} target="_blank" rel="noreferrer" className="text-xs underline underline-offset-4">
+        View on ProPublica
       </a>
-    </p>
+    </div>
   )
 }
 
@@ -109,6 +127,7 @@ export function KeyFacts({
   const estimate = hasBudget ? null : (rfp.budget_estimate as BudgetEstimate | null)
 
   return (
+    <TooltipProvider>
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2.5">
         <DateChip label="Proposal due" moment={momentFrom(rfp, 'proposal_due')} deadline title={proposalTitle} />
@@ -129,15 +148,8 @@ export function KeyFacts({
 
         <Chip
           label="Budget"
-          title={
-            hasBudget
-              ? rfp.budget_source === 'manual'
-                ? 'Entered by your team'
-                : quote(rfp.budget_wording)
-              : estimate?.status === 'unavailable'
-                ? NO_ESTIMATE_WHY[estimate.reason]
-                : undefined
-          }
+          title={hasBudget ? (rfp.budget_source === 'manual' ? 'Entered by your team' : quote(rfp.budget_wording)) : undefined}
+          tip={!hasBudget && estimate ? <EstimateTip estimate={estimate} /> : undefined}
         >
           {hasBudget ? (
             <span>{formatBudget(rfp.budget_min_usd, rfp.budget_max_usd)}</span>
@@ -170,7 +182,7 @@ export function KeyFacts({
           </Chip>
         )}
       </div>
-      {estimate?.status === 'estimated' && <EstimateBasis estimate={estimate} />}
     </div>
+    </TooltipProvider>
   )
 }
