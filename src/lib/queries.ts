@@ -134,19 +134,6 @@ export const rfpTagsQuery = (rfpId: string) =>
     },
   })
 
-/** Every RFP imported from the tracker, with what the review list needs to say about each. */
-export const importedRfpsQuery = queryOptions({
-  queryKey: ['rfps', 'imported'],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from('rfps')
-      .select('id, client_name, title, submission_year, outcome, furthest_stage, import_reviewed, import_issues, import_data, proposal_link_status, rfp_tags(confirmed, source)')
-      .eq('source', 'tracker')
-    if (error) throw error
-    return data
-  },
-})
-
 /** Every RFP that has finished (won or lost), with its tags, for finding the ones most like another. */
 export const pastRfpsQuery = queryOptions({
   queryKey: ['rfps', 'past'],

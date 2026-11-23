@@ -1,4 +1,4 @@
-# RFP Buddy
+# RFP Troll
 
 Internal web app for Fieldtrip (a Louisville, KY marketing agency for nonprofit, cause-driven and civic clients). It cuts the hours the team spends evaluating and responding to RFPs, while the team keeps every decision and does the writing.
 
