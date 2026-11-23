@@ -24,7 +24,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
 
   const current = profileFromTags(flat(list.tagRows), year)
   const hasTags = current.services.length > 0 || current.sector !== null || current.clientType !== null
-  const unconfirmed = list.tagRows.some((t) => !t.confirmed)
   const ranked = list.ranked
   const shown = more ? ranked : ranked.slice(0, SHOWN)
 
@@ -80,11 +79,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
             )}
           </>
         )}
-
-        <p className="text-xs text-muted-foreground">
-          Matched on tags: services, sector, client type, topics and budget, with newer RFPs counting more.
-          {unconfirmed && " This RFP's tags are AI-set; fix them with Edit tags if they look wrong."}
-        </p>
       </CardContent>
     </Card>
   )
