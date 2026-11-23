@@ -95,3 +95,4 @@ Use: top matches for the fit review's track record line, and the ranked list of 
 - A pick has no effect on the score itself, and there is no "not similar" button.
 
 - (Decision 2026-11-22.) The similarity score is no longer shown next to each past RFP; the list is still ordered by it, and the "why it matched" line stays.
+- (Decision 2026-11-22.) The "Among the 5 most similar: …" track-record line is no longer shown at the top of the card.

@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useSimilarList } from '@/lib/base-candidates'
 import { OUTCOME_LABELS, STAGE_LABELS } from '@/lib/import-view'
 import { pastRfpsQuery } from '@/lib/queries'
-import { profileFromTags, trackRecord, whyMatched } from '@/lib/similarity'
+import { profileFromTags, whyMatched } from '@/lib/similarity'
 import { supabase } from '@/lib/supabase'
 
 const SHOWN = 5
@@ -94,7 +94,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
   const hasTags = current.services.length > 0 || current.sector !== null || current.clientType !== null
   const ranked = list.ranked
   const shown = more ? ranked : ranked.slice(0, SHOWN)
-  const record = trackRecord(ranked.slice(0, SHOWN).map((m) => ({ outcome: m.item.outcome, stage: m.item.furthest_stage })))
   const pickOf = (id: string) => list.picks.find((p) => p.similar_rfp_id === id)
   const pickedIds = new Set(list.picks.map((p) => p.similar_rfp_id))
 
@@ -112,7 +111,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
           <p className="text-muted-foreground">No similar past RFPs yet.</p>
         ) : (
           <>
-            {record && <p className="font-medium">{record}</p>}
             <ul className="divide-y rounded-md border">
               {shown.map((m) => {
                 const why = whyMatched(m)
