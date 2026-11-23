@@ -12,7 +12,7 @@ export type AdvanceInfo = {
 }
 
 export const ADVANCE: Record<AdvanceAction, AdvanceInfo> = {
-  ready_for_review: { button: 'Ready for review', title: 'Mark the proposal ready for review?', will: ['Change the status to Proposal · In review', 'Record this in the history'], to: 'proposal_in_review' },
+  ready_for_review: { button: 'Ready for review', title: 'Mark the proposal ready for review?', will: ['Change the status to Proposal · In review', 'Check the proposal against the RFP\'s requirements and add comments to the Doc (it never edits it)', 'Record this in the history'], to: 'proposal_in_review' },
   back_to_drafting: { button: 'Back to drafting', title: 'Send the proposal back to drafting?', will: ['Change the status to Proposal · Drafting', 'Record this in the history'], to: 'proposal_drafting' },
   submitted: { button: 'Mark as submitted', title: 'Mark the proposal as submitted?', will: ['Change the status to Submitted · Waiting', 'Record this in the history'], to: 'submitted_waiting' },
   shortlisted: { button: 'Shortlisted', title: 'Mark as shortlisted?', will: ['Change the status to Submitted · Shortlisted', 'Record this in the history'], to: 'submitted_shortlisted' },
@@ -42,7 +42,7 @@ export function advanceCopy(status: string): { title: string; text: string } | n
     case 'proposal_drafting':
       return { title: 'When the proposal is ready', text: 'Hand it to review. If it has already gone out, mark it as submitted.' }
     case 'proposal_in_review':
-      return { title: 'In review', text: 'Check the proposal against the requirements list, then mark it as submitted, or send it back to drafting.' }
+      return { title: 'In review', text: 'Fix what the check flags and check again, then mark it as submitted, or send it back to drafting.' }
     case 'submitted_waiting':
       return { title: 'Waiting to hear back', text: 'Update the RFP when the issuer replies.' }
     case 'submitted_shortlisted':

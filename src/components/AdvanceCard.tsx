@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { proposalReview } from '@/lib/functions'
 import { actionsFor, advanceCopy, ADVANCE, type AdvanceAction } from '@/lib/advance'
 import { supabase } from '@/lib/supabase'
 
@@ -19,6 +20,8 @@ function ConfirmDialog({ rfpId, status, action, onClose }: { rfpId: string; stat
     },
     onSuccess: async () => {
       setNote('')
+      // Ready for review starts the check. If it can't start, the Review card offers it.
+      if (action === 'ready_for_review') void proposalReview(rfpId).catch(() => undefined)
       onClose()
       await queryClient.invalidateQueries({ queryKey: ['rfps'] })
     },

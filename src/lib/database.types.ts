@@ -53,6 +53,9 @@ export type Database = {
           import_data: Json | null
           proposal_doc_id: string | null
           proposal_pdf_id: string | null
+          proposal_review: Json | null
+          proposal_review_error: string | null
+          proposal_review_status: string | null
           proposal_base_rfp_id: string | null
           proposal_draft_doc_id: string | null
           proposal_draft_error: string | null
@@ -136,6 +139,9 @@ export type Database = {
           import_data?: Json | null
           proposal_doc_id?: string | null
           proposal_pdf_id?: string | null
+          proposal_review?: Json | null
+          proposal_review_error?: string | null
+          proposal_review_status?: string | null
           proposal_base_rfp_id?: string | null
           proposal_draft_doc_id?: string | null
           proposal_draft_error?: string | null

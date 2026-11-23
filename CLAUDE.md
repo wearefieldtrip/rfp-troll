@@ -10,6 +10,7 @@ Internal web app for Fieldtrip (a Louisville, KY marketing agency for nonprofit,
 | Upload, fit review, profile, decisions | `docs/specs/step-1-evaluate.md` |
 | Questions doc, sending, answers | `docs/specs/step-2-questions.md` |
 | Proposal Doc, estimate, requirements | `docs/specs/step-3-proposal.md` |
+| Checking the proposal against the RFP | `docs/specs/step-4-review.md` |
 | Scoring | `docs/fit-rubric.md` (the live rubric; edit it, then `npm run rubric` and deploy `review-rfp` and `read-answers`) |
 | Tags and "similar past RFPs" | `docs/specs/tagging.md` |
 | Past RFPs and proposal reuse | `docs/specs/historical-data.md` |
