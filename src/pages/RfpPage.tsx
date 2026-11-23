@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { LoaderCircleIcon, MoreHorizontalIcon } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { AdvanceCard } from '@/components/AdvanceCard'
 import { ChangeOwnerDialog } from '@/components/ChangeOwnerDialog'
@@ -60,6 +60,13 @@ export default function RfpPage() {
   const answers = useQuery(rfpAnswersQuery(id))
   const team = useQuery(teamQuery)
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['rfps', id] })
+
+  // A finished review moves the RFP to Ready for decision in the database. Pick that up so Move forward and Pass appear
+  // without a reload.
+  const completeReviews = reviews.data?.filter((r) => r.status === 'complete').length ?? 0
+  useEffect(() => {
+    if (completeReviews > 0) void queryClient.invalidateQueries({ queryKey: ['rfps', id] })
+  }, [completeReviews, id, queryClient])
 
   const retrySync = useMutation({ mutationFn: () => syncRfpFolder(id), onSettled: refresh })
   // Reading the names again is a sync with the extraction step switched back on.
