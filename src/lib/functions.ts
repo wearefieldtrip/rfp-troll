@@ -90,3 +90,6 @@ export type TagRun = Omit<TagCount, 'perRun' | 'eligible'> & { processed: number
 export const countAiTagging = (range: { from?: number; to?: number }) => callFunction<TagCount>('tag-past-rfps', { mode: 'count', ...range })
 /** Reads the next few proposal Docs and adds unconfirmed tags. Uses AI credit. */
 export const runAiTagging = (range: { from?: number; to?: number }) => callFunction<TagRun>('tag-past-rfps', { mode: 'tag', ...range })
+
+/** Reads what the RFP asks the proposal to contain, including addenda and the issuer's answers. */
+export const buildRequirements = (rfpId: string) => invokeFunction('requirements', { rfp_id: rfpId })

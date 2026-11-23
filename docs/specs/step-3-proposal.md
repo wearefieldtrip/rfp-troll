@@ -1,6 +1,6 @@
 # Step 3: Proposal (spec)
 
-Status: draft. Items marked **OPEN** need an answer from Fieldtrip before they're built.
+Status: draft. Build order: requirements list, then the proposal Doc, then (later) the estimate sheet.
 
 Fieldtrip has no single proposal template; each proposal starts from a recent one. So the app builds the new proposal from a **base proposal**: a recent, similar past proposal Doc. This needs Phase A of the historical data work (tracker imported, proposals linked, tags) — see `docs/specs/historical-data.md` and `docs/specs/tagging.md`.
 
@@ -19,7 +19,6 @@ Steps 1 and 2 stay at the top of the profile, collapsed. The 3 · Proposal secti
 Lists what will happen:
 
 - Create the proposal as a Google Doc in the client's Drive folder, based on a past proposal
-- Create the estimate sheet in the client's Drive folder
 - Change the status to Proposal · Drafting
 
 Shows **Based on: [past client] proposal ([month year], [outcome]) · Change**. Change opens a short list of the top 5 similar past proposals (by the similarity score in the tagging spec), each with year, services and outcome. The top match is preselected.
@@ -78,23 +77,23 @@ Read the RFP, every addendum, and the client's answers (all labeled, in one requ
 
 ### 3. Estimate sheet
 
-- **OPEN:** whether there's a current estimate template, or whether estimates also start from a past one. The only template found in Drive is "FT SOW Estimate Template.xlsx" from 2019. If estimates start from past ones, use the same base-proposal pattern: copy the estimate from the base RFP's folder and clear all hours and prices.
+- **Deferred (decided Nov 2026): the estimate sheet is built later, after the proposal Doc works.** Until then Move to Proposal creates the proposal only. Open question for then: whether there's a current estimate template, or whether estimates also start from a past one. The only template found in Drive is "FT SOW Estimate Template.xlsx" from 2019. If estimates start from past ones, use the same base-proposal pattern: copy the estimate from the base RFP's folder and clear all hours and prices.
 - Add a line item for each deliverable the RFP lists, with a note citing where it's asked for.
 - If the RFP asks for priced options (e.g. Options A, B, C), add a column per option with the RFP's caps as labels.
 - Leave hours and prices blank.
 
 ## Profile: 3 · Proposal section
 
-**While building** (about a minute): spinner, "Creating the proposal and estimate", buttons disabled. Each job reports separately, so one can be retried without redoing the other.
+**While building** (about a minute): spinner, "Creating the proposal", buttons disabled. Each job reports separately, so one can be retried without redoing the other.
 
 **Proposal · Drafting:**
 
 - Label: 3 · Proposal · Next step
-- Heading: "Write the proposal and finish the estimate"
+- Heading: "Write the proposal"
 - Summary line, e.g. "7 required sections · 3 attachments · 25-page limit · due Jan 15, 2027, 5:00 PM ET · 10 days"
 - "Based on: [past client] proposal ([year])", linking to it
 - What the build did, e.g. "Kept 5 sections, added 2, removed 4, 3 sections to check for old client details"
-- Buttons: **Open proposal**, **Open estimate**
+- Buttons: **Open proposal**, **Open estimate** (later, with the estimate sheet)
 - An expandable **Requirements** list: each section with what it must address, page limit and points; then attachments and submission rules.
 - **Ready for review** button. It opens a confirmation modal and moves the RFP to step 4 (status Proposal · In review). Spec for step 4 to follow.
 
@@ -104,7 +103,7 @@ Needs Phase B of the historical data work (past proposals split into labeled sec
 
 - For each kept section whose label (About Fieldtrip, Capabilities, Short Bios, Case Studies, statements and so on) also appears in a **more recent** proposal than the base, add a comment: "A newer version is in [client] ([month year])", with a link to that proposal's heading. Case studies get a pointer to the ones used in the most recent proposals.
 - Where the newer section differs materially, offer it **word for word as a Google Docs suggestion** beside the kept text, with a source comment (client, year, outcome, any flags such as another client's name or figures), so the team can accept, reject or merge. Never replace the base text silently, and never write a merged version.
-- **OPEN:** what counts as recent (for example the last 12 months, or the latest N proposals).
+- **Recent** means submitted in the last 12 months (decided Nov 2026). Only proposals that are more recent than the base proposal count.
 
 ## Later pieces (need Phase B of the historical data work)
 
