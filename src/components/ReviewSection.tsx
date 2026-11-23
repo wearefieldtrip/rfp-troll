@@ -12,6 +12,48 @@ import { toReviewView } from '@/lib/review-result'
 
 const formatShortDate = (iso: string) => new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 
+/** Stands in for the fit card, risks and questions while a new review is being made, so it's clear they're being rechecked. */
+function ReviewSkeleton() {
+  return (
+    <div className="space-y-6" aria-hidden>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-40" />
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-12 w-24" />
+            <Skeleton className="h-7 w-28 rounded-full" />
+          </div>
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <div className="space-y-3 pt-2">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-44" />
+                <Skeleton className="h-4 w-12" />
+                <Skeleton className="h-4 flex-1" />
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      {['Risks', 'Questions'].map((t) => (
+        <Card key={t}>
+          <CardHeader>
+            <Skeleton className="h-5 w-28" />
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+            <Skeleton className="h-4 w-2/3" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
 const startReview = (rfpId: string) => invokeFunction('review-rfp', { rfp_id: rfpId })
 
 type Props = {
@@ -69,7 +111,7 @@ export function ReviewSection({ rfpId, hasDocuments, confirming, onConfirmingCha
     return (
       <>
         {confirmDialog}
-        {running && (
+        {busy && (
           <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground">
             <LoaderCircleIcon className="size-4 animate-spin" aria-hidden />
             Running a new review. This usually takes a minute or two.
@@ -77,27 +119,33 @@ export function ReviewSection({ rfpId, hasDocuments, confirming, onConfirmingCha
         )}
         {latest?.status === 'failed' && <p className="text-sm text-destructive">The latest review failed: {latest.error ?? 'please try again.'}</p>}
         {start.error && <p className="text-sm text-destructive">{start.error.message}</p>}
-        <CheckThis flags={view.flags} />
-        <FitCard
-          view={view}
-          actions={renderDecision?.(true)}
-          footer={
-            <>
-              AI review · {formatShortDate(completed.created_at)}
-              {completed.rubrics?.version != null && ` · rubric v${completed.rubrics.version}`} ·{' '}
-              <button
-                type="button"
-                disabled={!canRun}
-                onClick={() => setConfirming(true)}
-                className="underline underline-offset-4 disabled:no-underline disabled:opacity-60"
-              >
-                Run again
-              </button>
-            </>
-          }
-        />
-        <RisksCard risks={view.risks} notStated={view.notStated} />
-        <QuestionsCard questions={view.questions} />
+        {busy ? (
+          <ReviewSkeleton />
+        ) : (
+          <>
+            <CheckThis flags={view.flags} />
+            <FitCard
+              view={view}
+              actions={renderDecision?.(true)}
+              footer={
+                <>
+                  AI review · {formatShortDate(completed.created_at)}
+                  {completed.rubrics?.version != null && ` · rubric v${completed.rubrics.version}`} ·{' '}
+                  <button
+                    type="button"
+                    disabled={!canRun}
+                    onClick={() => setConfirming(true)}
+                    className="underline underline-offset-4 disabled:no-underline disabled:opacity-60"
+                  >
+                    Run again
+                  </button>
+                </>
+              }
+            />
+            <RisksCard risks={view.risks} notStated={view.notStated} />
+            <QuestionsCard questions={view.questions} />
+          </>
+        )}
       </>
     )
   }
