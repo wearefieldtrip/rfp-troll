@@ -41,7 +41,7 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
   return (
     <Card aria-label="Similar past RFPs">
       <CardHeader>
-        <CardTitle>Similar past RFPs</CardTitle>
+        <CardTitle className="text-sm font-semibold">Similar past RFPs</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         {!hasTags ? (

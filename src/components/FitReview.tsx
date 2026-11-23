@@ -115,7 +115,7 @@ export function RisksCard({ risks, notStated }: { risks: string[]; notStated: st
       {risks.length > 0 && (
         <Card aria-label="Top risks">
           <CardHeader>
-            <CardTitle>Top risks</CardTitle>
+            <CardTitle className="text-sm font-semibold">Top risks</CardTitle>
           </CardHeader>
           <CardContent>
             <ol className="list-decimal space-y-2 pl-5">
@@ -129,7 +129,7 @@ export function RisksCard({ risks, notStated }: { risks: string[]; notStated: st
       {notStated.length > 0 && (
         <Card aria-label="Not stated in the RFP">
           <CardHeader>
-            <CardTitle>Not stated in the RFP</CardTitle>
+            <CardTitle className="text-sm font-semibold">Not stated in the RFP</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="list-disc space-y-2 pl-5">
@@ -152,7 +152,7 @@ export function QuestionsCard({ questions }: { questions: string[] }) {
   return (
     <Card aria-label="Questions to consider">
       <CardHeader>
-        <CardTitle>Questions to consider</CardTitle>
+        <CardTitle className="text-sm font-semibold">Questions to consider</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <ol className="list-decimal space-y-2 pl-5">

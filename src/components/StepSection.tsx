@@ -20,11 +20,18 @@ export function StepSection({ number, title, summary, open, onToggle, children }
         type="button"
         aria-expanded={open}
         onClick={onToggle}
-        className="flex w-full flex-wrap items-baseline gap-x-3 gap-y-1 border-b pb-3 text-left"
+        className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 border-b pb-4 text-left"
       >
-        <span className="text-sm font-semibold">
-          {number} · {title}
+        <span
+          className={cn(
+            'flex size-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold',
+            open ? 'bg-foreground text-background' : 'border text-muted-foreground',
+          )}
+          aria-hidden
+        >
+          {number}
         </span>
+        <span className={cn('font-semibold tracking-tight', open ? 'text-2xl' : 'text-base text-muted-foreground')}>{title}</span>
         {!open && summary && <span className="min-w-0 flex-1 text-sm text-muted-foreground">{summary}</span>}
         <span className="ml-auto flex items-center gap-1 text-xs text-muted-foreground">
           {open ? 'Hide' : 'Show'}

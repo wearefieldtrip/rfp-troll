@@ -106,9 +106,9 @@ export default function RfpPage() {
           <Link to="/" className="text-sm text-muted-foreground hover:underline">
             ← All RFPs
           </Link>
-          {data.client_name && <p className="mt-2 text-sm text-muted-foreground">{data.client_name}</p>}
-          <div className={`${data.client_name ? '' : 'mt-2 '}flex items-center gap-3`}>
-            <h1 className="text-2xl font-semibold">{data.title}</h1>
+          {data.client_name && <p className="mt-6 text-base text-muted-foreground">{data.client_name}</p>}
+          <div className={`${data.client_name ? 'mt-1 ' : 'mt-6 '}flex items-center gap-3`}>
+            <h1 className="text-3xl font-semibold tracking-tight">{data.title}</h1>
             <Badge variant={statusVariant(status)}>{statusLabel(status)}</Badge>
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="outline" size="icon" aria-label="More actions" className="ml-auto" />}>
@@ -137,7 +137,7 @@ export default function RfpPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {!imported && <p className="mt-1 text-sm text-muted-foreground">Owner: {owner ? (owner.full_name ?? owner.email) : 'No one yet'}</p>}
+          {!imported && <p className="mt-2 text-sm text-muted-foreground">Owner: {owner ? (owner.full_name ?? owner.email) : 'No one yet'}</p>}
         </div>
 
         {imported && <ImportedCard rfp={data} />}
