@@ -69,12 +69,14 @@ Score each past RFP against the current one. Starting weights, tunable later:
 
 | Signal | Weight |
 |---|---|
-| Services overlap (shared ÷ combined) | 4 |
+| Services overlap (half: shared ÷ the smaller list; half: shared ÷ the current RFP's list) | 4 |
 | Same sector | 3 |
 | Same client type | 2 |
 | Topic overlap | 2 |
 | Same or adjacent budget band | 1 |
 | Recency | Multiply by 1.0 this year, 0.85 last year, 0.7 two years back, 0.5 older |
+
+(Changed 2026-11-23: services and topics overlap was shared ÷ combined. That sank real matches: a website RFP the AI tagged with seven services scored at most 1/7 against a past RFP that did only the website, and the flat 2 points every nonprofit gets for client type outweighed it. The blend above fixes that. Tested on the first real website RFP: the website-only past RFPs moved to the top.)
 
 Use: top matches for the fit review's track record line, and the ranked list of base proposals in step 3 (only past RFPs with a linked proposal Doc).
 

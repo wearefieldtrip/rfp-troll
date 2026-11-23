@@ -18,8 +18,11 @@ test('recency fades with age: 1, 0.85, 0.7, then 0.5', () => {
   assert.equal(recency(2027, NOW), 1)
 })
 
-test('overlap is shared over combined, and nothing on both sides is zero', () => {
-  assert.deepEqual(overlap(['A', 'B'], ['b', 'C']), { ratio: 1 / 3, shared: ['B'] })
+test('overlap blends how much of the smaller list is shared with how much of the current list is covered', () => {
+  assert.deepEqual(overlap(['A', 'B'], ['b', 'C']), { ratio: 0.5, shared: ['B'] })
+  // A past RFP that did only the one service the new RFP wants beats a broad one that also did it, and still scores below a full match.
+  assert.ok(overlap(['Website', 'Brand', 'Social', 'Video', 'Copy', 'Training', 'Research'], ['Website']).ratio > overlap(['Website', 'Brand', 'Social', 'Video', 'Copy', 'Training', 'Research'], ['Website', 'Print', 'Signage']).ratio)
+  assert.ok(overlap(['A', 'B'], ['A', 'B']).ratio === 1)
   assert.equal(overlap([], []).ratio, 0)
   assert.equal(overlap(['A'], ['A']).ratio, 1)
 })
@@ -41,10 +44,10 @@ test('an identical RFP this year scores the most the weights allow', () => {
 
 test('the signals add up as the spec says, then recency multiplies', () => {
   const current = profile()
-  // Same sector (3) and client type (2), and one of three services shared (4 × 1/3 = 1.33): 6.33, a year ago × 0.85.
+  // Same sector (3) and client type (2), and one of two services shared on each side (overlap 0.5, so 4 × 0.5 = 2): 7, a year ago × 0.85.
   const past = profile({ services: ['Website', 'Campaign'], year: 2025 })
   const s = scoreSimilarity(current, past, NOW)
-  assert.equal(s.score, Math.round((4 / 3 + 3 + 2) * 0.85 * 100) / 100)
+  assert.equal(s.score, Math.round((2 + 3 + 2) * 0.85 * 100) / 100)
   assert.deepEqual(s.sharedServices, ['Website'])
   assert.equal(s.sameSector, true)
   assert.equal(s.recency, 0.85)

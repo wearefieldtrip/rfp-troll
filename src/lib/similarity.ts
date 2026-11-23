@@ -27,12 +27,19 @@ export function recency(year: number, now: Date = new Date()): number {
 
 const lower = (s: string) => s.toLowerCase()
 
-/** Shared ÷ combined. Nothing on either side is no overlap, not a perfect one. */
+/**
+ * How well a past RFP's tags cover the current RFP's. Half is how much of the smaller list the two share (a past RFP that
+ * did only a website still matches a website RFP fully), half is how much of the current RFP's list the past one covers
+ * (more shared is better). Shared ÷ combined was used first and sank good matches: an RFP the AI tagged with seven services
+ * could score at most 1/7 against a past RFP that did one of them. Nothing on either side is no overlap, not a perfect one.
+ */
 export function overlap(a: string[], b: string[]): { ratio: number; shared: string[] } {
   const bSet = new Set(b.map(lower))
+  const aUnique = [...new Set(a.map(lower))]
   const shared = [...new Set(a)].filter((v) => bSet.has(lower(v)))
-  const combined = new Set([...a.map(lower), ...b.map(lower)]).size
-  return { ratio: combined === 0 ? 0 : shared.length / combined, shared }
+  const smaller = Math.min(aUnique.length, bSet.size)
+  if (smaller === 0 || shared.length === 0) return { ratio: 0, shared }
+  return { ratio: 0.5 * (shared.length / smaller) + 0.5 * (shared.length / aUnique.length), shared }
 }
 
 export function budgetClose(a: string | null, b: string | null): boolean {
