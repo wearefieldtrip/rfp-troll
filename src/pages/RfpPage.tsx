@@ -48,6 +48,9 @@ export default function RfpPage() {
   const [evaluateOpen, setEvaluateOpen] = useState<boolean | null>(null)
   // The same for Questions once the RFP has moved past it.
   const [questionsOpen, setQuestionsOpen] = useState(false)
+  // The step the RFP is on is open until someone hides it.
+  const [hidden, setHidden] = useState<Record<string, boolean>>({})
+  const toggleHidden = (key: string) => setHidden((h) => ({ ...h, [key]: !h[key] }))
 
   const rfp = useQuery(rfpQuery(id))
   const syncing = rfp.data?.drive_status === 'syncing'
@@ -202,19 +205,31 @@ export default function RfpPage() {
         )}
 
         {step === 'questions' && (
-            <StepSection number={STEP_NUMBERS.questions} title={STEP_TITLES.questions} open onToggle={() => undefined}>
+            <StepSection
+              number={STEP_NUMBERS.questions}
+              title={STEP_TITLES.questions}
+              open={!hidden.questions}
+              onToggle={() => toggleHidden('questions')}
+              summary={data.questions_doc_status === 'ready' ? 'Questions doc ready' : 'Questions doc being created'}
+            >
               <QuestionsSection rfp={data} scoreText={scoreText} />
             </StepSection>
           )}
 
           {step === 'proposal' && (
-            <StepSection number={STEP_NUMBERS.proposal} title={STEP_TITLES.proposal} open onToggle={() => undefined}>
+            <StepSection
+              number={STEP_NUMBERS.proposal}
+              title={STEP_TITLES.proposal}
+              open={!hidden.proposal}
+              onToggle={() => toggleHidden('proposal')}
+              summary={data.proposal_draft_status === 'ready' ? 'Proposal doc ready' : data.proposal_draft_status === 'failed' ? "Proposal doc couldn't be created" : 'Proposal doc being created'}
+            >
               <ProposalSection rfp={data} />
             </StepSection>
           )}
 
           {step === 'submitted' && (
-            <StepSection number={STEP_NUMBERS.submitted} title={STEP_TITLES.submitted} open onToggle={() => undefined}>
+            <StepSection number={STEP_NUMBERS.submitted} title={STEP_TITLES.submitted} open={!hidden.submitted} onToggle={() => toggleHidden('submitted')}>
               <Card>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
