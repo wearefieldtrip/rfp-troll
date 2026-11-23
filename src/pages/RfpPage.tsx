@@ -12,7 +12,6 @@ import { HistoryPanel } from '@/components/HistoryPanel'
 import { ImportedCard } from '@/components/ImportedCard'
 import { KeyFacts } from '@/components/KeyFacts'
 import { ProgressStrip } from '@/components/ProgressStrip'
-import { ProposalReviewCard } from '@/components/ProposalReviewCard'
 import { ProposalSection } from '@/components/ProposalSection'
 import { QuestionsRecord, QuestionsSection } from '@/components/QuestionsSection'
 import { ReopenDialog } from '@/components/ReopenDialog'
@@ -226,7 +225,6 @@ export default function RfpPage() {
               summary={data.proposal_draft_status === 'ready' ? 'Proposal doc ready' : data.proposal_draft_status === 'failed' ? "Proposal doc couldn't be created" : 'Proposal doc being created'}
             >
               <ProposalSection rfp={data} />
-              {status === 'proposal_in_review' && <ProposalReviewCard rfp={data} />}
               <AdvanceCard rfpId={id} status={status} />
             </StepSection>
           )}

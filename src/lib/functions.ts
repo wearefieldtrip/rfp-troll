@@ -26,6 +26,3 @@ export const buildRequirements = (rfpId: string) => invokeFunction('requirements
 
 /** Builds the proposal Doc as a copy of a past proposal, matched to what the RFP asks for. Waits for the requirements itself. */
 export const proposalDoc = (rfpId: string, baseRfpId: string) => invokeFunction('proposal-doc', { rfp_id: rfpId, base_rfp_id: baseRfpId })
-
-/** Step 4: checks the proposal Doc against the requirements list and posts comments in it. Never edits the Doc. */
-export const proposalReview = (rfpId: string) => invokeFunction('proposal-review', { rfp_id: rfpId })

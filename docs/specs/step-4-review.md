@@ -1,6 +1,6 @@
 # Step 4: Review (spec)
 
-Status: built 2026-11-22. Decisions below were made as defaults from `docs/process-overview.md`; change them here first.
+Status: **paused 2026-11-22.** Built, but the Review card and the automatic start were taken out of the app for now (the `proposal-review` function, its tests and this spec stay; the card is in git history, commit "Step 4: review the proposal…"). Proposal · In review is just a status the team uses until this returns. Decisions below were made as defaults from `docs/process-overview.md`; change them here first.
 
 Step 4 is a **checklist pass**, not a critique. The app checks the proposal Doc against the requirements list stored in step 3 and says what is missing or over. It **comments only, never edits** the Doc, and it never judges quality or writes copy.
 

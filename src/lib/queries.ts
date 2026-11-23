@@ -24,7 +24,7 @@ export const rfpQuery = (id: string) =>
     // Keep checking while the Drive folder, the questions doc, the requirements or the proposal doc are being set up in the background.
     refetchInterval: (query) => {
       const d = query.state.data
-      const busy = d?.drive_status === 'syncing' || d?.questions_doc_status === 'building' || d?.proposal_draft_status === 'building' || d?.proposal_review_status === 'building' || d?.requirements_status === 'building'
+      const busy = d?.drive_status === 'syncing' || d?.questions_doc_status === 'building' || d?.proposal_draft_status === 'building' || d?.requirements_status === 'building'
       return busy ? 2500 : false
     },
   })
