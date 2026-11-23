@@ -93,3 +93,4 @@ A search to pick past RFPs as similar by hand was built and then taken out; the 
 
 - (Decision 2026-11-22.) The similarity score is no longer shown next to each past RFP; the list is still ordered by it, and the "why it matched" line stays.
 - (Decision 2026-11-22.) The "Among the 5 most similar: …" track-record line is no longer shown at the top of the card.
+- (Decision 2026-11-22.) Edit tags is lighter: each group is one row showing what is chosen, with **Change** to open its full list (and Add a new value and Delete values inside it). Budget, geography and procurement, which are filled in from the RFP, sit behind "Show other tags".

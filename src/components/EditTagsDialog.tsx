@@ -26,6 +26,8 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
 
   const usage = useQuery(tagUsageQuery)
   const [managing, setManaging] = useState(false)
+  const [openGroup, setOpenGroup] = useState<string | null>(null)
+  const [showMore, setShowMore] = useState(false)
   const [newText, setNewText] = useState<Record<string, string>>({})
   const [problem, setProblem] = useState<string | null>(null)
   const refreshValues = () => queryClient.invalidateQueries({ queryKey: ['tags'] })
@@ -111,92 +113,127 @@ function TagsForm({ rfpId, imported, onDone }: { rfpId: string; imported: boolea
     },
   })
 
-  return (
-    <>
-      <div className="max-h-[60vh] space-y-5 overflow-y-auto pr-1">
-        {TAG_GROUPS.map((group) => {
-          const chosen = selected.get(group.key) ?? new Set<string>()
-          const fromAi = current.some((c) => c.tag_group === group.key && !c.confirmed)
-          return (
-            <fieldset key={group.key} className="space-y-2">
-              <legend className="text-sm font-medium">
-                {group.label}
-                <span className="ml-2 font-normal text-muted-foreground">
-                  {group.many ? 'any number' : 'one'}
-                  {fromAi && ' · AI suggested'}
+  const chips = (group: (typeof TAG_GROUPS)[number]) => [...valuesOf(values.data ?? [], group.key), ...valuesOf(values.data ?? [], group.key, 'suggested')]
+  const primary = TAG_GROUPS.filter((g) => !g.automatic)
+  const automatic = TAG_GROUPS.filter((g) => g.automatic)
+
+  const row = (group: (typeof TAG_GROUPS)[number]) => {
+    const chosen = selected.get(group.key) ?? new Set<string>()
+    const all = chips(group)
+    const picked = all.filter((v) => chosen.has(v.id))
+    const fromAi = current.some((c) => c.tag_group === group.key && !c.confirmed)
+    const open = openGroup === group.key
+
+    return (
+      <div key={group.key} className="space-y-3 py-4">
+        <div className="flex items-start gap-4">
+          <div className="w-28 shrink-0 pt-0.5">
+            <p className="text-sm font-medium">{group.label}</p>
+            {fromAi && <p className="text-xs text-muted-foreground">AI suggested</p>}
+          </div>
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+            {picked.length === 0 ? (
+              <span className="text-sm text-muted-foreground">None</span>
+            ) : (
+              picked.map((v) => (
+                <span key={v.id} className="rounded-full bg-muted px-2.5 py-0.5 text-sm">
+                  {v.value}
                 </span>
-              </legend>
-              <div className="flex flex-wrap gap-1.5">
-                {[...valuesOf(values.data ?? [], group.key), ...valuesOf(values.data ?? [], group.key, 'suggested')].map((v) => {
-                  const on = chosen.has(v.id)
-                  const used = usage.data?.get(v.id) ?? 0
-                  const deletable = managing && canRemove(v, used)
-                  return (
-                    <span key={v.id} className="inline-flex items-center">
+              ))
+            )}
+          </div>
+          <Button type="button" variant="ghost" size="sm" onClick={() => { setOpenGroup(open ? null : group.key); setManaging(false) }}>
+            {open ? 'Done' : 'Change'}
+          </Button>
+        </div>
+
+        {open && (
+          <div className="ml-32 space-y-3 rounded-lg border p-3">
+            <p className="text-xs text-muted-foreground">{group.many ? 'Choose any number.' : 'Choose one.'}</p>
+            <div className="flex flex-wrap gap-1.5">
+              {all.map((v) => {
+                const on = chosen.has(v.id)
+                const used = usage.data?.get(v.id) ?? 0
+                const deletable = managing && canRemove(v, used)
+                return (
+                  <span key={v.id} className="inline-flex items-center">
+                    <button
+                      type="button"
+                      aria-pressed={on}
+                      disabled={save.isPending || managing}
+                      onClick={() => setSelected(new Map(selected).set(group.key, toggleChoice(chosen, v.id, group.many)))}
+                      title={v.status === 'suggested' ? 'Suggested by the AI. Choosing it adds it to the list.' : undefined}
+                      className={cn(
+                        'rounded-full border px-2.5 py-0.5 text-sm transition-colors',
+                        on ? 'border-foreground bg-foreground text-background' : 'hover:bg-muted',
+                        v.status === 'suggested' && !on && 'border-dashed',
+                        deletable && 'rounded-r-none border-r-0',
+                      )}
+                    >
+                      {v.value}
+                      {managing && used > 0 && <span className="ml-1.5 text-muted-foreground">{used}</span>}
+                    </button>
+                    {deletable && (
                       <button
                         type="button"
-                        aria-pressed={on}
-                        disabled={save.isPending || managing}
-                        onClick={() => setSelected(new Map(selected).set(group.key, toggleChoice(chosen, v.id, group.many)))}
-                        title={v.status === 'suggested' ? 'Suggested by the AI. Choosing it adds it to the list.' : undefined}
-                        className={cn(
-                          'rounded-full border px-2.5 py-0.5 text-sm transition-colors',
-                          on ? 'border-foreground bg-foreground text-background' : 'hover:bg-muted',
-                          v.status === 'suggested' && !on && 'border-dashed',
-                          deletable && 'rounded-r-none border-r-0',
-                        )}
+                        aria-label={`Delete ${v.value}`}
+                        disabled={removeValue.isPending}
+                        onClick={() => removeValue.mutate({ id: v.id, group: group.key })}
+                        className="rounded-full rounded-l-none border border-l-0 px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
-                        {v.value}
-                        {managing && used > 0 && <span className="ml-1.5 text-muted-foreground">{used}</span>}
+                        <XIcon className="size-3" aria-hidden />
                       </button>
-                      {deletable && (
-                        <button
-                          type="button"
-                          aria-label={`Delete ${v.value}`}
-                          disabled={removeValue.isPending}
-                          onClick={() => removeValue.mutate({ id: v.id, group: group.key })}
-                          className="rounded-full rounded-l-none border border-l-0 px-1.5 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
-                        >
-                          <XIcon className="size-3" aria-hidden />
-                        </button>
-                      )}
-                    </span>
-                  )
-                })}
-              </div>
-              {!managing && group.key !== 'budget_band' && (
-                <form onSubmit={(e) => submitNew(e, group.key)} className="flex gap-2">
-                  <Input
-                    value={newText[group.key] ?? ''}
-                    onChange={(e) => setNewText({ ...newText, [group.key]: e.target.value })}
-                    placeholder="Add a new value"
-                    aria-label={`New ${group.label} value`}
-                    className="h-7 max-w-xs text-sm"
-                    disabled={addValue.isPending}
-                  />
-                  <Button type="submit" size="sm" variant="outline" disabled={!cleanValue(newText[group.key] ?? '') || addValue.isPending}>
-                    Add
-                  </Button>
-                </form>
-              )}
-            </fieldset>
-          )
-        })}
+                    )}
+                  </span>
+                )
+              })}
+            </div>
+            {!managing && group.key !== 'budget_band' && (
+              <form onSubmit={(e) => submitNew(e, group.key)} className="flex gap-2">
+                <Input
+                  value={newText[group.key] ?? ''}
+                  onChange={(e) => setNewText({ ...newText, [group.key]: e.target.value })}
+                  placeholder="New value"
+                  aria-label={`New ${group.label} value`}
+                  className="h-7 max-w-48 text-sm"
+                  disabled={addValue.isPending}
+                />
+                <Button type="submit" size="sm" variant="outline" disabled={!cleanValue(newText[group.key] ?? '') || addValue.isPending}>
+                  Add
+                </Button>
+              </form>
+            )}
+            {group.key !== 'budget_band' && (
+              <Button type="button" variant="link" size="sm" className="h-auto p-0 text-muted-foreground" onClick={() => setManaging(!managing)}>
+                {managing ? 'Done deleting' : 'Delete values'}
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <div className="max-h-[60vh] divide-y overflow-y-auto pr-1">
+        {primary.map(row)}
+        <div className="py-2">
+          <Button type="button" variant="ghost" size="sm" onClick={() => setShowMore(!showMore)}>
+            {showMore ? 'Hide other tags' : 'Show other tags (budget, geography, procurement)'}
+          </Button>
+          {showMore && <div className="divide-y">{automatic.map(row)}</div>}
+        </div>
       </div>
       {problem && <p className="text-sm text-destructive">{problem}</p>}
       {save.error && <p className="text-sm text-destructive">Could not save the tags. Please try again.</p>}
-      <DialogFooter className="sm:justify-between">
-        <Button type="button" variant="ghost" disabled={save.isPending} onClick={() => setManaging(!managing)}>
-          {managing ? 'Done deleting' : 'Delete values'}
-        </Button>
-        <span className="flex gap-2">
+      <DialogFooter>
         <Button variant="outline" disabled={save.isPending} onClick={onDone}>
           Cancel
         </Button>
         <Button disabled={save.isPending} onClick={() => save.mutate()}>
           {save.isPending ? 'Saving…' : 'Save'}
         </Button>
-        </span>
       </DialogFooter>
     </>
   )
@@ -213,7 +250,7 @@ export function EditTagsDialog({ rfpId, imported = false, open, onOpenChange }: 
         <DialogHeader>
           <DialogTitle>Edit tags</DialogTitle>
           <DialogDescription>
-            These help find similar past RFPs. The AI sets them when it reviews. A group you change is kept as you set it, even if the review runs again. Add a value if the one you need isn't there; Delete values removes ones no RFP uses.
+            These help find similar past RFPs. The AI sets them; a group you change stays as you set it.
           </DialogDescription>
         </DialogHeader>
         {values.isPending || tags.isPending ? <Skeleton className="h-48 w-full" /> : <TagsForm rfpId={rfpId} imported={imported} onDone={() => onOpenChange(false)} />}
