@@ -130,7 +130,7 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
                         {m.year} · {outcome}
                         {m.item.furthest_stage && m.item.outcome !== 'won' && ` · ${STAGE_LABELS[m.item.furthest_stage] ?? m.item.furthest_stage}`}
                       </span>
-                      {m.pinned ? (
+                      {m.pinned && (
                         <button
                           type="button"
                           aria-label={`Remove ${m.item.client_name ?? m.item.title} from your picks`}
@@ -140,10 +140,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
                         >
                           <XIcon className="size-3.5" aria-hidden />
                         </button>
-                      ) : (
-                        <span className="w-10 text-right text-xs text-muted-foreground" title="Similarity score, out of 12">
-                          {m.score.toFixed(1)}
-                        </span>
                       )}
                     </p>
                     <p className="text-muted-foreground">
