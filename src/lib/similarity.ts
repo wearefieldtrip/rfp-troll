@@ -103,6 +103,21 @@ export function rankSimilar<T>(current: SimilarityProfile, candidates: Candidate
     .slice(0, limit)
 }
 
+/**
+ * The matches to show: the ones a person picked first (whatever their score), then the best of the rest.
+ * A picked RFP that isn't among the candidates (for example it has no proposal Doc when one is needed) is left out.
+ */
+export function rankWithPins<T extends { id: string }>(current: SimilarityProfile, candidates: Candidate<T>[], pinnedIds: string[], limit: number, now: Date = new Date()) {
+  const pins = new Set(pinnedIds)
+  const scored = (c: Candidate<T>) => ({ item: c.item, year: c.year, ...scoreSimilarity(current, c.profile, now) })
+  const picked = pinnedIds
+    .map((id) => candidates.find((c) => c.item.id === id))
+    .filter((c): c is Candidate<T> => !!c)
+    .map((c) => ({ ...scored(c), pinned: true }))
+  const rest = rankSimilar(current, candidates.filter((c) => !pins.has(c.item.id)), limit, now).map((m) => ({ ...m, pinned: false }))
+  return [...picked, ...rest].slice(0, Math.max(limit, picked.length))
+}
+
 /** Why a past RFP matched, in a few words. */
 export function whyMatched(s: SimilarityScore): string[] {
   const why: string[] = []

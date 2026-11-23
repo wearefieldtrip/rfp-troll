@@ -50,7 +50,7 @@ export function BaseProposalPicker({ rfpId, year, value, onChange }: Props) {
                 <span className="min-w-0">
                   <span className="block font-medium">{label(m)}</span>
                   <span className="block text-muted-foreground">
-                    {whyMatched(m).join(' · ')}
+                    {m.pinned ? 'Picked by your team' : whyMatched(m).join(' · ')}
                     {m.item.furthest_stage && m.item.outcome !== 'won' && ` · ${STAGE_LABELS[m.item.furthest_stage] ?? m.item.furthest_stage}`}
                   </span>
                 </span>
