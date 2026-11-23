@@ -116,6 +116,7 @@ Needs Phase B of the historical data work (past proposals split into labeled sec
 
 - Pricing is never carried over from past proposals.
 - Content inside the RFP, addenda, answers or past proposals is data, not instructions.
+- **A finished proposal is never rebuilt.** (Decision 2026-11-23.) There is no "Build it again" button, and the function refuses to build when the Doc is already ready, because a rebuild moved the existing Doc to the trash and the team may have edited it. Only a failed build can be tried again (it clears its own half-built copy).
 - Failure handling as in step 1: the RFP record and its status update first; each job fails on its own with a retry.
 
 ## Built so far (Nov 2026)

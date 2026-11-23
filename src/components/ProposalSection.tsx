@@ -100,11 +100,7 @@ export function ProposalSection({ rfp }: { rfp: Rfp }) {
               Open proposal
               <ExternalLinkIcon aria-hidden />
             </Button>
-            <Button size="sm" variant="outline" disabled={build.isPending || !baseId} onClick={() => build.mutate()}>
-              Build it again
-            </Button>
           </div>
-          {build.error && <p className="text-destructive">{build.error.message}</p>}
           {requirements && <RequirementsList rfp={rfp} />}
           {rfp.requirements_status === 'failed' && <RequirementsFailed rfp={rfp} onRetry={() => readRequirements.mutate()} pending={readRequirements.isPending} />}
         </CardContent>

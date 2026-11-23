@@ -225,6 +225,8 @@ Deno.serve(async (req) => {
   if (error || !data) return json({ error: "RFP not found" }, 404);
   const rfp = data as Rfp;
   if (rfp.status !== "proposal_drafting") return json({ error: "This RFP is not in Proposal · Drafting." }, 409);
+  // A finished proposal is never rebuilt: the team may already be editing it, and a rebuild would move that doc to the trash.
+  if (rfp.proposal_draft_status === "ready") return json({ error: "The proposal Doc already exists. The app won't replace it, because your team may have edited it." }, 409);
   if (rfp.proposal_draft_status === "building" && Date.now() - new Date(rfp.updated_at).getTime() < BUILD_STALE_MS) return json({ status: "building" }, 202);
 
   const { data: base } = await supabase
