@@ -6,6 +6,8 @@ import { Buffer } from "node:buffer";
 import { buildReview, ReviewInvalid, type ReviewV2 } from "./fit-review.ts";
 import { downloadFile, exportDocAsPdf, tidyName, uploadFile } from "./google.ts";
 import { checkRubric } from "./rubric-structure.ts";
+import { RUBRIC } from "./rubric-text.ts";
+import { rubricFor } from "./rubric-version.ts";
 import { formatBudget, interpretBudget } from "./rfp-budget.ts";
 import { formatMoment, toMoment, type Moment } from "./rfp-dates.ts";
 
@@ -176,7 +178,7 @@ async function run(supabase: SupabaseClient, answers: Answers, rfp: Rfp) {
 
     const [docsRes, rubricRes, previousRes] = await Promise.all([
       supabase.from("rfp_documents").select("file_name, drive_file_id").eq("rfp_id", rfp.id as string).is("superseded_at", null).not("drive_file_id", "is", null),
-      supabase.from("rubrics").select("id, content").eq("is_active", true).single(),
+      rubricFor(supabase, RUBRIC).then((data) => ({ data, error: data ? null : true })),
       supabase.from("rfp_reviews").select("result, total_score").eq("rfp_id", rfp.id as string).eq("status", "complete").order("created_at", { ascending: false }).limit(1),
     ]);
     if (rubricRes.error || !rubricRes.data) throw new Error("No active rubric.");

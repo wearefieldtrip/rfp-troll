@@ -43,18 +43,6 @@ export const rfpDocumentsQuery = (rfpId: string) =>
     },
   })
 
-export const rubricVersionsQuery = queryOptions({
-  queryKey: ['rubric', 'versions'],
-  queryFn: async () => {
-    const { data, error } = await supabase
-      .from('rubrics')
-      .select('id, version, is_active, created_at, profiles(full_name, email)')
-      .order('version', { ascending: false })
-    if (error) throw error
-    return data
-  },
-})
-
 export const rfpDecisionsQuery = (rfpId: string) =>
   queryOptions({
     queryKey: ['rfps', rfpId, 'decisions'],
@@ -103,22 +91,6 @@ export const rfpAnswersQuery = (rfpId: string) =>
       return data
     },
     refetchInterval: (query) => (query.state.data?.some((a) => a.status === 'reading') ? 3000 : false),
-  })
-
-async function fetchRubric(id?: string) {
-  const query = supabase.from('rubrics').select('*')
-  const { data, error } = await (id ? query.eq('id', id) : query.eq('is_active', true)).single()
-  if (error) throw error
-  return data
-}
-
-export type Rubric = Awaited<ReturnType<typeof fetchRubric>>
-
-/** A specific rubric version, or the active one when no id is given. */
-export const rubricQuery = (id?: string) =>
-  queryOptions({
-    queryKey: ['rubric', id ?? 'active'],
-    queryFn: () => fetchRubric(id),
   })
 
 export const teamQuery = queryOptions({

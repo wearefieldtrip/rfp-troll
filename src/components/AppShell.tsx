@@ -1,32 +1,8 @@
-import { ClipboardCheckIcon, ClipboardListIcon, DownloadIcon, FileTextIcon, LogOutIcon, TagsIcon } from 'lucide-react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { LogOutIcon } from 'lucide-react'
+import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '@/auth/AuthProvider'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarInset,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar'
-
-const NAV = [{ to: '/', label: 'RFPs', icon: FileTextIcon, end: true }]
-
-// What the team keeps up to date: the lists and the rubric every review draws on.
-const LIBRARY = [
-  { to: '/library/tags', label: 'Tags', icon: TagsIcon, end: false },
-  { to: '/library/imports', label: 'Imports', icon: DownloadIcon, end: false },
-  { to: '/library/review', label: 'Review imports', icon: ClipboardCheckIcon, end: false },
-  { to: '/rubric', label: 'Rubric', icon: ClipboardListIcon, end: false },
-]
 
 export function AppShell() {
   const { user, signOut } = useAuth()
@@ -34,69 +10,25 @@ export function AppShell() {
   const avatar = user?.user_metadata.avatar_url as string | undefined
 
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <SidebarHeader className="px-4 py-3 text-base font-semibold">RFP Troll</SidebarHeader>
-        <SidebarContent>
-          <SidebarGroup>
-            <SidebarMenu>
-              {NAV.map(({ to, label, icon: Icon, end }) => (
-                <SidebarMenuItem key={to}>
-                  <NavLink to={to} end={end}>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive} render={<span />}>
-                        <Icon />
-                        <span>{label}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-          <SidebarGroup>
-            <SidebarGroupLabel>Library</SidebarGroupLabel>
-            <SidebarMenu>
-              {LIBRARY.map(({ to, label, icon: Icon, end }) => (
-                <SidebarMenuItem key={to}>
-                  <NavLink to={to} end={end}>
-                    {({ isActive }) => (
-                      <SidebarMenuButton isActive={isActive} render={<span />}>
-                        <Icon />
-                        <span>{label}</span>
-                      </SidebarMenuButton>
-                    )}
-                  </NavLink>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        </SidebarContent>
-        <SidebarFooter className="gap-2">
-          <div className="flex items-center gap-2 p-2">
-            <Avatar className="size-8">
-              <AvatarImage src={avatar} alt={name} />
-              <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 text-sm">
-              <p className="truncate font-medium">{name}</p>
-              {user?.email && user.email !== name && <p className="truncate text-xs text-muted-foreground">{user.email}</p>}
-            </div>
-          </div>
-          <Button variant="outline" size="sm" className="w-full justify-start gap-2" onClick={() => void signOut()}>
+    <div className="min-h-svh">
+      <header className="flex h-12 items-center gap-3 border-b px-6">
+        <Link to="/" className="text-base font-semibold">
+          RFP Troll
+        </Link>
+        <div className="ml-auto flex items-center gap-3">
+          <span className="hidden max-w-48 truncate text-sm text-muted-foreground sm:block">{name}</span>
+          <Avatar className="size-7">
+            <AvatarImage src={avatar} alt={name} />
+            <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <Button variant="ghost" size="icon" aria-label="Sign out" onClick={() => void signOut()}>
             <LogOutIcon />
-            Sign out
           </Button>
-        </SidebarFooter>
-      </Sidebar>
-      <SidebarInset>
-        <header className="flex h-12 items-center border-b px-4 md:hidden">
-          <SidebarTrigger />
-        </header>
-        <main className="p-6">
-          <Outlet />
-        </main>
-      </SidebarInset>
-    </SidebarProvider>
+        </div>
+      </header>
+      <main className="p-6">
+        <Outlet />
+      </main>
+    </div>
   )
 }

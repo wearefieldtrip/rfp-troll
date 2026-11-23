@@ -118,3 +118,8 @@ A proposal is linked and tagged automatically when its RFP is marked Submitted; 
 - **What is compared today.** Imported RFPs carry services, sector and client type from the tracker, so those drive the score. Topics are not added to past RFPs, and the tracker has no budget, so those two signals only count once past RFPs gain them.
 - **The current RFP's tags** are the ones stored by its fit review (AI-set until someone confirms them with Edit tags). The card says so when any are unconfirmed.
 - **Not built yet:** the track-record line inside the fit card itself, and the ranked base-proposal list in step 3 (past RFPs that have a proposal Doc), which will reuse the same ranking.
+
+
+## Update 2026-11-22
+
+The Imports and Review imports pages are gone from the app (the one-time import is done and reviewed). The functions `import-tracker`, `link-proposals` and `tag-past-rfps` stay deployed. To import new tracker rows later, ask for the screens back or call the functions directly.

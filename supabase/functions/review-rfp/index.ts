@@ -6,6 +6,8 @@ import { Buffer } from "node:buffer";
 import { buildReview, ReviewInvalid } from "./fit-review.ts";
 import { downloadFile } from "./google.ts";
 import { checkRubric } from "./rubric-structure.ts";
+import { RUBRIC } from "./rubric-text.ts";
+import { rubricFor } from "./rubric-version.ts";
 import { budgetBand, buildTags, geographyValues, LIST_GROUPS, tagsPrompt, tagsSchema, type ListGroup, type ReviewTags, type TagLists } from "./review-tags.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -308,7 +310,7 @@ Deno.serve(async (req) => {
   const [rfpRes, docsRes, rubricRes, tagValuesRes] = await Promise.all([
     supabase.from("rfps").select("*").eq("id", rfp_id).single(),
     supabase.from("rfp_documents").select("id, file_name, storage_path, mime_type, drive_file_id").eq("rfp_id", rfp_id).is("superseded_at", null).order("created_at"),
-    supabase.from("rubrics").select("id, content").eq("is_active", true).single(),
+    rubricFor(supabase, RUBRIC).then((data) => ({ data, error: data ? null : true })),
     supabase.from("tag_values").select("id, tag_group, value, status"),
   ]);
   if (rfpRes.error || !rfpRes.data) return json({ error: "RFP not found" }, 404);

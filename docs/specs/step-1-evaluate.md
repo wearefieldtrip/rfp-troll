@@ -53,8 +53,8 @@ The model returns a fixed shape. The limits keep the page short whatever the RFP
 ## Rubric rules
 
 - The structure is fixed: four dimensions A–D, scored 0 to 3, total out of 12, with the four decision bands by range.
-- The rubric editor may change wording (descriptions, labels, the matrix text). On save it checks that A–D are still there, every dimension has levels 0 to 3, and the matrix ranges cover 0 to 12 with no gaps or overlaps. A rubric that fails the check can't be saved.
-- The rubric stored in the app is the live copy. `docs/fit-rubric.md` is the starting version.
+- (Decision 2026-11-22.) The rubric is a file in the codebase, not an editor in the app. Edit `docs/fit-rubric.md`, run `npm run rubric` (copies it into `review-rfp` and `read-answers`), and deploy those two functions. Each review records which rubric version it used: the first review after a change saves the new text as the next version.
+- Before every review the app checks that A–D are still there, every dimension has levels 0 to 3, and the matrix ranges cover 0 to 12 with no gaps or overlaps. A rubric that fails the check stops the review with a message saying what to fix.
 
 ## Profile layout rule
 

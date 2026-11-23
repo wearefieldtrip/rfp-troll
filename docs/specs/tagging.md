@@ -22,7 +22,7 @@ Every RFP, new or past, gets the same tags. They drive "similar past RFPs": the 
 
 ## Rules
 
-- **Fixed lists.** Values come from lists kept in the Library (Library → Tags). No free text.
+- **Fixed lists.** Values come from lists kept in the Library (the Edit tags dialog). No free text.
 - **Client type, sector, services, procurement and budget band change rarely.** Topic and audience grow.
 - **The AI tags, a person confirms.** The fit review returns tags from the lists. The AI may suggest a new value (e.g. "wildfire prevention"); it's stored as *suggested* and only joins the list when someone approves it in the Library.
 - **Stored, not shown on the profile.** (Decision 2026-11-11.) Tags are not displayed or edited on the RFP profile. The fit review writes them, as unconfirmed AI tags; a re-run replaces earlier unconfirmed AI tags and never touches a group a person confirmed or that came from the tracker. Past RFPs are confirmed on Review imports (Library → Review imports). A wrong tag on any RFP is fixed from **Edit tags** in the ⋯ menu: a dialog with every group's approved values as toggles (one choice for single-value groups), marking groups the AI set. A group the person changes becomes confirmed, so later reviews leave it alone; groups left as they were stay AI-set.
@@ -78,11 +78,11 @@ Score each past RFP against the current one. Starting weights, tunable later:
 
 Use: top matches for the fit review's track record line, and the ranked list of base proposals in step 3 (only past RFPs with a linked proposal Doc).
 
-## Library → Tags (built)
+## Tag lists (built)
 
-- The sidebar has a **Library** section with **Tags** and **Rubric**.
-- Tags lists each group with its values as chips, how many RFPs use each, and an Add field. A value in use can't be removed; an unused value shows an × to remove it. Duplicates are refused however they are capitalized. Budget bands are a fixed range list and have no Add field.
-- **Suggested by the AI** sits above the groups when there are any, with **Approve** and **Reject** (reject deletes the suggestion).
+- (Decision 2026-11-22.) There is no Tags page and no sidebar. The lists are kept from the **Edit tags** dialog on any RFP.
+- Each group shows its values as chips. **Add a new value** sits under each group (the new value joins the list for everyone and is chosen for this RFP). **Delete values** switches the chips to show an × on every value no RFP uses; a value in use shows how many RFPs carry it and can't be deleted, so no RFP loses a tag. Duplicates are refused however they are capitalized. Budget bands are a fixed range list and have no Add field.
+- A value the AI suggested shows as a dashed chip. Choosing it and saving approves it; an unused one can be deleted.
 - Geography starts with two values, **Louisville/KY** and **Out of state**. State codes are added as they appear (they are filled in from the RFP or tracker, not picked), so the list is system-managed rather than fixed.
 - Procurement starts with: RFP, RFI, RFQ, Public, Private, Multi-year, Agency of record, Pitch round, DBE/WBE preference. Topic starts with the six examples above.
 - Tracker-derived tags are stored as confirmed (the team's own data); AI-added tags are unconfirmed until reviewed.
