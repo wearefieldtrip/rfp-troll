@@ -51,6 +51,9 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
                       <Link to={`/rfps/${m.item.id}`} className="min-w-0 flex-1 font-medium break-words underline-offset-4 hover:underline">
                         {m.item.client_name ?? m.item.title}
                       </Link>
+                      <span className="font-semibold tabular-nums" title="How closely the tags match. Newer RFPs are listed a little higher.">
+                        {m.percent}% similar
+                      </span>
                       <span className="text-muted-foreground">
                         {m.year} · {outcome}
                         {m.item.furthest_stage && m.item.outcome !== 'won' && ` · ${STAGE_LABELS[m.item.furthest_stage] ?? m.item.furthest_stage}`}

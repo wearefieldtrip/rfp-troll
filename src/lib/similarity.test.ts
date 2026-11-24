@@ -115,3 +115,12 @@ test('the track record counts wins, finalists and the rest', () => {
   )
   assert.equal(trackRecord([]), null)
 })
+
+test('the percentage is the tag match out of 100 and does not change with age', () => {
+  const full = profile({ topics: ['recycling'], budgetBand: '$100–250K' })
+  assert.equal(scoreSimilarity(full, full, NOW).percent, 100)
+  // The default profile has no topics or budget band to match: services 4 + sector 3 + client type 2 = 9 of 12.
+  assert.equal(scoreSimilarity(profile(), profile(), NOW).percent, 75)
+  assert.equal(scoreSimilarity(profile(), profile({ year: 2019 }), NOW).percent, 75)
+  assert.equal(scoreSimilarity(profile(), profile({ services: [], sector: 'K-12', clientType: 'Education' }), NOW).percent, 0)
+})

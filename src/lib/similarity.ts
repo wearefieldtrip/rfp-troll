@@ -12,6 +12,7 @@ export type SimilarityProfile = {
 }
 
 export const WEIGHTS = { services: 4, sector: 3, clientType: 2, topics: 2, budget: 1 } as const
+const MAX_POINTS = Object.values(WEIGHTS).reduce((a, b) => a + b, 0)
 
 /** In order, so "adjacent" means next to each other. "Not stated" never matches. */
 const BANDS = ['Under $50K', '$50–100K', '$100–250K', '$250K+']
@@ -48,8 +49,10 @@ export function budgetClose(a: string | null, b: string | null): boolean {
 }
 
 export type SimilarityScore = {
-  /** Out of 12 before recency, so at most 12. */
+  /** Out of 12 before recency, so at most 12. Recency is applied after, and this is what the list is ordered by. */
   score: number
+  /** How closely the tags match, 0 to 100: the points before recency out of the most they could earn. Age doesn't change it. */
+  percent: number
   sharedServices: string[]
   sharedTopics: string[]
   sameSector: boolean
@@ -77,6 +80,7 @@ export function scoreSimilarity(current: SimilarityProfile, past: SimilarityProf
 
   return {
     score: Math.round(raw * factor * 100) / 100,
+    percent: Math.round((raw / MAX_POINTS) * 100),
     sharedServices: services.shared,
     sharedTopics: topics.shared,
     sameSector,
