@@ -66,11 +66,11 @@ The AI then reads each linked proposal Doc to add services, topics, audiences an
 
 ## Similarity
 
-Score each past RFP against the current one. Starting weights, tunable later:
+Score each past RFP against the current one. Starting weights, tunable later (services raised from 4 to 5 on 2026-11-24, so the points add to 13):
 
 | Signal | Weight |
 |---|---|
-| Services overlap (half: shared ÷ the smaller list; half: shared ÷ the current RFP's list) | 4 |
+| Services overlap (half: shared ÷ the smaller list; half: shared ÷ the current RFP's list) | 5 |
 | Same sector | 3 |
 | Same client type | 2 |
 | Topic overlap | 2 |
@@ -94,6 +94,6 @@ Use: top matches for the fit review's track record line, and the ranked list of 
 
 A search to pick past RFPs as similar by hand was built and then taken out; the list is by tags only. The `rfp_similar` table is no longer used (`docs/cleanup/drop-rfp-similar.sql` drops it).
 
-- (Decision 2026-11-22, changed 2026-11-24.) The raw score (e.g. 2.6) is not shown. Each past RFP shows a **percentage similar** instead: its tag match out of the 12 points the weights allow, so 100% means every signal matches. The percentage ignores age; the list is still ordered by the score with recency applied, so a newer RFP can sit just above an older one with a slightly higher percentage (the hover text says so). The "why it matched" line stays.
+- (Decision 2026-11-22, changed 2026-11-24.) The raw score (e.g. 2.6) is not shown. Each past RFP shows a **percentage similar** instead: its tag match out of the 13 points the weights allow, so 100% means every signal matches. The percentage ignores age; the list is still ordered by the score with recency applied, so a newer RFP can sit just above an older one with a slightly higher percentage (the hover text says so). The "why it matched" line stays.
 - (Decision 2026-11-22.) The "Among the 5 most similar: …" track-record line is no longer shown at the top of the card.
 - (Decision 2026-11-22.) Edit tags is lighter: each group is one row with its values already shown as choices, so the dialog opens ready to edit (no Change button; changed 2026-11-23). Each row has a small "+ New value" link, and one "Delete unused values" control sits at the bottom. Every group is listed, including budget band, geography and procurement, which are filled in from the RFP (changed 2026-11-23: they no longer sit behind "Show other tags").
