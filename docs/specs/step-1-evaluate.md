@@ -195,3 +195,7 @@ Agreed while building. Keep unless changed.
 - The message: "There is a new RFP to view", the title and client, the services asked for, a one-sentence description, the **key dates** (Proposal due, Questions due, Vendor selected, each with its time and time zone as the RFP gives them; "Not stated" when missing, and "Not allowed" for questions only when the RFP says so), and a link to the RFP in the app. No fit score, risks or questions.
 - **Layout** (changed 2026-11-24): Slack blocks give it a hierarchy: a "New RFP to view" heading; the title in bold with the client in small grey text under it; the description; a divider; **Services asked for** on one line; the three key dates as labeled columns; and an **Open in RFP Troll** button. The plain-text version is sent with it as the notification preview and fallback.
 - The RFP is read again just before posting, because the title, client and dates are read from the RFP while the review runs.
+
+## Signing in
+
+- (Decision 2026-11-24.) Someone who opens a link to a page while signed out (a Slack link to an RFP, for example) is sent to sign in and then taken to that page, not to the home page. The page they asked for is kept in that browser tab for up to 15 minutes, because the Google sign-in leaves the app and comes back to its home address. Only a path inside the app is ever returned to, never another site's address.
