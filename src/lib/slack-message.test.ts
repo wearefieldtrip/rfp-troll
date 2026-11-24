@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { newRfpMessage } from './slack-message.ts'
+import { newRfpBlocks, newRfpMessage } from './slack-message.ts'
 
 const base = { title: 'Brand refresh', clientName: 'Riverbend', services: ['Brand strategy', 'Website'], description: 'A regional food bank wants a new brand and website.', appUrl: 'https://troll.example.org/', rfpId: 'abc' }
 
@@ -53,4 +53,20 @@ test('questions not allowed is not the same as not stated', () => {
 test('a time with no time zone is marked as such', () => {
   const text = newRfpMessage({ ...base, dates: { ...dates, proposal_due_tz: null } })
   assert.match(text, /Proposal due: Jan 8, 2027, 10:00 PM \(time zone not stated\)/)
+})
+
+test('the blocks give a heading, the title with the client under it, then services, dates and a button', () => {
+  const blocks = newRfpBlocks({ ...base, dates }) as { type: string; text?: { text: string }; fields?: { text: string }[]; elements?: { url?: string; text?: string }[] }[]
+  assert.deepEqual(blocks.map((b) => b.type), ['header', 'section', 'context', 'section', 'divider', 'section', 'section', 'actions'])
+  assert.equal(blocks[1].text?.text, '*Brand refresh*')
+  assert.equal(blocks[2].elements?.[0].text, 'Riverbend')
+  assert.match(blocks[5].text?.text ?? '', /\*Services asked for\*\nBrand strategy · Website/)
+  assert.deepEqual(blocks[6].fields?.map((f) => f.text), ['*Proposal due*\nJan 8, 2027, 5:00 PM ET', '*Questions due*\nDec 9, 2026', '*Vendor selected*\nNot stated'])
+  assert.equal(blocks[7].elements?.[0].url, 'https://troll.example.org/rfps/abc')
+})
+
+test('blocks leave out what is missing and escape Slack markup', () => {
+  const blocks = newRfpBlocks({ ...base, title: 'A <b> & C', clientName: null, services: [], description: null, appUrl: null }) as { type: string; text?: { text: string } }[]
+  assert.deepEqual(blocks.map((b) => b.type), ['header', 'section', 'divider'])
+  assert.equal(blocks[1].text?.text, '*A &lt;b&gt; &amp; C*')
 })

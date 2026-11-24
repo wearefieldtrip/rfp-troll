@@ -8,7 +8,7 @@ import { downloadFile } from "./google.ts";
 import { checkRubric } from "./rubric-structure.ts";
 import { RUBRIC } from "./rubric-text.ts";
 import { rubricFor } from "./rubric-version.ts";
-import { newRfpMessage } from "./slack-message.ts";
+import { newRfpBlocks, newRfpMessage } from "./slack-message.ts";
 import { budgetBand, buildTags, geographyValues, LIST_GROUPS, tagsPrompt, tagsSchema, type ListGroup, type ReviewTags, type TagLists } from "./review-tags.ts";
 
 // Provided by the Supabase Edge runtime; keeps a task alive after the response is sent.
@@ -226,7 +226,7 @@ async function notifySlack(supabase: SupabaseClient, reviewId: string, rfp: Reco
       .eq("id", rfp.id as string)
       .maybeSingle();
     const latest = fresh ?? rfp;
-    const text = newRfpMessage({
+    const notice = {
       title: String(latest.title ?? rfp.title ?? ""),
       clientName: (latest.client_name as string | null) ?? null,
       services,
@@ -234,8 +234,14 @@ async function notifySlack(supabase: SupabaseClient, reviewId: string, rfp: Reco
       dates: fresh as never,
       appUrl: Deno.env.get("APP_URL") ?? null,
       rfpId: rfp.id as string,
+    };
+    // The blocks give the layout; the plain text is the notification preview and the fallback.
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: newRfpMessage(notice), blocks: newRfpBlocks(notice) }),
+      signal: AbortSignal.timeout(8000),
     });
-    const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }), signal: AbortSignal.timeout(8000) });
     if (!res.ok) console.error("slack post failed", res.status);
   } catch (err) {
     console.error("slack post failed", err instanceof Error ? err.message : "unknown");
