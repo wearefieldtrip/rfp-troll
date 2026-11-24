@@ -11,7 +11,7 @@ export type SimilarityProfile = {
   year: number
 }
 
-export const WEIGHTS = { services: 5, sector: 3, clientType: 2, topics: 2, budget: 1 } as const
+export const WEIGHTS = { services: 6, sector: 2, clientType: 2, topics: 2, budget: 1 } as const
 const MAX_POINTS = Object.values(WEIGHTS).reduce((a, b) => a + b, 0)
 
 /** In order, so "adjacent" means next to each other. "Not stated" never matches. */

@@ -66,12 +66,12 @@ The AI then reads each linked proposal Doc to add services, topics, audiences an
 
 ## Similarity
 
-Score each past RFP against the current one. Starting weights, tunable later (services raised from 4 to 5 on 2026-11-24, so the points add to 13):
+Score each past RFP against the current one. Starting weights, tunable later (services raised from 4 to 6 and sector cut from 3 to 2 on 2026-11-24, so the points add to 13):
 
 | Signal | Weight |
 |---|---|
-| Services overlap (half: shared ÷ the smaller list; half: shared ÷ the current RFP's list) | 5 |
-| Same sector | 3 |
+| Services overlap (half: shared ÷ the smaller list; half: shared ÷ the current RFP's list) | 6 |
+| Same sector | 2 |
 | Same client type | 2 |
 | Topic overlap | 2 |
 | Same or adjacent budget band | 1 |

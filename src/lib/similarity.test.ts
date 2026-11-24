@@ -44,10 +44,10 @@ test('an identical RFP this year scores the most the weights allow', () => {
 
 test('the signals add up as the spec says, then recency multiplies', () => {
   const current = profile()
-  // Same sector (3) and client type (2), and one of two services shared on each side (overlap 0.5, so 5 × 0.5 = 2.5): 7.5, a year ago × 0.85.
+  // Same sector (2) and client type (2), and one of two services shared on each side (overlap 0.5, so 6 × 0.5 = 3): 7, a year ago × 0.85.
   const past = profile({ services: ['Website', 'Campaign'], year: 2025 })
   const s = scoreSimilarity(current, past, NOW)
-  assert.equal(s.score, Math.round((2.5 + 3 + 2) * 0.85 * 100) / 100)
+  assert.equal(s.score, Math.round((3 + 2 + 2) * 0.85 * 100) / 100)
   assert.deepEqual(s.sharedServices, ['Website'])
   assert.equal(s.sameSector, true)
   assert.equal(s.recency, 0.85)
@@ -55,7 +55,7 @@ test('the signals add up as the spec says, then recency multiplies', () => {
 
 test('a different sector and client type score only on services', () => {
   const s = scoreSimilarity(profile(), profile({ sector: 'K-12', clientType: 'Education' }), NOW)
-  assert.equal(s.score, 5)
+  assert.equal(s.score, 6)
   assert.equal(s.sameSector, false)
 })
 
@@ -119,7 +119,7 @@ test('the track record counts wins, finalists and the rest', () => {
 test('the percentage is the tag match out of 100 and does not change with age', () => {
   const full = profile({ topics: ['recycling'], budgetBand: '$100–250K' })
   assert.equal(scoreSimilarity(full, full, NOW).percent, 100)
-  // The default profile has no topics or budget band to match: services 5 + sector 3 + client type 2 = 10 of 13.
+  // The default profile has no topics or budget band to match: services 6 + sector 2 + client type 2 = 10 of 13.
   assert.equal(scoreSimilarity(profile(), profile(), NOW).percent, 77)
   assert.equal(scoreSimilarity(profile(), profile({ year: 2019 }), NOW).percent, 77)
   assert.equal(scoreSimilarity(profile(), profile({ services: [], sector: 'K-12', clientType: 'Education' }), NOW).percent, 0)
