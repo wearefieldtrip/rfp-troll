@@ -216,11 +216,22 @@ async function notifySlack(supabase: SupabaseClient, reviewId: string, rfp: Reco
     // Only the first finished review of an RFP is announced.
     const { count } = await supabase.from("rfp_reviews").select("id", { count: "exact", head: true }).eq("rfp_id", rfp.id as string).eq("status", "complete").neq("id", reviewId);
     if ((count ?? 0) > 0) return;
+    // The RFP row is read again now: the title, client and dates are read from the RFP while the review runs, so the copy
+    // this review started with can be out of date.
+    const { data: fresh } = await supabase
+      .from("rfps")
+      .select(
+        "title, client_name, questions_policy, proposal_due_at, proposal_due_has_time, proposal_due_tz, proposal_due_text, questions_due_at, questions_due_has_time, questions_due_tz, questions_due_text, vendor_selection_at, vendor_selection_has_time, vendor_selection_tz, vendor_selection_text",
+      )
+      .eq("id", rfp.id as string)
+      .maybeSingle();
+    const latest = fresh ?? rfp;
     const text = newRfpMessage({
-      title: String(rfp.title ?? ""),
-      clientName: (rfp.client_name as string | null) ?? null,
+      title: String(latest.title ?? rfp.title ?? ""),
+      clientName: (latest.client_name as string | null) ?? null,
       services,
       description: summary || null,
+      dates: fresh as never,
       appUrl: Deno.env.get("APP_URL") ?? null,
       rfpId: rfp.id as string,
     });

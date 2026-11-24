@@ -188,3 +188,9 @@ Agreed while building. Keep unless changed.
 
 - The separate Decisions card is gone. A **History** column sits to the right of the steps on wide screens (under them on narrow ones), newest first: RFP added, fit reviews, re-scores after answers, decisions (with any note), answers added, and questions marked as sent. Each shows when (with time zone) and who. Scores and question counts are not repeated here; they live on the cards.
 - It is built from rows that already record who and when. Marking the questions as sent sits where it was clicked (`questions_sent_at`) and notes the day the team said it was sent, with no person; RFPs marked sent before that was recorded sit just after the decision that started the questions step and show only the day. Owner changes, file replacements and the questions doc being created are not recorded yet; an activity log table would add them.
+
+## Slack notice
+
+- (Decision 2026-11-11, dates added 2026-11-24.) When a **new RFP's first** fit review finishes, `review-rfp` posts one message to the team's Slack channel (the `SLACK_WEBHOOK_URL` secret; `APP_URL` makes the link). Re-runs and failed reviews post nothing.
+- The message: "There is a new RFP to view", the title and client, the services asked for, a one-sentence description, the **key dates** (Proposal due, Questions due, Vendor selected, each with its time and time zone as the RFP gives them; "Not stated" when missing, and "Not allowed" for questions only when the RFP says so), and a link to the RFP in the app. No fit score, risks or questions.
+- The RFP is read again just before posting, because the title, client and dates are read from the RFP while the review runs.

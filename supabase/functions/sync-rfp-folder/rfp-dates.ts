@@ -1,6 +1,6 @@
 // Dates read from an RFP: turned into a stored "moment" (instant, whether a time was given, and the time zone),
 // and shown back with their time zone. See docs/specs/step-1-evaluate.md, "Dates and times".
-// An identical copy lives in supabase/functions/sync-rfp-folder/ (functions deploy independently).
+// Identical copies live in supabase/functions/sync-rfp-folder/ and review-rfp/ (functions deploy independently).
 //
 // Storage conventions:
 //  - only a day given:        at = that day at 12:00 UTC, hasTime = false, tz = null. Only the day is shown.

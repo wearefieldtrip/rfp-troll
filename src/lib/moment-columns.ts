@@ -2,7 +2,7 @@ import type { Moment } from './rfp-dates.ts'
 
 type Prefix = 'proposal_due' | 'questions_due' | 'vendor_selection'
 
-type MomentRow = {
+export type MomentRow = {
   proposal_due_at: string | null
   proposal_due_has_time: boolean
   proposal_due_tz: string | null
