@@ -64,6 +64,22 @@ test('missing tags score nothing rather than matching each other', () => {
   assert.equal(scoreSimilarity(bare, bare, NOW).score, 0)
 })
 
+test('a closer match outranks a newer one: the list is in percentage order, age only breaks ties', () => {
+  const current = profile()
+  const ranked = rankSimilar(
+    current,
+    [
+      { item: 'newer, less alike', year: 2026, profile: profile({ services: ['Website'], year: 2026 }) },
+      { item: 'older, closer', year: 2023, profile: profile({ year: 2023 }) },
+    ],
+    5,
+    NOW,
+  )
+  assert.deepEqual(ranked.map((r) => r.item), ['older, closer', 'newer, less alike'])
+  const percents = ranked.map((r) => r.percent)
+  assert.deepEqual(percents, [...percents].sort((a, b) => b - a))
+})
+
 test('the best matches come first, ties go to the more recent, and nothing in common is left out', () => {
   const current = profile()
   const ranked = rankSimilar(

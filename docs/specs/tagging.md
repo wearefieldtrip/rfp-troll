@@ -75,7 +75,7 @@ Score each past RFP against the current one. Starting weights, tunable later (se
 | Same client type | 2 |
 | Topic overlap | 2 |
 | Same or adjacent budget band | 1 |
-| Recency | Multiply by 1.0 this year, 0.85 last year, 0.7 two years back, 0.5 older |
+| Recency | Multiply by 1.0 this year, 0.85 last year, 0.7 two years back, 0.5 older. Used only to break a tie between past RFPs with the same percentage (changed 2026-11-24) |
 
 (Changed 2026-11-23: services and topics overlap was shared ÷ combined. That sank real matches: a website RFP the AI tagged with seven services scored at most 1/7 against a past RFP that did only the website, and the flat 2 points every nonprofit gets for client type outweighed it. The blend above fixes that. Tested on the first real website RFP: the website-only past RFPs moved to the top.)
 
@@ -94,6 +94,6 @@ Use: top matches for the fit review's track record line, and the ranked list of 
 
 A search to pick past RFPs as similar by hand was built and then taken out; the list is by tags only. The `rfp_similar` table is no longer used (`docs/cleanup/drop-rfp-similar.sql` drops it).
 
-- (Decision 2026-11-22, changed 2026-11-24.) The raw score (e.g. 2.6) is not shown. Each past RFP shows a **percentage similar** instead: its tag match out of the 13 points the weights allow, so 100% means every signal matches. The percentage ignores age; the list is still ordered by the score with recency applied, so a newer RFP can sit just above an older one with a slightly higher percentage (the hover text says so). The "why it matched" line stays.
+- (Decision 2026-11-22, changed 2026-11-24.) The raw score (e.g. 2.6) is not shown. Each past RFP shows a **percentage similar** instead: its tag match out of the 13 points the weights allow, so 100% means every signal matches. The list is ordered by that percentage, highest first, and shows the **top 5** with no "show more" (changed 2026-11-24: it used to order by the score with recency applied, which let a newer RFP sit above a closer match). Age only breaks a tie between equal percentages, newer first. The "why it matched" line stays.
 - (Decision 2026-11-22.) The "Among the 5 most similar: …" track-record line is no longer shown at the top of the card.
 - (Decision 2026-11-22.) Edit tags is lighter: each group is one row with its values already shown as choices, so the dialog opens ready to edit (no Change button; changed 2026-11-23). Each row has a small "+ New value" link, and one "Delete unused values" control sits at the bottom. Every group is listed, including budget band, geography and procurement, which are filled in from the RFP (changed 2026-11-23: they no longer sit behind "Show other tags").

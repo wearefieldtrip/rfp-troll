@@ -1,7 +1,5 @@
 import { ExternalLinkIcon } from 'lucide-react'
-import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSimilarList } from '@/lib/base-candidates'
@@ -9,15 +7,13 @@ import { OUTCOME_LABELS, STAGE_LABELS } from '@/lib/import-view'
 import { profileFromTags, whyMatched } from '@/lib/similarity'
 
 const SHOWN = 5
-const MORE = 10
 
 type TagRows = { tag_values: { tag_group: string; value: string } | null }[]
 const flat = (rows: TagRows) => rows.flatMap((r) => (r.tag_values ? [r.tag_values] : []))
 
 /** The past RFPs most like this one: ones the team picked first, then the best by tags, with how each turned out. */
 export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
-  const [more, setMore] = useState(false)
-  const list = useSimilarList(rfpId, year, { limit: MORE })
+  const list = useSimilarList(rfpId, year, { limit: SHOWN })
 
   if (list.loading) return <Skeleton className="h-32 w-full" />
   if (list.failed) return null
@@ -25,7 +21,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
   const current = profileFromTags(flat(list.tagRows), year)
   const hasTags = current.services.length > 0 || current.sector !== null || current.clientType !== null
   const ranked = list.ranked
-  const shown = more ? ranked : ranked.slice(0, SHOWN)
 
   return (
     <Card aria-label="Similar past RFPs">
@@ -42,7 +37,7 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
         ) : (
           <>
             <ul className="divide-y rounded-md border">
-              {shown.map((m) => {
+              {ranked.map((m) => {
                 const why = whyMatched(m)
                 const outcome = m.item.outcome ? (OUTCOME_LABELS[m.item.outcome] ?? m.item.outcome) : null
                 return (
@@ -51,7 +46,7 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
                       <Link to={`/rfps/${m.item.id}`} className="min-w-0 flex-1 font-medium break-words underline-offset-4 hover:underline">
                         {m.item.client_name ?? m.item.title}
                       </Link>
-                      <span className="font-semibold tabular-nums" title="How closely the tags match. Newer RFPs are listed a little higher.">
+                      <span className="font-semibold tabular-nums" title="How closely the tags match, highest first.">
                         {m.percent}% similar
                       </span>
                       <span className="text-muted-foreground">
@@ -75,11 +70,6 @@ export function SimilarRfps({ rfpId, year }: { rfpId: string; year: number }) {
                 )
               })}
             </ul>
-            {ranked.length > SHOWN && (
-              <Button variant="ghost" size="sm" onClick={() => setMore(!more)}>
-                {more ? 'Show fewer' : `Show ${ranked.length - SHOWN} more`}
-              </Button>
-            )}
           </>
         )}
       </CardContent>

@@ -105,12 +105,15 @@ export function profileFromTags(tags: { tag_group: string; value: string }[], ye
 
 export type Candidate<T> = { item: T; profile: SimilarityProfile; year: number }
 
-/** The best matches first. A candidate with nothing in common is left out. Ties go to the more recent. */
+/**
+ * The best matches first, by the percentage shown. A candidate with nothing in common is left out. Age no longer moves a
+ * match up or down the list; it only breaks a tie (the same percentage), newer first.
+ */
 export function rankSimilar<T>(current: SimilarityProfile, candidates: Candidate<T>[], limit: number, now: Date = new Date()) {
   return candidates
     .map((c) => ({ item: c.item, year: c.year, ...scoreSimilarity(current, c.profile, now) }))
     .filter((c) => c.score > 0)
-    .sort((a, b) => b.score - a.score || b.year - a.year)
+    .sort((a, b) => b.percent - a.percent || b.score - a.score || b.year - a.year)
     .slice(0, limit)
 }
 
