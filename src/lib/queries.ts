@@ -146,3 +146,13 @@ export const pastRfpsQuery = queryOptions({
     return data
   },
 })
+
+/** The rubric reviews are scored with now: the last one published from the Google Doc. */
+export const activeRubricQuery = queryOptions({
+  queryKey: ['rubric', 'active'],
+  queryFn: async () => {
+    const { data, error } = await supabase.from('rubrics').select('version, created_at').eq('is_active', true).maybeSingle()
+    if (error) throw error
+    return data
+  },
+})

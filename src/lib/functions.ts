@@ -26,3 +26,19 @@ export const buildRequirements = (rfpId: string) => invokeFunction('requirements
 
 /** Builds the proposal Doc as a copy of a past proposal, matched to what the RFP asks for. Waits for the requirements itself. */
 export const proposalDoc = (rfpId: string, baseRfpId: string) => invokeFunction('proposal-doc', { rfp_id: rfpId, base_rfp_id: baseRfpId })
+
+export type RubricCheck =
+  | { error: 'access'; serviceAccount: string | null; message: string }
+  | { problems: string[]; proposed: string; current: { version: number; content: string } | null; changed: boolean }
+
+/** The rubric Doc: `check` reads it and compares it with the published version; `publish` saves it as the next version. */
+export async function rubricDoc(action: 'check', expected?: undefined): Promise<RubricCheck>
+export async function rubricDoc(action: 'publish', expected: string): Promise<{ published: boolean; version: number | null }>
+export async function rubricDoc(action: 'check' | 'publish', expected?: string) {
+  const { data, error } = await supabase.functions.invoke('rubric-doc', { body: { action, expected } })
+  if (error) {
+    const detail = error instanceof FunctionsHttpError ? await error.context.json().catch(() => null) : null
+    throw new Error(detail?.error ?? 'Something went wrong. Please try again.')
+  }
+  return data
+}
