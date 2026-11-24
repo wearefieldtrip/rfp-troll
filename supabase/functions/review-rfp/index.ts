@@ -309,6 +309,14 @@ async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record
       throw err;
     }
 
+    // Tags and summary are saved before the review is marked complete. The page reloads the moment it sees "complete",
+    // so saving them afterwards left the tags missing until a manual refresh.
+    const parsed = JSON.parse(text.text) as { tags?: unknown; summary?: unknown };
+    const tags = buildTags(parsed.tags, lists);
+    await saveTags(supabase, rfp.id as string, tags, rfp);
+    const summary = typeof parsed.summary === "string" ? parsed.summary.replace(/\s+/g, " ").trim().slice(0, 300) : "";
+    if (summary) await supabase.from("rfps").update({ summary }).eq("id", rfp.id as string);
+
     await supabase
       .from("rfp_reviews")
       .update({
@@ -321,11 +329,6 @@ async function runReview(supabase: SupabaseClient, reviewId: string, rfp: Record
       })
       .eq("id", reviewId);
 
-    const parsed = JSON.parse(text.text) as { tags?: unknown; summary?: unknown };
-    const tags = buildTags(parsed.tags, lists);
-    await saveTags(supabase, rfp.id as string, tags, rfp);
-    const summary = typeof parsed.summary === "string" ? parsed.summary.replace(/\s+/g, " ").trim().slice(0, 300) : "";
-    if (summary) await supabase.from("rfps").update({ summary }).eq("id", rfp.id as string);
     await notifySlack(supabase, reviewId, rfp, tags.services, summary);
   } catch (err) {
     console.error("review failed", err);
